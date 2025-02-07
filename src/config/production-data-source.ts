@@ -15,7 +15,7 @@ const sqlitedataSourceConfig: DataSourceOptions = {
   migrations: ['dist/migrations/*{.js,.ts}'],
 }
 
-export const dbConfig = registerAs(
+export const sqlitedbConfig = registerAs(
     'sqlite',
     () => sqlitedataSourceConfig,
 );
