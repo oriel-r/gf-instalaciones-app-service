@@ -9,19 +9,27 @@ import { SeedersModule } from './seeders/seeders.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { dbConfig } from './config/data-source';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { sqlitedbConfig } from './config/sqlite-data-source';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: './.env.development.local',
-      load: [dbConfig],
+      load: [dbConfig, sqlitedbConfig, () =>({
+        environment: process.env.ENVIRONMENT || "LOCAL",
+
+        }),
+      ],
     }),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService): TypeOrmModuleOptions => {
-        const config = configService.get<TypeOrmModuleOptions>('postgres');
-
+        
+        const config = configService.get('environment') === "LOCAL"
+        ? configService.get<TypeOrmModuleOptions>('postgres')
+        : configService.get<TypeOrmModuleOptions>('sqlite')
+        
         if (!config) {
           throw new Error('Database configuration not found');
         }
