@@ -1,4 +1,4 @@
-name: render-deploy-PF-backend
+name: render-deploy-backend
 
 on:
   push:
