@@ -26,11 +26,11 @@ jobs:
   
       -
         name: Build and push
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v6.13
         with:
           context: .
           push: true
-          tags: ${{secrets.DOCKERHUB_USERNAME}}/gf-web-service:latest
+          tags: oriel/gf-web-service:latest
 
       ##Deploy to render
 
