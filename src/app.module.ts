@@ -15,7 +15,7 @@ import { sqlitedbConfig } from './config/sqlite-data-source';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: './.env.development.local',
+      envFilePath: ['.env.development.local', 'env'],
       load: [dbConfig, sqlitedbConfig, () =>({
         environment: process.env.ENVIRONMENT || "LOCAL",
 
