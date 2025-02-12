@@ -9,6 +9,8 @@ import { SeedersModule } from './seeders/seeders.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { dbConfig } from './config/data-source';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { EmailModule } from './modules/email/email.module';
+import { NewsletterModule } from './modules/newsletter/newsletter.module';
 
 @Module({
   imports: [
@@ -32,7 +34,9 @@ import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
     UserModule,
     OrdersModule,
     InstalationsModule,
-    SeedersModule
+    SeedersModule,
+    EmailModule,
+    NewsletterModule
   ],
   controllers: [AppController],
   providers: [AppService, CloudinaryService],

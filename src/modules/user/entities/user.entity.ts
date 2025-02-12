@@ -35,4 +35,8 @@ export class User {
 
     @Column()
     confirmPassword: string;
+
+    @Column({ default: true })
+    isSubscribed: boolean;
+
 }

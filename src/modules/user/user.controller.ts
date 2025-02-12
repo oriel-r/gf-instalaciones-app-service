@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, NotFoundException } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { get } from 'http';
 
 @Controller('user')
 export class UserController {
@@ -30,5 +31,17 @@ export class UserController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.userService.remove(+id);
+  }
+
+  @Get('byEmail')
+  async findByEmail(@Body('email') email: string) {
+    try {
+      const user = await this.userService.findByEmail(email);
+      
+      if(!user) throw new NotFoundException(`No se encontro el usuario con el email: ${email}`);
+
+    } catch (error) {
+      throw new NotFoundException(`No se encontro el usuario`);
+    }
   }
 }
