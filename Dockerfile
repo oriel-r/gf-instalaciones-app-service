@@ -1,4 +1,4 @@
-FROM node:18-alpine AS development
+FROM node:22-alpine AS development
 
 WORKDIR /usr/src/app
 
@@ -8,7 +8,7 @@ RUN npm ci
 
 COPY . .
 
-FROM node:18-alpine AS build
+FROM node:22-alpine AS build
 
 WORKDIR /usr/src/app
 
@@ -22,7 +22,7 @@ RUN npm run build
 
 RUN npm ci --only=production && npm cache clean --force
 
-FROM node:18-alpine AS production
+FROM node:22-alpine AS production
 
 COPY --from=build /usr/src/app/node_modules ./node_modules
 
