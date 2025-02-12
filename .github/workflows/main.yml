@@ -1,4 +1,4 @@
-name: render-deploy-PF-backend
+name: ci-cd
 
 on:
   push:
@@ -14,21 +14,15 @@ jobs:
         name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}          
-      -
-        name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-      -
-        name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      -
-        name: Build and push
+          username: ${{secrets.DOCKERHUB_USERNAME}}
+          password: ${{secrets.DOCKERHUB_TOKEN}}
+
+      - name: Build and push docker image
         uses: docker/build-push-action@v6
         with:
           push: true
-          tags: orielr/gf-app-service:latest
-          
+          tags: ${{secrets.DOCKERHUB_USERNAME}}/gf-app-service:latest
+
       ##Deploy to render
 
       - name: Deploy to render
