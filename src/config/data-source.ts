@@ -6,11 +6,11 @@ dotenvConfig({ path: '.env.development.local' });
 
 const dataSourceConfig: DataSourceOptions = {
   type: 'postgres',
-  database: process.env.DB_NAME,
-  host: process.env.DB_HOST,
-  port: parseInt(process.env.DB_PORT as string),
-  username: process.env.DB_USERNAME,
-  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME_PSQL,
+  host: process.env.DB_HOST_PSQL,
+  port: parseInt(process.env.DB_PORT_PSQL as string),
+  username: process.env.DB_USERNAME_PSQL,
+  password: process.env.DB_PASSWORD_PSQL,
   synchronize: true,
   dropSchema: false,
   logging: ['error'],
