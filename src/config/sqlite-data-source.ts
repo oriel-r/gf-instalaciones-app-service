@@ -6,8 +6,8 @@ dotenvConfig({ path: '.env.development.local' });
 
 const sqlitedataSourceConfig: DataSourceOptions = {
   type: 'sqlite',
-  database: process.env.DB_NAME as string,
-  key: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME_SQLITE as string,
+  key: process.env.DB_PASSWORD_SQLITE,
   synchronize: true,
   dropSchema: true,
   logging: ['error'],
@@ -20,4 +20,4 @@ export const sqlitedbConfig = registerAs(
     () => sqlitedataSourceConfig,
 );
 
-export const appDataSource = new DataSource(sqlitedataSourceConfig)
+export const appDataSourceSql = new DataSource(sqlitedataSourceConfig)
