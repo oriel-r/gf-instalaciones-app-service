@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -12,8 +12,15 @@ export class UserService {
     private readonly userRepository: Repository<User>,
   ) {}
 
-  create(createUserDto: CreateUserDto) {
-    return 'This action adds a new user';
+  async createUser( createUserDto: CreateUserDto ) {
+    const user = await this.findByEmail(createUserDto.email);
+    
+    if(!user) throw new NotFoundException('No se encontro un usuario con el email indicado');
+
+    if(user.identificationNumber) throw new ConflictException('El documento de identidad ya se encuentra registrado');
+
+    const newUser = new User()
+    newUser.name =d
   }
 
   findAll() {

@@ -1,4 +1,4 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { v4 as uuid } from 'uuid';
 
 @Entity({name: 'users'})
@@ -18,7 +18,7 @@ export class User {
     @Column()
     birthdate?: Date;
 
-    @Column()
+    @Column({ unique: true })
     identificationNumber: string;
 
     @Column()
@@ -38,5 +38,4 @@ export class User {
 
     @Column({ default: true })
     isSubscribed: boolean;
-
 }
