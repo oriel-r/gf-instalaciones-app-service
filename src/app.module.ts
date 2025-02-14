@@ -10,6 +10,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { dbConfig } from './config/data-source';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { sqlitedbConfig } from './config/sqlite-data-source';
+import { BlogPostTamplatesModule } from './modules/blog-post-tamplates/blog-post-tamplates.module';
+import { BlogPostsModule } from './modules/blog-posts/blog-posts.module';
+import { BlogCategoriesModule } from './modules/blog-categories/blog-categories.module';
 
 @Module({
   imports: [
@@ -40,7 +43,10 @@ import { sqlitedbConfig } from './config/sqlite-data-source';
     UserModule,
     OrdersModule,
     InstalationsModule,
-    SeedersModule
+    SeedersModule,
+    BlogPostTamplatesModule,
+    BlogPostsModule,
+    BlogCategoriesModule
   ],
   controllers: [AppController],
   providers: [AppService, CloudinaryService],
