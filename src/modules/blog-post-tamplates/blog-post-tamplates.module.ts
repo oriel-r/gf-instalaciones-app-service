@@ -8,6 +8,6 @@ import { BlogPostTemplate } from './entities/blog-template.entity';
 @Module({
   imports: [TypeOrmModule.forFeature([BlogPostTemplate])],
   controllers: [BlogPostTamplatesController],
-  providers: [BlogPostTamplatesService, BlogPostTemplatesRepository],
+  providers: [BlogPostTemplatesRepository, BlogPostTamplatesService],
 })
 export class BlogPostTamplatesModule {}

@@ -3,10 +3,13 @@ import { DeepPartial, Repository } from "typeorm";
 import { CreateBlogPostTemplate } from "./dtos/create-template.dto";
 import { BlogPost } from "../blog-posts/entities/blog-post.entity";
 import { BlogPostTemplate } from "./entities/blog-template.entity";
+import { InjectRepository } from "@nestjs/typeorm";
 
 @Injectable()
 export class BlogPostTemplatesRepository {
-    constructor(private readonly blogPostTemplatesRepository: Repository<BlogPostTemplate>) {}
+    constructor(
+        @InjectRepository(BlogPostTemplate) private readonly blogPostTemplatesRepository: Repository<BlogPostTemplate>
+    ) {}
 
     async create(data: CreateBlogPostTemplate) {
         return await this.blogPostTemplatesRepository.save(
@@ -20,6 +23,10 @@ export class BlogPostTemplatesRepository {
 
     async getById(id: string) {
         return await this.blogPostTemplatesRepository.findOneBy({id})
+    }
+
+    async getByName(name: string) {
+        return await this.blogPostTemplatesRepository.findOneBy({name})
     }
 
     async update(id: string, data: DeepPartial<BlogPostTemplate>) {

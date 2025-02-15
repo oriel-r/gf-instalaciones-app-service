@@ -1,7 +1,8 @@
 import { IsNotEmpty, IsOptional, IsString, MaxLength } from "@nestjs/class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 import { BaseEntity } from "src/common/entities/base.entity";
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { BlogPost } from "src/modules/blog-posts/entities/blog-post.entity";
+import { Column, DeepPartial, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class BlogCategory extends BaseEntity {
@@ -14,15 +15,13 @@ export class BlogCategory extends BaseEntity {
     id: string
 
     @ApiProperty({
-        title: 'title',
-        description: "category's title",
+        title: 'name',
+        description: "category's name",
         type: 'string',
         example: "Captación de clientes"
     })
-    @IsString()
-    @IsNotEmpty()
     @Column({type: 'varchar', nullable: false})
-    title: string
+    name: string
 
     @ApiProperty({
         title: 'description',
@@ -31,13 +30,19 @@ export class BlogCategory extends BaseEntity {
         maxLength: 160,
         example: 'An description of the category'
     })
-    @IsString()
-    @IsOptional()
-    @MaxLength(160)
     @Column({type:'varchar', nullable: true, })
     description: string
 
-    
+    @ApiProperty({
+        title: 'blogPosts',
+        description: "category's posts",
+    })
+    @OneToMany(() => BlogPost, (blogPost) => blogPost.blogCategory)
+    blogPosts: BlogPost[]
 
 
+    constructor(partial: DeepPartial<BlogPost>) {
+        super()
+        Object.assign(this, partial)
+    }
 }

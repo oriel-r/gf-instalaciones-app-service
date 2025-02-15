@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, BaseEntity as TypeOrmBaseEntity, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, DeepPartial, BaseEntity as TypeOrmBaseEntity, UpdateDateColumn } from "typeorm";
 
 export abstract class BaseEntity extends TypeOrmBaseEntity {
     
@@ -10,4 +10,5 @@ export abstract class BaseEntity extends TypeOrmBaseEntity {
 
     @Column({default: true})
     isActive: boolean
+
 }
