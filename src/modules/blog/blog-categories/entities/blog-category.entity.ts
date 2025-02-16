@@ -1,7 +1,7 @@
 import { IsNotEmpty, IsOptional, IsString, MaxLength } from "@nestjs/class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 import { BaseEntity } from "src/common/entities/base.entity";
-import { BlogPost } from "src/modules/blog-posts/entities/blog-post.entity";
+import { BlogPost } from "src/modules/blog/blog-posts/entities/blog-post.entity";
 import { Column, DeepPartial, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()

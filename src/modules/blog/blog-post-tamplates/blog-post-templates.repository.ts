@@ -18,7 +18,9 @@ export class BlogPostTemplatesRepository {
     }
 
     async get() {
-        return await this.blogPostTemplatesRepository.find()
+        return await this.blogPostTemplatesRepository.find({
+            relations: {blogPosts: true}
+        })
     }
 
     async getById(id: string) {

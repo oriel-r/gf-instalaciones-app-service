@@ -1,7 +1,7 @@
 import { Column, DeepPartial, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
-import { BaseEntity } from "../../../common/entities/base.entity";
+import { BaseEntity } from "../../../../common/entities/base.entity";
 import { ApiProperty } from "@nestjs/swagger";
-import { BlogPost } from "src/modules/blog-posts/entities/blog-post.entity";
+import { BlogPost } from "src/modules/blog/blog-posts/entities/blog-post.entity";
 
 @Entity()
 export class BlogPostTemplate extends BaseEntity {
@@ -33,7 +33,7 @@ export class BlogPostTemplate extends BaseEntity {
     @ApiProperty({
         title: 'blogPosts',
         description: 'blog post with use this template',
-        type: 'string'
+        type: () => [BlogPost]
     })
     @OneToMany(() => BlogPost, (blogPosts) => blogPosts.blogPostTemplate, {nullable: true} )
     blogPosts: BlogPost[]

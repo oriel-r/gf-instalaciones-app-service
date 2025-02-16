@@ -1,9 +1,9 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { BlogPostStatus } from "src/common";
 import { BaseEntity } from "src/common/entities/base.entity";
-import { BlogCategory } from "src/modules/blog-categories/entities/blog-category.entity";
-import { BlogPostTemplate } from "src/modules/blog-post-tamplates/entities/blog-template.entity";
-import { ContentBlockDto } from "src/modules/blog-posts/dtos/content.block.dto";
+import { BlogCategory } from "src/modules/blog/blog-categories/entities/blog-category.entity";
+import { BlogPostTemplate } from "src/modules/blog/blog-post-tamplates/entities/blog-template.entity";
+import { ContentBlockDto } from "src/modules/blog/blog-posts/dtos/content.block.dto";
 import { Column, DeepPartial, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
@@ -60,7 +60,7 @@ export class BlogPost extends BaseEntity {
     @ApiProperty({
         title: 'content',
         description: "post's content in JSONB format",
-        type: 'array',
+        type: () => [ContentBlockDto]
     })
     @Column('jsonb',{nullable:false})
     content: ContentBlockDto[]
