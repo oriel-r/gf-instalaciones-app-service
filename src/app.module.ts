@@ -5,12 +5,17 @@ import { UserModule } from './modules/user/user.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { InstalationsModule } from './modules/instalations/instalations.module';
 import { CloudinaryService } from './services/cloudinary/cloudinary.service';
-import { SeedersModule } from './seeders/seeders.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { dbConfig } from './config/data-source';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { sqlitedbConfig } from './config/sqlite-data-source';
 import { BlogModule } from './modules/blog/blog.module';
+import { EmailModule } from './modules/email/email.module';
+import { NewsletterModule } from './modules/newsletter/newsletter.module';
+import { SeedersModule } from './seeders/seeders.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { JwtModule } from '@nestjs/jwt';
+import { InstallerModule } from './modules/installer/installer.module';
 
 @Module({
   imports: [
@@ -43,6 +48,16 @@ import { BlogModule } from './modules/blog/blog.module';
     InstalationsModule,
     SeedersModule,
     BlogModule
+    SeedersModule,
+    EmailModule,
+    NewsletterModule,
+    AuthModule,
+    JwtModule.register({
+      global: true,
+      signOptions: { expiresIn: '1h' },
+      secret: process.env.JWT_SECRET,
+    }),
+    InstallerModule,
   ],
   controllers: [AppController],
   providers: [AppService, CloudinaryService],
