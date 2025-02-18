@@ -37,7 +37,7 @@ export class BlogCategory extends BaseEntity {
         title: 'blogPosts',
         description: "category's posts",
     })
-    @OneToMany(() => BlogPost, (blogPost) => blogPost.blogCategory)
+    @OneToMany(() => BlogPost, (blogPost) => blogPost.blogCategory, {eager: true})
     blogPosts: BlogPost[]
 
 

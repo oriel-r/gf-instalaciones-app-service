@@ -37,7 +37,7 @@ export class BlogPost extends BaseEntity {
         description: "post's category",
         required: true
     })
-    @ManyToOne(() => BlogCategory, (blogCategory) => blogCategory.blogPosts)
+    @ManyToOne(() => BlogCategory, (blogCategory) => blogCategory.blogPosts, {onDelete: 'SET NULL'})
     blogCategory: BlogCategory
 
     @ApiProperty({

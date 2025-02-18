@@ -30,8 +30,8 @@ export class BlogPostTamplatesService {
     async softDeleteTemplate(id: string): Promise<DeleteResponse | HttpException> {
         const template = await this.blogPostTemplatesRepository.getById(id)
         if(!template) throw new NotFoundException('No se encontro la plantilla')
-        const result = await this.blogPostTemplatesRepository.update(template.id, {isActive: false})
-        if(result.affected !== 1) throw new InternalServerErrorException('Hubo un problema al eliminar la plantilla')
+        const result = await this.blogPostTemplatesRepository.softDelte(id)
+        if(!result) throw new InternalServerErrorException('Hubo un problema al eliminar la plantilla')
         return new DeleteResponse('Plantilla', template.id)
     }
 

@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { BlogPost } from "./entities/blog-post.entity";
-import { Repository } from "typeorm";
+import { DeepPartial, DeleteResult, Repository, UpdateResult } from "typeorm";
 import { CreateBlogPostDto } from "./dtos/create-post.dto";
 
 @Injectable()
@@ -27,4 +27,17 @@ export class BlogPostsRepository {
     async getByTitle(title: string): Promise<BlogPost | null> {
         return await this.blogPostsRepository.findOneBy({title})
     }
+
+    async update(id: string, data: DeepPartial<BlogPost>): Promise<UpdateResult | null> {
+        return await this.blogPostsRepository.update(id, data)
+    }
+ 
+    async softDelete(id: string): Promise<DeleteResult | null> {
+        return await this.blogPostsRepository.softDelete(id)
+    }
+
+    async delete(id: string): Promise<DeleteResult | null> {
+        return await this.blogPostsRepository.delete(id)
+    }
+
 }

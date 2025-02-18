@@ -17,12 +17,21 @@ export class CreateBlogPostDto extends BaseDto {
 
     @ApiProperty({
         title: 'category',
-        description: "post's category",
+        description: "post's category uuid",
         type: 'string'
     })
     @IsNotEmpty()
     @IsUUID()
     category: string
+
+    @ApiProperty({
+        title: 'template',
+        description: "post's template uuid",
+        type: 'string'
+    })
+    @IsNotEmpty()
+    @IsUUID()
+    template: string
 
     @ApiProperty({
         type: 'boolean',
@@ -44,7 +53,7 @@ export class CreateBlogPostDto extends BaseDto {
     @ApiProperty({
         title: 'content',
         description: 'blocks of content',
-        type: 'array'
+        type: () => [ContentBlockDto]
     })
     @IsNotEmpty()
     @IsArray()

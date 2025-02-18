@@ -1,8 +1,9 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post } from '@nestjs/common';
 import { BlogPostsService } from './blog-posts.service';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { BlogPost } from './entities/blog-post.entity';
 import { CreateBlogPostDto } from './dtos/create-post.dto';
+import { DeleteResponse } from 'src/common/entities/delete.response';
 
 @Controller('blog/posts')
 export class BlogPostsController {
@@ -46,6 +47,19 @@ export class BlogPostsController {
     @Post()
     async create(@Body() data:CreateBlogPostDto): Promise<BlogPost | null> {
       return await this.blogPostsService.create(data)
+    }
+
+    @ApiOperation({
+      summary: "Delete a post",
+    })
+    @ApiResponse({
+      status: 200, type: DeleteResponse,
+    })
+    @HttpCode(HttpStatus.OK)
+    @HttpCode(HttpStatus.NOT_FOUND)
+    @Delete(':id')
+    async softDelete(@Param('id') id: string): Promise<DeleteResponse | undefined> {
+      return await this.blogPostsService.softDelete(id)
     }
 
 }
