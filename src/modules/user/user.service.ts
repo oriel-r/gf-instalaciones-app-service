@@ -1,8 +1,9 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
+import { ConflictException, forwardRef, Inject, Injectable } from '@nestjs/common';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
+import { CreateUserDto } from './dto/create-user.dto';
+import { InstallerService } from '../installer/installer.service';
 import { Repository } from 'typeorm';
 
 @Injectable()
@@ -10,21 +11,36 @@ export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @Inject(forwardRef(() => InstallerService))
+    private readonly installerService: InstallerService
   ) {}
 
   async createUser( createUserDto: CreateUserDto ) {
-    const user = await this.findByEmail(createUserDto.email);
+    const {email, identificationNumber} = createUserDto;
     
-    if(!user) throw new NotFoundException('No se encontro un usuario con el email indicado');
+    const userExisting = await this.findByEmail(email);
+    
+    if (userExisting) {
+      const installer = await this.installerService.findByEmail(userExisting.email);
+    
+      if (installer) {
+        throw new ConflictException('El email ya está registrado como instalador');
+      }
+      
+      throw new ConflictException('Email existente');
+    }
 
-    if(user.identificationNumber) throw new ConflictException('El documento de identidad ya se encuentra registrado');
+    const existingNumber = await this.userRepository.findOne({where: {identificationNumber}})
+    if(existingNumber) throw new ConflictException('El documento de identidad ya se encuentra registrado, usersService');
 
-    const newUser = new User()
-    newUser.name =d
+    const newUser = this.userRepository.create(createUserDto);
+    await this.userRepository.save(newUser);
+    const { password, ...result } = newUser;
+    return result;
   }
 
-  findAll() {
-    return `This action returns all user`;
+  async findAll() {
+    return await this.userRepository.find()
   }
 
   findOne(id: number) {
@@ -40,6 +56,6 @@ export class UserService {
   }
 
   async findByEmail(email: string) {
-      return await this.userRepository.findOne({where: {email}})
+      return await this.userRepository.findOne({where: {email}});
   }
 }
