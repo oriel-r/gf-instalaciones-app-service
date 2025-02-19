@@ -14,7 +14,7 @@ const dataSourceConfig: DataSourceOptions = {
   synchronize: true,
   dropSchema: true,
   logging: ['error'],
-  ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
+  ssl: { rejectUnauthorized: false },
   entities: ['dist/**/*.entity{.ts,.js}'],
   migrations: ['dist/migrations/*{.js,.ts}'],
 }
