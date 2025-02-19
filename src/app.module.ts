@@ -47,7 +47,7 @@ import { InstallerModule } from './modules/installer/installer.module';
     OrdersModule,
     InstalationsModule,
     SeedersModule,
-    BlogModule
+    BlogModule,
     SeedersModule,
     EmailModule,
     NewsletterModule,
