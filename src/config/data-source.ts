@@ -12,7 +12,7 @@ const dataSourceConfig: DataSourceOptions = {
   username: process.env.DB_USERNAME_PSQL,
   password: process.env.DB_PASSWORD_PSQL,
   synchronize: true,
-  dropSchema: true,
+  dropSchema: false,
   logging: ['error'],
   entities: ['dist/**/*.entity{.ts,.js}'],
   migrations: ['dist/migrations/*{.js,.ts}'],

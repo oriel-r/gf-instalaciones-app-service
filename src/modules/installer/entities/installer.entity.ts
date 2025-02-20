@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, DeleteDateColumn, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { v4 as uuid } from 'uuid';
 import { TaxCategory } from '../enum/taxCategory.enum';
 import { User } from 'src/modules/user/entities/user.entity';
@@ -40,6 +40,9 @@ export class Installer {
 
   @Column()
   hasOwnTransportation: boolean;
+
+  @DeleteDateColumn()
+  disabledAt?: Date;
 
   @OneToOne(() => User, (user) => user.installer, { nullable: false, cascade: true, eager: true })
   @JoinColumn()

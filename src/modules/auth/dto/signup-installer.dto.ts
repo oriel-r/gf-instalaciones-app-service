@@ -32,6 +32,7 @@ export class ExtendedInstallerDto {
 
   @IsString()
   password: string;
+  
   @IsString()
   confirmPassword: string;
 
