@@ -36,6 +36,18 @@ export class BlogPostsController {
     }
 
     @ApiOperation({
+      summary: "Get a posts by title",
+    })
+    @ApiResponse({
+      status: 200, type: BlogPost,
+    })
+    @HttpCode(HttpStatus.OK)
+    @HttpCode(HttpStatus.NOT_FOUND)
+    @Get(':title')
+    async getByTitle(@Param('title') title: string): Promise<BlogPost | null> {
+      return await this.blogPostsService.getByTitle(title)
+    }
+    @ApiOperation({
       summary: "Create a new post",
     })
     @ApiResponse({
