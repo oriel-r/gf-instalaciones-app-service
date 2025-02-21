@@ -3,6 +3,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { BlogPost } from "./entities/blog-post.entity";
 import { DeepPartial, DeleteResult, Repository, UpdateResult } from "typeorm";
 import { CreateBlogPostDto } from "./dtos/create-post.dto";
+import { BlogCategory } from "../blog-categories/entities/blog-category.entity";
 
 @Injectable()
 export class BlogPostsRepository {
@@ -16,8 +17,9 @@ export class BlogPostsRepository {
         )
     }
 
-    async get(): Promise<BlogPost[] | void[]> {
-        return await this.blogPostsRepository.find()
+    async get(blogCategory?: BlogCategory): Promise<BlogPost[] | void[]> {
+        if (blogCategory) return await this.blogPostsRepository.findBy({blogCategory})
+        return await this.blogPostsRepository.find({relations: {blogCategory: true, blogPostTemplate: true}})
     }
 
     async getById(id: string): Promise<BlogPost | null> {

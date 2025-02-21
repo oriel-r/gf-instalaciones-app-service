@@ -24,11 +24,24 @@ export class BlogPostsService {
         return await this.blogPostsRepository.create(post)
     }
 
-    async get(): Promise<BlogPost[] | void[]> {
-        const posts = await this.blogPostsRepository.get()
-        if(!posts || posts.length < 0) throw new NotFoundException('No se encontraron posts')
-            return posts
-    }
+    async get(category?: string): Promise<BlogPost[] | void []> {
+        let posts: BlogPost[] | void[] = [];
+      
+        if (category) {
+          const existCategory = await this.blogCategoriesService.getByName(category);
+          if (!existCategory) {
+            throw new NotFoundException(`No existe la categoría con nombre "${category}"`);
+          }
+          posts = await this.blogPostsRepository.get(existCategory); 
+        } 
+        else {
+          posts = await this.blogPostsRepository.get();
+        }
+      
+        if (!posts || posts.length === 0) throw new NotFoundException('No se encontraron posts');
+      
+        return posts;
+      }
 
     async getById(id: string): Promise<BlogPost | null> {
         const post = await this.blogPostsRepository.getById(id)
