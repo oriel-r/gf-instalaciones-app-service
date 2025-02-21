@@ -6,7 +6,9 @@ import { JwtService } from "@nestjs/jwt";
 import { CredentialsUserDto } from "./dto/signin-user.dto";
 import { InstallerService } from "../installer/installer.service";
 import { ExtendedInstallerDto } from "./dto/signup-installer.dto";
+import { ApiTags } from "@nestjs/swagger";
 
+@ApiTags('Auth')
 @Injectable() 
 export class AuthService {
     constructor(
@@ -16,7 +18,7 @@ export class AuthService {
     ) {}
 
     async signUpUser ( userDto: ExtendedUserDto) {
-        if(userDto.password !== userDto.confirmPassword) {
+        if(userDto.password !== userDto.repeatPassword) {
             throw new HttpException('Las contraseñas no coinciden', HttpStatus.BAD_REQUEST);
         }
 
@@ -58,7 +60,7 @@ export class AuthService {
     }
 
     async signUpInstaller ( installerDto: ExtendedInstallerDto ) {
-      if(installerDto.password !== installerDto.confirmPassword) {
+      if(installerDto.password !== installerDto.repeatPassword) {
           throw new HttpException('Las contraseñas no coinciden', HttpStatus.BAD_REQUEST);
       }
 

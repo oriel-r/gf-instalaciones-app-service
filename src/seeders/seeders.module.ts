@@ -3,6 +3,7 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { JwtModule } from "@nestjs/jwt";
 import { User } from "src/modules/user/entities/user.entity";
 import { UserSeeds } from "./users/user.seeds";
+import { Role } from "src/modules/user/entities/roles.entity";
 import { BlogModule } from './blog/blog.sseder.module';
 import { BlogCategoriesSeeder } from "./blog/blog-categories.seeder";
 import { BlogCategoriesRepository } from "src/modules/blog/blog-categories/blog-categories.repository";
@@ -13,7 +14,7 @@ import { BlogTemplatesSeeder } from "./blog/blog-templates.seeder";
 import { BlogPostsSeeder } from "./blog/blog-posts.seeder";
 
 @Module({
-    imports:[TypeOrmModule.forFeature([User, BlogCategory, BlogPostTemplate, BlogPost]),
+    imports:[TypeOrmModule.forFeature([User,Role, BlogCategory, BlogPostTemplate, BlogPost]),
     JwtModule,
     BlogModule,
 ],

@@ -2,7 +2,7 @@ import { User } from "src/modules/user/entities/user.entity";
 import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { v4 as uuid } from 'uuid';
 
-@Entity({ name: 'coordinator' })
+@Entity()
 export class Coordinator {
   @PrimaryGeneratedColumn('uuid')
   id: string = uuid();

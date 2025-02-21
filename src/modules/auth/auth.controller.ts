@@ -9,7 +9,9 @@ import { AuthService } from './auth.service';
 import { ExtendedUserDto } from './dto/signup-user.dto';
 import { CredentialsUserDto } from './dto/signin-user.dto';
 import { ExtendedInstallerDto } from './dto/signup-installer.dto';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}

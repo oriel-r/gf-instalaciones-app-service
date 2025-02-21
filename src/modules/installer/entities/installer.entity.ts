@@ -2,9 +2,14 @@ import { Column, DeleteDateColumn, Entity, JoinColumn, OneToOne, PrimaryGenerate
 import { v4 as uuid } from 'uuid';
 import { TaxCategory } from '../enum/taxCategory.enum';
 import { User } from 'src/modules/user/entities/user.entity';
+import { ApiProperty } from '@nestjs/swagger';
 
-@Entity({ name: 'installer' })
+@Entity()
 export class Installer {
+  @ApiProperty({
+    description: 'ID único del instalador.',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
   @PrimaryGeneratedColumn('uuid')
   id: string = uuid();
 
