@@ -16,6 +16,8 @@ import { SeedersModule } from './seeders/seeders.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { JwtModule } from '@nestjs/jwt';
 import { InstallerModule } from './modules/installer/installer.module';
+import { AdminModule } from './modules/admins/admins.module';
+import { CoordinatorsModule } from './modules/coordinators/coordinators.module';
 
 @Module({
   imports: [
@@ -48,7 +50,6 @@ import { InstallerModule } from './modules/installer/installer.module';
     InstalationsModule,
     SeedersModule,
     BlogModule,
-    SeedersModule,
     EmailModule,
     NewsletterModule,
     AuthModule,
@@ -58,6 +59,8 @@ import { InstallerModule } from './modules/installer/installer.module';
       secret: process.env.JWT_SECRET,
     }),
     InstallerModule,
+    AdminModule,
+    CoordinatorsModule,
   ],
   controllers: [AppController],
   providers: [AppService, CloudinaryService],

@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, NotFoundException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  NotFoundException,
+  Put,
+} from '@nestjs/common';
 import { UserService } from './user.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -9,7 +19,7 @@ export class UserController {
 
   @Post()
   async createUser(@Body() createUserDto: CreateUserDto) {
-    return await this.userService.createUser(createUserDto) 
+    return await this.userService.createUser(createUserDto);
   }
 
   @Get()
@@ -17,9 +27,19 @@ export class UserController {
     return this.userService.findAll();
   }
 
+  @Get('/findAllWhitDeleted')
+  async findAllWhitDeleted() {
+    return await this.userService.findAllWhitDeleted();
+  }
+
+  @Get('/findDisabledById/:id')
+  async findDisabledUserById(userId: string) {
+    return await this.userService.findDisabledUserById(userId);
+  }
+
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.userService.findOne(+id);
+  async findById(@Param('id') id: string) {
+    return await this.userService.findById(id);
   }
 
   @Patch(':id')
@@ -36,12 +56,24 @@ export class UserController {
   async findByEmail(@Body('email') email: string) {
     try {
       const user = await this.userService.findByEmail(email);
-      
-      if(!user) throw new NotFoundException(`No se encontro el usuario con el email: ${email}`);
-      return user;
 
+      if (!user)
+        throw new NotFoundException(
+          `No se encontro el usuario con el email: ${email}`,
+        );
+      return user;
     } catch (error) {
       throw new NotFoundException(`No se encontro el usuario`);
     }
+  }
+
+  @Delete('/disabled/:id')
+  async softDelete(@Param('id') id: string) {
+    return await this.userService.softDelete(id);
+  }
+
+  @Put('/restore/:id')
+  async restore(@Param('id') id: string) {
+    return await this.userService.restore(id);
   }
 }

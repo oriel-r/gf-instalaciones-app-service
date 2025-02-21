@@ -3,7 +3,6 @@ import { CreateUserDto } from 'src/modules/user/dto/create-user.dto';
 import { TaxCategory } from '../enum/taxCategory.enum';
 
 export class CreateInstallerDto extends CreateUserDto {
-
   @IsEnum(TaxCategory)
   taxCondition: TaxCategory;
 
