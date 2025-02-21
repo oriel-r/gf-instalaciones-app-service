@@ -11,7 +11,9 @@ import { Installer } from './entities/installer.entity';
 import { IsNull, Not, Repository } from 'typeorm';
 import { UserService } from '../user/user.service';
 import { CreateInstallerDto } from './dto/create-installer.dto';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Installer')
 @Injectable()
 export class InstallerService {
   constructor(
@@ -21,12 +23,28 @@ export class InstallerService {
     private readonly userService: UserService,
   ) {}
 
+  @ApiOperation({ summary: 'Obtener todos los instaladores' })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de todos los instaladores',
+    type: [Installer],
+  })
   async findAll() {
     return await this.installerRepository.find();
   }
 
+  @ApiOperation({ summary: 'Crear un nuevo instalador' })
+  @ApiResponse({
+    status: 201,
+    description: 'El instalador ha sido creado exitosamente',
+    type: Installer,
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'El email o el documento de identidad ya están registrados',
+  })
   async createInstaller(createInstallerDto: CreateInstallerDto) {
-    const { email, identificationNumber, password, ...installerData } =
+    const { email, idNumber, password, ...installerData } =
       createInstallerDto;
 
     let user = await this.userService.findByEmail(email);
@@ -46,13 +64,13 @@ export class InstallerService {
       user = await this.userService.createUser({
         email,
         password,
-        identificationNumber,
+        idNumber,
         ...installerData,
       });
     }
 
     const existingNumber = await this.installerRepository.findOne({
-      where: { user: { identificationNumber } },
+      where: { user: { idNumber } },
       relations: ['user'],
     });
 
@@ -71,6 +89,16 @@ export class InstallerService {
     return installer;
   }
 
+  @ApiOperation({ summary: 'Buscar instalador por correo electrónico' })
+  @ApiResponse({
+    status: 200,
+    description: 'Instalador encontrado por correo electrónico',
+    type: Installer,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Instalador no encontrado',
+  })
   async findByEmail(email: string) {
     return await this.installerRepository.findOne({
       where: { user: { email } },
@@ -78,6 +106,15 @@ export class InstallerService {
     });
   }
 
+  @ApiOperation({ summary: 'Deshabilitar un instalador' })
+  @ApiResponse({
+    status: 200,
+    description: 'El instalador ha sido deshabilitado correctamente',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Instalador no encontrado',
+  })
   async softDelete(id: string) {
     await this.installerRepository.softDelete(id);
     const installer = await this.findDisabledInstallerById(id);
@@ -87,7 +124,15 @@ export class InstallerService {
     return { message: 'Se desactivó correctamente' };
   }
   
-
+  @ApiOperation({ summary: 'Restaurar un instalador deshabilitado' })
+  @ApiResponse({
+    status: 200,
+    description: 'El instalador ha sido restaurado correctamente',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'El instalador ya está activo',
+  })
   async restore(id: string) {
     const installer = await this.findDisabledInstallerById(id);
     if (installer && installer.disabledAt !== null) {
@@ -99,10 +144,26 @@ export class InstallerService {
     );
   }
 
-  async findAllWhitDeleted() {
+  @ApiOperation({ summary: 'Obtener todos los instaladores, incluyendo los eliminados' })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de instaladores, incluyendo los eliminados',
+    type: [Installer],
+  })
+  async findAllWithDeleted() {
     return await this.installerRepository.find({ withDeleted: true });
   }
 
+  @ApiOperation({ summary: 'Buscar un instalador deshabilitado por ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Detalles del instalador deshabilitado',
+    type: Installer,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Instalador deshabilitado no encontrado',
+  })
   async findDisabledInstallerById(installerId: string): Promise<Installer | null> {
     const installer = await this.installerRepository.findOne({
       where: { id: installerId, disabledAt: Not(IsNull()) },
@@ -116,7 +177,16 @@ export class InstallerService {
     return installer;
   }
   
-
+  @ApiOperation({ summary: 'Buscar instalador por ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Instalador encontrado por ID',
+    type: Installer,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Instalador no encontrado',
+  })
   async findById(id: string) {
     const installer = await this.installerRepository.findOne({
       where: { id },

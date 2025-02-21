@@ -11,5 +11,5 @@ export class ExtendedUserDto extends CreateUserDto {
         })
   @IsString()
   @IsNotEmpty()
-  confirmPassword: string;
+  repeatPassword: string;
 }

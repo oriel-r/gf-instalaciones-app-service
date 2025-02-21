@@ -2,7 +2,9 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { CoordinatorsService } from './coordinators.service';
 import { CreateCoordinatorDto } from './dto/create-coordinator.dto';
 import { UpdateCoordinatorDto } from './dto/update-coordinator.dto';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Coordinators')
 @Controller('coordinators')
 export class CoordinatorsController {
   constructor(private readonly coordinatorsService: CoordinatorsService) {}

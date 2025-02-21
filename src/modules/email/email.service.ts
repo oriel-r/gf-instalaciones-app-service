@@ -5,7 +5,9 @@ import { formContactDto } from "./dto/form-contact.dto";
 import { InjectRepository } from "@nestjs/typeorm";
 import { ContactMessage } from "./entities/contact-message.entity";
 import { Repository } from "typeorm";
+import { ApiTags } from "@nestjs/swagger";
 
+@ApiTags('Email')
 @Injectable()
 export class EmailService{
     constructor(
