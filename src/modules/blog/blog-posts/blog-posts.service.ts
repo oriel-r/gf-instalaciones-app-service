@@ -36,6 +36,12 @@ export class BlogPostsService {
             return post
     }
 
+    async getByTitle(title: string): Promise<BlogPost | null> {
+        const post = await this.blogPostsRepository.getByTitle(title)
+        if(!post) throw new NotFoundException('No se encontro el post')
+            return post
+    }
+
     async update(anId: string, data: DeepPartial<BlogPost>): Promise<UpdateResult | null> {
         const existPost = await this.blogPostsRepository.getById(anId)
         if(!existPost) throw new NotFoundException('No se encontro el post')
