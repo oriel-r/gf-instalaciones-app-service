@@ -18,7 +18,7 @@ export class AuthService {
     ) {}
 
     async signUpUser ( userDto: ExtendedUserDto) {
-        if(userDto.password !== userDto.confirmPassword) {
+        if(userDto.password !== userDto.repeatPassword) {
             throw new HttpException('Las contraseñas no coinciden', HttpStatus.BAD_REQUEST);
         }
 
@@ -60,7 +60,7 @@ export class AuthService {
     }
 
     async signUpInstaller ( installerDto: ExtendedInstallerDto ) {
-      if(installerDto.password !== installerDto.confirmPassword) {
+      if(installerDto.password !== installerDto.repeatPassword) {
           throw new HttpException('Las contraseñas no coinciden', HttpStatus.BAD_REQUEST);
       }
 

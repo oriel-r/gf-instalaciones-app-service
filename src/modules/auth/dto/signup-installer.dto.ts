@@ -18,24 +18,13 @@ export class ExtendedInstallerDto {
   @ApiProperty({
     type: String,
     required: true,
-    example: 'John',
-    description: 'Nombre del usuario',
+    example: 'John Doe',
+    description: 'Nombre completo del usuario',
   })
   @IsString()
   @Length(3, 80)
   @IsNotEmpty()
-  name: string;
-
-  @ApiProperty({
-    type: String,
-    required: true,
-    example: 'Doe',
-    description: 'Apellido del usuario',
-  })
-  @IsString()
-  @Length(3, 80)
-  @IsNotEmpty()
-  surname: string;
+  fullName: string;
 
   @ApiProperty({
     type: String,
@@ -53,9 +42,9 @@ export class ExtendedInstallerDto {
     example: '2025/01/03',
   })
   @IsDateString()
-  @IsOptional()
+  @IsNotEmpty()
   @Type(() => Date)
-  birthdate?: Date;
+  birthDate: Date;
 
   @ApiProperty({
     type: String,
@@ -65,16 +54,16 @@ export class ExtendedInstallerDto {
   })
   @IsString()
   @IsNotEmpty()
-  identificationNumber: string;
+  idNumber: string;
 
   @ApiProperty({
     type: String,
     description: 'Localidad del usuario',
     example: 'Argentina',
   })
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
-  location?: string;
+  location: string;
 
   @ApiProperty({
     type: String,
@@ -82,7 +71,17 @@ export class ExtendedInstallerDto {
     example: 'Almagro, Yatay 567',
   })
   @IsString()
-  adress: string;
+  address: string;
+
+  @ApiProperty({
+    type: String,
+    required: true,
+    description: 'Pais del usuario',
+    example: 'Argentina',
+  })
+  @IsNotEmpty()
+  @IsString()
+  country: string;
 
   @ApiProperty({
     type: String,
@@ -121,7 +120,17 @@ export class ExtendedInstallerDto {
   })
   @IsString()
   @IsNotEmpty()
-  confirmPassword: string;
+  repeatPassword: string;
+
+  @ApiProperty({
+    type: String,
+    required: true,
+    description: 'Prefijo',
+    example: '+54',
+  })
+  @IsNotEmpty()
+  @IsString()
+  coverage: string;
 
   @ApiProperty({
     enum: TaxCategory,

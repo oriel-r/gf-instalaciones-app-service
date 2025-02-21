@@ -29,7 +29,7 @@ export class UserService {
   @ApiResponse({ status: 201, description: 'Usuario creado exitosamente.', type: User })
   @ApiResponse({ status: 409, description: 'Conflicto: email o identificación ya registrada.' })
   async createUser(createUserDto: CreateUserDto) {
-    const { email, identificationNumber } = createUserDto;
+    const { email, idNumber } = createUserDto;
 
     const userExisting = await this.findByEmail(email);
 
@@ -48,7 +48,7 @@ export class UserService {
     }
 
     const existingNumber = await this.userRepository.findOne({
-      where: { identificationNumber },
+      where: { idNumber },
     });
     if (existingNumber)
       throw new ConflictException(

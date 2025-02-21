@@ -44,7 +44,7 @@ export class InstallerService {
     description: 'El email o el documento de identidad ya están registrados',
   })
   async createInstaller(createInstallerDto: CreateInstallerDto) {
-    const { email, identificationNumber, password, ...installerData } =
+    const { email, idNumber, password, ...installerData } =
       createInstallerDto;
 
     let user = await this.userService.findByEmail(email);
@@ -64,13 +64,13 @@ export class InstallerService {
       user = await this.userService.createUser({
         email,
         password,
-        identificationNumber,
+        idNumber,
         ...installerData,
       });
     }
 
     const existingNumber = await this.installerRepository.findOne({
-      where: { user: { identificationNumber } },
+      where: { user: { idNumber } },
       relations: ['user'],
     });
 

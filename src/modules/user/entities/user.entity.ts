@@ -18,31 +18,34 @@ export class User {
   id: string = uuid();
 
   @Column()
-  name: string;
-
-  @Column()
-  surname: string;
+  fullName: string;
 
   @Column()
   email: string;
 
   @Column()
-  birthdate?: Date;
+  birthDate: Date;
 
   @Column({ unique: true })
-  identificationNumber: string;
+  idNumber: string;
 
   @Column()
-  location?: string;
+  location: string;
 
   @Column()
-  adress: string;
+  address: string;
+
+  @Column()
+  country: string;
 
   @Column()
   phone: string;
 
   @Column()
   password: string;
+
+  @Column({default: '+54'})
+  coverage: string;
 
   @Column({ default: true })
   isSubscribed: boolean;

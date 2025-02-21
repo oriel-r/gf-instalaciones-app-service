@@ -6,24 +6,13 @@ export class CreateUserDto {
         @ApiProperty({
             type: String,
             required: true,
-            example: 'John',
-            description: 'Nombre del usuario',
+            example: 'John Doe',
+            description: 'Nombre completo del usuario',
           })
           @IsString()
           @Length(3, 80)
           @IsNotEmpty()
-          name: string;
-        
-          @ApiProperty({
-            type: String,
-            required: true,
-            example: 'Doe',
-            description: 'Apellido del usuario',
-          })
-          @IsString()
-          @Length(3, 80)
-          @IsNotEmpty()
-          surname: string;
+          fullName: string;
         
           @ApiProperty({
             type: String,
@@ -41,9 +30,9 @@ export class CreateUserDto {
             example: '2025/01/03',
           })
           @IsDateString()
-          @IsOptional()
           @Type(() => Date)
-          birthdate?: Date;
+          @IsNotEmpty()
+          birthDate: Date;
         
           @ApiProperty({
             type: String,
@@ -53,16 +42,17 @@ export class CreateUserDto {
           })
           @IsString()
           @IsNotEmpty()
-          identificationNumber: string;
+          idNumber: string;
         
           @ApiProperty({
             type: String,
-            description: 'Localidad del usuario',
+            required: true,
+            description: 'Pais del usuario',
             example: 'Argentina',
           })
-          @IsOptional()
+          @IsNotEmpty()
           @IsString()
-          location?: string;
+          country: string;
         
           @ApiProperty({
             type: String,
@@ -70,7 +60,16 @@ export class CreateUserDto {
             example: 'Almagro, Yatay 567',
           })
           @IsString()
-          adress: string;
+          address: string;
+
+          @ApiProperty({
+            type: String,
+            required: true,
+            description: 'Localidad del usuario',
+            example: 'Buenos aires',
+          })
+          @IsString()
+          location: string;
         
           @ApiProperty({
             type: String,
@@ -80,7 +79,7 @@ export class CreateUserDto {
           })
         @IsString()
         @IsNotEmpty()
-          phone: string;
+        phone: string;
         
           @ApiProperty({
             type: String,
@@ -100,4 +99,14 @@ export class CreateUserDto {
               'La contraseña debe contener al menos un carácter especial: !@#$%^&*',
           })
           password: string;
+
+          @ApiProperty({
+            type: String,
+            required: true,
+            description: 'Prefijo',
+            example: '+54',
+          })
+          @IsNotEmpty()
+          @IsString()
+          coverage: string;
 }
