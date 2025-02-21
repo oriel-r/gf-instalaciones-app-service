@@ -6,7 +6,9 @@ import { Repository } from 'typeorm';
 import { MailerService } from '@nestjs-modules/mailer';
 import { Cron } from '@nestjs/schedule';
 import { SendEmailDto } from '../email/dto/send-email.dto';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Newsletter')
 @Injectable()
 export class NewsletterService {
    constructor( 

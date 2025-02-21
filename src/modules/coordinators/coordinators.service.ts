@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { CreateCoordinatorDto } from './dto/create-coordinator.dto';
 import { UpdateCoordinatorDto } from './dto/update-coordinator.dto';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Coordinators')
 @Injectable()
 export class CoordinatorsService {
   create(createCoordinatorDto: CreateCoordinatorDto) {

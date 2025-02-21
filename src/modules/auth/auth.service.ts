@@ -6,7 +6,9 @@ import { JwtService } from "@nestjs/jwt";
 import { CredentialsUserDto } from "./dto/signin-user.dto";
 import { InstallerService } from "../installer/installer.service";
 import { ExtendedInstallerDto } from "./dto/signup-installer.dto";
+import { ApiTags } from "@nestjs/swagger";
 
+@ApiTags('Auth')
 @Injectable() 
 export class AuthService {
     constructor(

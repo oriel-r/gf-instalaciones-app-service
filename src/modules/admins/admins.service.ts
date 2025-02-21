@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Admin')
 @Injectable()
 export class AdminService {
   create(createAdminDto: CreateAdminDto) {
