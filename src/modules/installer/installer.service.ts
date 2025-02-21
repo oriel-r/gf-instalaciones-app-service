@@ -1,9 +1,16 @@
-import { BadRequestException, ConflictException, forwardRef, Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  forwardRef,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Installer } from './entities/installer.entity';
-import { Repository } from 'typeorm';
+import { IsNull, Not, Repository } from 'typeorm';
 import { UserService } from '../user/user.service';
-import { ExtendedInstallerDto } from '../auth/dto/signup-installer.dto';
+import { CreateInstallerDto } from './dto/create-installer.dto';
 
 @Injectable()
 export class InstallerService {
@@ -14,61 +21,108 @@ export class InstallerService {
     private readonly userService: UserService,
   ) {}
 
-  //probar como trae los instalelrs
   async findAll() {
     return await this.installerRepository.find();
   }
 
-  async createInstaller(createInstallerDto: ExtendedInstallerDto) {
-    const { email, identificationNumber, password, ...installerData } = createInstallerDto;
+  async createInstaller(createInstallerDto: CreateInstallerDto) {
+    const { email, identificationNumber, password, ...installerData } =
+      createInstallerDto;
 
-    const user = await this.userService.findByEmail(email);
+    let user = await this.userService.findByEmail(email);
 
     if (user) {
-        const existingInstaller = await this.installerRepository.findOne({
-            where: { user: { id: user.id } },
-            relations: ['user'],
-        });
+      const existingInstaller = await this.installerRepository.findOne({
+        where: { user: { id: user.id } },
+        relations: ['user'],
+      });
 
-        if (existingInstaller) {
-            throw new ConflictException('El email ya está registrado como instalador');
-        }
-    } else {  
-      const newUser = await this.userService.createUser({
-            email,
-            password,
-            identificationNumber,
-            ...installerData, 
-        });
-
-        return newUser;
+      if (existingInstaller) {
+        throw new ConflictException(
+          'El email ya está registrado como instalador',
+        );
+      }
+    } else {
+      user = await this.userService.createUser({
+        email,
+        password,
+        identificationNumber,
+        ...installerData,
+      });
     }
 
     const existingNumber = await this.installerRepository.findOne({
-        where: { user: { identificationNumber } },
-        relations: ['user'],
+      where: { user: { identificationNumber } },
+      relations: ['user'],
     });
 
     if (existingNumber) {
-        throw new ConflictException('El documento de identidad ya se encuentra registrado');
+      throw new ConflictException(
+        'El documento de identidad ya se encuentra registrado',
+      );
     }
 
     const newInstaller = this.installerRepository.create({
-        ...installerData,
-        user: user ,
+      ...installerData,
+      user: user,
     });
 
-    console.log(newInstaller)
-
     const installer = await this.installerRepository.save(newInstaller);
-    return installer
-}
-
+    return installer;
+  }
 
   async findByEmail(email: string) {
     return await this.installerRepository.findOne({
       where: { user: { email } },
       relations: ['user'],
     });
+  }
+
+  async softDelete(id: string) {
+    await this.installerRepository.softDelete(id);
+    const installer = await this.findDisabledInstallerById(id);
+    if (installer!.user) {
+      await this.userService.softDelete(installer!.user.id);
+    }
+    return { message: 'Se desactivó correctamente' };
+  }
+  
+
+  async restore(id: string) {
+    const installer = await this.findDisabledInstallerById(id);
+    if (installer && installer.disabledAt !== null) {
+      await this.installerRepository.restore(id);
+      return { message: 'Se restauro correctamente' };
+    }
+    throw new BadRequestException(
+      'El intalador indicado ya se encuentra activo',
+    );
+  }
+
+  async findAllWhitDeleted() {
+    return await this.installerRepository.find({ withDeleted: true });
+  }
+
+  async findDisabledInstallerById(installerId: string): Promise<Installer | null> {
+    const installer = await this.installerRepository.findOne({
+      where: { id: installerId, disabledAt: Not(IsNull()) },
+      withDeleted: true,
+    });
+  
+    if (!installer) {
+      throw new NotFoundException('Instalador desactivado no encontrado');
+    }
+  
+    return installer;
+  }
+  
+
+  async findById(id: string) {
+    const installer = await this.installerRepository.findOne({
+      where: { id },
+      relations: ['user'],
+    });
+    if (!installer) throw new NotFoundException('Instalador no encontrado');
+    return installer;
   }
 }
