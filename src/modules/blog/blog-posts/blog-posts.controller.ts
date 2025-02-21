@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Query } from '@nestjs/common';
 import { BlogPostsService } from './blog-posts.service';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { BlogPost } from './entities/blog-post.entity';
@@ -10,7 +10,7 @@ export class BlogPostsController {
   constructor(private readonly blogPostsService: BlogPostsService) {}
 
     @ApiOperation({
-      summary: "Get all posts",
+      summary: "Get all posts, optional send a category name by query",
     })
     @ApiResponse({
       status: 200, type: [BlogPost],
@@ -18,8 +18,10 @@ export class BlogPostsController {
     @HttpCode(HttpStatus.OK)
     @HttpCode(HttpStatus.NOT_FOUND)
     @Get()
-    async get(): Promise<BlogPost[] | void[]> {
-      return await this.blogPostsService.get()
+    async get(
+      @Query('category') category?: string
+    ): Promise<BlogPost[] | void[]> {
+      return await this.blogPostsService.get(category)
     }
 
     @ApiOperation({
