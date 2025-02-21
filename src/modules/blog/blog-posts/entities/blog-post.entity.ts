@@ -45,7 +45,7 @@ export class BlogPost extends BaseEntity {
         description: "the template in use in this post",
         required: true
     })
-    @ManyToOne(() => BlogPostTemplate, (blogPostTemplate) => blogPostTemplate.blogPosts)
+    @ManyToOne(() => BlogPostTemplate, (blogPostTemplate) => blogPostTemplate.blogPosts, {eager: true})
     blogPostTemplate: BlogPostTemplate
 
     @ApiProperty({
