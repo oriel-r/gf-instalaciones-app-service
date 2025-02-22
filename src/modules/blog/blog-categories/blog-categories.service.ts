@@ -24,4 +24,12 @@ export class BlogCategoriesService {
         if(!category) throw new NotFoundException('Categoria no encontrada')
             return category
     }
+
+    async getByName(name: string): Promise <BlogCategory | null> {
+        const category = await this.blogCategoriesRepository.getByName(name)
+        if(!category) throw new NotFoundException('Categoria no encontrada')
+            return category
+    }
+
+    
 }
