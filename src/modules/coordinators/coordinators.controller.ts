@@ -9,10 +9,10 @@ import { ApiTags } from '@nestjs/swagger';
 export class CoordinatorsController {
   constructor(private readonly coordinatorsService: CoordinatorsService) {}
 
-  @Post()
-  create(@Body() createCoordinatorDto: CreateCoordinatorDto) {
-    return this.coordinatorsService.create(createCoordinatorDto);
-  }
+  /* @Post()
+  createCoordinator(@Body() createCoordinatorDto: CreateCoordinatorDto) {
+    return this.coordinatorsService.createCoordinator(createCoordinatorDto);
+  } */
 
   @Get()
   findAll() {

@@ -29,7 +29,6 @@ export class CreateUserDto {
             description: 'Fecha de nacimiento del usuario',
             example: '2025/01/03',
           })
-          @IsDateString()
           @Type(() => Date)
           @IsNotEmpty()
           birthDate: Date;

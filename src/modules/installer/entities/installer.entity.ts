@@ -20,7 +20,7 @@ export class Installer {
   taxCondition: TaxCategory;
 
   @Column({ type: 'text', nullable: true })
-  queries: string;
+  queries?: string;
 
   @Column()
   hasPersonalAccidentInsurance: boolean;

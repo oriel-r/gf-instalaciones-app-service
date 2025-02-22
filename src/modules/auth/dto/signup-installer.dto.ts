@@ -41,7 +41,6 @@ export class ExtendedInstallerDto {
     description: 'Fecha de nacimiento del usuario',
     example: '2025/01/03',
   })
-  @IsDateString()
   @IsNotEmpty()
   @Type(() => Date)
   birthDate: Date;

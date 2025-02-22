@@ -40,7 +40,7 @@ export class UserSeeds {
         address: 'exampleAdress',
         phone: '123456',
         country: 'Argentina',
-        birthdate: '1999-08-03',
+        birthDate: '1999-08-03',
         roleName: 'Admin',
       },
       {
@@ -52,7 +52,7 @@ export class UserSeeds {
         address: 'exampleAdress',
         phone: '123457',
         country: 'Peru',
-        birthdate: '2001-01-04',
+        birthDate: '2001-01-04',
         roleName: 'Installer',
       },
       {
@@ -64,7 +64,7 @@ export class UserSeeds {
         address: 'exampleAdress',
         country: 'Argentina',
         phone: '123458',
-        birthdate: '2003-06-05',
+        birthDate: '2003-06-05',
         roleName: 'Coordinator',
       },
     ];
