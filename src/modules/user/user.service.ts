@@ -134,4 +134,11 @@ export class UserService {
   
     return user;
   } 
+
+  async asignCoordinator( userId: string ) {
+    const user = await this.findById(userId);
+    user.role.name = 'Coordinator'
+    await this.userRepository.save(user);
+    return user;
+}
 }
