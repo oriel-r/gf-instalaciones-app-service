@@ -19,7 +19,7 @@ import {
     private transformDates(value: any): any {
       if (value instanceof Date) {
         // Formatear la fecha a "dd/MM/yy"
-        return format(value, 'dd/MM/yy');
+        return format(value, 'dd/MM/yyyy');
       }
   
       if (Array.isArray(value)) {

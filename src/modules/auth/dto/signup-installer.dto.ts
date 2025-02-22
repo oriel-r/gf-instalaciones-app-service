@@ -2,7 +2,6 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   IsBoolean,
-  IsDateString,
   IsEmail,
   IsEnum,
   IsNotEmpty,
@@ -41,7 +40,6 @@ export class ExtendedInstallerDto {
     description: 'Fecha de nacimiento del usuario',
     example: '2025/01/03',
   })
-  @IsDateString()
   @IsNotEmpty()
   @Type(() => Date)
   birthDate: Date;
