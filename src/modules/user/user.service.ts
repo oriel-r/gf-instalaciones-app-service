@@ -14,6 +14,7 @@ import { InstallerService } from '../installer/installer.service';
 import { IsNull, Not, Repository } from 'typeorm';
 import { hash } from 'bcrypt';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Role } from './entities/roles.entity';
 
 @ApiTags('Users')
 @Injectable()
@@ -23,6 +24,8 @@ export class UserService {
     private readonly userRepository: Repository<User>,
     @Inject(forwardRef(() => InstallerService))
     private readonly installerService: InstallerService,
+    @InjectRepository(Role)
+    private readonly roleRepository: Repository<Role>
   ) {}
 
   @ApiOperation({ summary: 'Crear un nuevo usuario' })
@@ -52,12 +55,24 @@ export class UserService {
     });
     if (existingNumber)
       throw new ConflictException(
-        'El documento de identidad ya se encuentra registrado, usersService',
+        'El documento de identidad ya se encuentra registrado'
       );
+
+    let userRole = await this.roleRepository.findOne({ where: {name: 'Usuario'}});
+
+    if(!userRole) {
+      userRole = this.roleRepository.create({
+        name: 'Usuario',
+        description: 'Rol por defecto para usuarios'
+      });
+
+      userRole = await this.roleRepository.save(userRole)
+    }
 
     const newUser = this.userRepository.create({
       ...createUserDto,
       password: await hash(createUserDto.password, 10),
+      role: userRole 
     });
 
     return await this.userRepository.save(newUser);
@@ -67,6 +82,13 @@ export class UserService {
   @ApiResponse({ status: 200, description: 'Lista de usuarios recuperada exitosamente.', type: [User] })
   async findAll() {
     return await this.userRepository.find();
+  }
+
+  @ApiOperation({ summary: 'Buscar usuario por email' })
+  @ApiResponse({ status: 200, description: 'Usuario encontrado exitosamente.', type: User })
+  @ApiResponse({ status: 404, description: 'Usuario no encontrado.' })
+  async findByEmail(email: string) {
+    return await this.userRepository.findOne({ where: { email } });
   }
 
   @ApiOperation({ summary: 'Buscar un usuario por su ID' })
@@ -84,13 +106,6 @@ export class UserService {
 
   remove(id: number) {
     return `This action removes a #${id} user`;
-  }
-
-  @ApiOperation({ summary: 'Buscar usuario por email' })
-  @ApiResponse({ status: 200, description: 'Usuario encontrado exitosamente.', type: User })
-  @ApiResponse({ status: 404, description: 'Usuario no encontrado.' })
-  async findByEmail(email: string) {
-    return await this.userRepository.findOne({ where: { email } });
   }
 
   @ApiOperation({ summary: 'Desactivar usuario (soft delete)' })

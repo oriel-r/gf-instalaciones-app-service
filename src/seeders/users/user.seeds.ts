@@ -20,7 +20,7 @@ export class UserSeeds {
     const existingRoles = await this.rolesRepository.find();
     
     if (existingRoles.length === 0) {
-      const rolesData = ['Admin', 'Installer', 'Coordinator'].map(name =>
+      const rolesData = ['Admin', 'Instalador', 'Coordinador'].map(name =>
         this.rolesRepository.create({ name })
       );
       await this.rolesRepository.save(rolesData);
@@ -53,7 +53,7 @@ export class UserSeeds {
         phone: '123457',
         country: 'Peru',
         birthDate: '2001-01-04',
-        roleName: 'Installer',
+        roleName: 'Instalador',
       },
       {
         fullName: 'Joe Doe',
@@ -65,7 +65,7 @@ export class UserSeeds {
         country: 'Argentina',
         phone: '123458',
         birthDate: '2003-06-05',
-        roleName: 'Coordinator',
+        roleName: 'Coordinador',
       },
     ];
 
@@ -83,7 +83,7 @@ export class UserSeeds {
           const userRole = roles.find(role => role.name === roleName);
 
           if (!userRole) {
-            throw new Error(`Role ${roleName} not found`);
+            throw new Error(`Rol ${roleName} no encontrado`);
           }
 
           // Crear usuario

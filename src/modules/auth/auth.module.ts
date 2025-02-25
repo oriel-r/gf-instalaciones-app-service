@@ -9,9 +9,10 @@ import { JwtModule } from "@nestjs/jwt";
 import { InstallerModule } from "../installer/installer.module";
 import { InstallerService } from "../installer/installer.service";
 import { Installer } from "../installer/entities/installer.entity";
+import { Role } from "../user/entities/roles.entity";
 
 @Module({
-    imports: [TypeOrmModule.forFeature([User, Installer]),
+    imports: [TypeOrmModule.forFeature([User, Installer, Role]),
     UserModule,
     InstallerModule,
     JwtModule.register({
