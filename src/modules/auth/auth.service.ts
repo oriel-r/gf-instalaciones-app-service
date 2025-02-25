@@ -29,15 +29,16 @@ export class AuthService {
     }
 
     async signinUser(credentials: CredentialsUserDto) {
-        const user = await this.userService.findByEmail(credentials.email);
-        if(!user){
+        const user = await this.userService.findByEmail(credentials.emailSignin);
+
+        if(!user) {
+
           throw new HttpException('Usuario, contraseña incorrecta', 404);
-        }else{
-          
-        }
-        
-        const isPasswordMatching = await compare(
-            credentials.password,
+
+        }else {
+
+          const isPasswordMatching = await compare(
+            credentials.passwordSignin,
             user.password,
           );
       
@@ -51,12 +52,13 @@ export class AuthService {
           const userPayload = {
             id: user.id,
             email: user.email,
-            /* role: user.role, */
+            role: user.role, 
           }
 
           const token = this.jwtService.sign(userPayload);
 
           return {token, user}
+        }  
     }
 
     async signUpInstaller ( installerDto: ExtendedInstallerDto ) {

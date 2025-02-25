@@ -8,12 +8,14 @@ import {
   Delete,
   NotFoundException,
   Put,
+  Query,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { User } from './entities/user.entity';
+import { FindUserByEmailDto } from './dto/find-user-by-email.dto';
 
 @ApiTags('Users')
 @Controller('user')
@@ -33,6 +35,24 @@ export class UserController {
   @Get()
   findAll() {
     return this.userService.findAll();
+  }
+
+  @ApiOperation({ summary: 'Buscar usuario por email' })
+  @ApiResponse({ status: 200, description: 'Usuario encontrado.', type: User })
+  @ApiResponse({ status: 404, description: 'Usuario no encontrado.' })
+  @Get('byEmail')
+  async findByEmail( @Query() query: FindUserByEmailDto ) {
+    try {
+      const user = await this.userService.findByEmail(query.email);
+
+      if (!user)
+        throw new NotFoundException(
+          `No se encontro el usuario con el email: ${query.email}`,
+        );
+      return user;
+    } catch (error) {
+      throw new NotFoundException(`No se encontro el usuario`);
+    }
   }
 
   @ApiOperation({ summary: 'Obtener todos los usuarios, incluidos los desactivados' })
@@ -68,25 +88,6 @@ export class UserController {
     return this.userService.remove(+id);
   }
 
-  @ApiOperation({ summary: 'Buscar usuario por email' })
-  @ApiResponse({ status: 200, description: 'Usuario encontrado.', type: User })
-  @ApiResponse({ status: 404, description: 'Usuario no encontrado.' })
-  @ApiBody({ schema: { properties: { email: { type: 'string', example: 'example@email.com' } } } })
-  @Get('byEmail')
-  async findByEmail(@Body('email') email: string) {
-    try {
-      const user = await this.userService.findByEmail(email);
-
-      if (!user)
-        throw new NotFoundException(
-          `No se encontro el usuario con el email: ${email}`,
-        );
-      return user;
-    } catch (error) {
-      throw new NotFoundException(`No se encontro el usuario`);
-    }
-  }
-
   @ApiOperation({ summary: 'Desactivar usuario (soft delete)' })
   @ApiResponse({ status: 200, description: 'Usuario desactivado correctamente.' })
   @Delete('/disabled/:id')
@@ -102,7 +103,7 @@ export class UserController {
     return await this.userService.restore(id);
   }
 
-  @Put('/asignCordinator/:id')
+  @Put('/asignCoordinator/:id')
   asignCoordinator(@Param('id') userId: string) {
     return this.userService.asignCoordinator(userId);
   }
