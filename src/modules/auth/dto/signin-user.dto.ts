@@ -10,7 +10,7 @@ export class CredentialsUserDto {
       })
       @IsEmail()
       @IsNotEmpty()
-    email: string;
+    emailSignin: string;
 
     @ApiProperty({
         type: String,
@@ -29,5 +29,5 @@ export class CredentialsUserDto {
         message:
           'La contraseña debe contener al menos un carácter especial: !@#$%^&*',
       })
-    password: string;
+    passwordSignin: string;
 }

@@ -12,6 +12,7 @@ import { IsNull, Not, Repository } from 'typeorm';
 import { UserService } from '../user/user.service';
 import { CreateInstallerDto } from './dto/create-installer.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { User } from '../user/entities/user.entity';
 
 @ApiTags('Installer')
 @Injectable()
@@ -44,7 +45,12 @@ export class InstallerService {
     description: 'El email o el documento de identidad ya están registrados',
   })
   async createInstaller(createInstallerDto: CreateInstallerDto) {
-    const { email, idNumber, password, ...installerData } =
+    const { email, idNumber, password, fullName,
+      location,
+      address,
+      country,
+      phone,
+      birthDate, coverage, ...installerData } =
       createInstallerDto;
 
     let user = await this.userService.findByEmail(email);
@@ -65,7 +71,13 @@ export class InstallerService {
         email,
         password,
         idNumber,
-        ...installerData,
+        fullName,
+        location,
+        address,
+        country,
+        phone,
+        birthDate,
+        coverage,
       });
     }
 
@@ -82,7 +94,7 @@ export class InstallerService {
 
     const newInstaller = this.installerRepository.create({
       ...installerData,
-      user: user,
+      user: user as User,
     });
 
     const installer = await this.installerRepository.save(newInstaller);

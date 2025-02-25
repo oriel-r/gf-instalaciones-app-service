@@ -64,4 +64,7 @@ export class User {
 
   @OneToOne(() => Admin, (admin) => admin.user, { nullable: true })
   admin: Admin;
+
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  createAt: Date;
 }
