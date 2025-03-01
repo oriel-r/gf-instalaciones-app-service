@@ -18,6 +18,9 @@ import { JwtModule } from '@nestjs/jwt';
 import { InstallerModule } from './modules/installer/installer.module';
 import { AdminModule } from './modules/admins/admins.module';
 import { CoordinatorsModule } from './modules/coordinators/coordinators.module';
+import { ProvinceModule } from './modules/province/province.module';
+import { CityModule } from './modules/city/city.module';
+import { AdressModule } from './modules/adress/adress.module';
 
 @Module({
   imports: [
@@ -61,6 +64,9 @@ import { CoordinatorsModule } from './modules/coordinators/coordinators.module';
     InstallerModule,
     AdminModule,
     CoordinatorsModule,
+    ProvinceModule,
+    CityModule,
+    AdressModule,
   ],
   controllers: [AppController],
   providers: [AppService, CloudinaryService],
