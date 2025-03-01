@@ -38,7 +38,7 @@ export class ExtendedInstallerDto {
   @ApiProperty({
     required: true,
     description: 'Fecha de nacimiento del usuario',
-    example: '2025/01/03',
+    example: '01/03/1998',
   })
   @IsNotEmpty()
   @Type(() => Date)
@@ -68,6 +68,7 @@ export class ExtendedInstallerDto {
     description: 'Dirección del usuario',
     example: 'Almagro, Yatay 567',
   })
+  @IsNotEmpty()
   @IsString()
   address: string;
 
@@ -122,19 +123,19 @@ export class ExtendedInstallerDto {
 
   @ApiProperty({
     type: String,
-    required: true,
     description: 'Prefijo',
     example: '+54',
   })
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  coverage: string;
+  coverage?: string;
 
   @ApiProperty({
     enum: TaxCategory,
     description: 'Categoria fiscal del usuario',
     example: TaxCategory.Monotributist,
   })
+  @IsNotEmpty()
   @IsEnum(TaxCategory)
   taxCondition: TaxCategory;
 
@@ -152,6 +153,7 @@ export class ExtendedInstallerDto {
     type: Boolean,
     example: true,
   })
+  @IsNotEmpty()
   @IsBoolean()
   hasPersonalAccidentInsurance: boolean;
 
@@ -160,6 +162,7 @@ export class ExtendedInstallerDto {
     type: Boolean,
     example: false,
   })  
+  @IsNotEmpty()
   @IsBoolean()
   canWorkAtHeight: boolean;
 
@@ -168,6 +171,7 @@ export class ExtendedInstallerDto {
     type: Boolean,
     example: true,
   })
+  @IsNotEmpty()
   @IsBoolean()
   canTensionFrontAndBackLonas: boolean;
 
@@ -176,6 +180,7 @@ export class ExtendedInstallerDto {
     type: Boolean,
     example: false,
   })
+  @IsNotEmpty()
   @IsBoolean()
   canInstallCorporealSigns: boolean;
 
@@ -184,6 +189,7 @@ export class ExtendedInstallerDto {
     type: Boolean,
     example: true,
   })
+  @IsNotEmpty()
   @IsBoolean()
   canInstallFrostedVinyl: boolean;
 
@@ -192,6 +198,7 @@ export class ExtendedInstallerDto {
     type: Boolean,
     example: true,
   })
+  @IsNotEmpty()
   @IsBoolean()
   canInstallVinylOnWallsOrGlass: boolean;
 
@@ -200,6 +207,7 @@ export class ExtendedInstallerDto {
     type: Boolean,
     example: false,
   })
+  @IsNotEmpty()
   @IsBoolean()
   canDoCarWrapping: boolean;
 
@@ -208,6 +216,7 @@ export class ExtendedInstallerDto {
     type: Boolean,
     example: true,
   })
+  @IsNotEmpty()
   @IsBoolean()
   hasOwnTransportation: boolean;
 }

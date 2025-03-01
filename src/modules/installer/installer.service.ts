@@ -2,6 +2,8 @@ import {
   BadRequestException,
   ConflictException,
   forwardRef,
+  HttpException,
+  HttpStatus,
   Inject,
   Injectable,
   NotFoundException,
@@ -13,6 +15,7 @@ import { UserService } from '../user/user.service';
 import { CreateInstallerDto } from './dto/create-installer.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { User } from '../user/entities/user.entity';
+import { Role } from '../user/entities/roles.entity';
 
 @ApiTags('Installer')
 @Injectable()
@@ -22,6 +25,8 @@ export class InstallerService {
     private readonly installerRepository: Repository<Installer>,
     @Inject(forwardRef(() => UserService))
     private readonly userService: UserService,
+    @InjectRepository(Role)
+    private readonly roleRepository: Repository<Role>,
   ) {}
 
   @ApiOperation({ summary: 'Obtener todos los instaladores' })
@@ -31,7 +36,7 @@ export class InstallerService {
     type: [Installer],
   })
   async findAll() {
-    return await this.installerRepository.find();
+    return await this.installerRepository.find()
   }
 
   @ApiOperation({ summary: 'Crear un nuevo instalador' })
@@ -62,11 +67,21 @@ export class InstallerService {
       });
 
       if (existingInstaller) {
-        throw new ConflictException(
-          'El email ya está registrado como instalador',
-        );
+        throw new HttpException('El email ya está registrado como instalador', HttpStatus.CONFLICT);
       }
     } else {
+
+    let userRole = await this.roleRepository.findOne({ where: {name: 'Instalador'}});
+
+    if(!userRole) {
+      userRole = this.roleRepository.create({
+        name: 'Instalador',
+        description: 'Rol asignado a instaladores'
+      });
+
+      userRole = await this.roleRepository.save(userRole)
+    }
+
       user = await this.userService.createUser({
         email,
         password,
@@ -78,6 +93,7 @@ export class InstallerService {
         phone,
         birthDate,
         coverage,
+        role: userRole,
       });
     }
 

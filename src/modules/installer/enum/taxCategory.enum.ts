@@ -1,5 +1,5 @@
 export enum TaxCategory {
-    Monotributist = 'MONOTRIBUTIST',
-    RegisteredResponsible = 'REGISTERED_RESPONSIBLE',
-    TaxExempt = 'TAXEXEMPT',
+    Monotributist = 'MONOTRIBUTISTA',
+    RegisteredResponsible = 'RESPONSABLE_INSCRIPTO',
+    TaxExempt = 'EXENTO_EN_IVA',
 }

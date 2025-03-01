@@ -4,6 +4,7 @@ import { SwaggerModule } from '@nestjs/swagger';
 import swaggerConfig from './config/documentation';
 import { loggerMiddleware } from './common/helpers/logger';
 import { ValidationPipe } from '@nestjs/common';
+import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { UserSeeds } from './seeders/users/user.seeds';
 import { DateFormatInterceptor } from './interceptors/date-format.interceptor';
 import { BlogCategoriesSeeder } from './seeders/blog/blog-categories.seeder';
@@ -27,6 +28,8 @@ async function bootstrap() {
       transform: true,
     }),
   );
+
+  app.useGlobalFilters(new HttpExceptionFilter());
 
   app.useGlobalInterceptors(new DateFormatInterceptor());
 

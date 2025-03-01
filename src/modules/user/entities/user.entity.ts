@@ -44,8 +44,8 @@ export class User {
   @Column()
   password: string;
 
-  @Column({default: '+54'})
-  coverage: string;
+  @Column({default: '+54', nullable: true})
+  coverage?: string;
 
   @Column({ default: true })
   isSubscribed: boolean;

@@ -1,7 +1,7 @@
 import { Injectable, NestInterceptor, ExecutionContext, CallHandler } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { format } from 'date-fns';
+import { parse, format } from 'date-fns';
 
 @Injectable()
 export class DateFormatInterceptor implements NestInterceptor {
@@ -16,9 +16,14 @@ export class DateFormatInterceptor implements NestInterceptor {
   }
 
   private parseDates(value: any): any {
-    if (typeof value === 'string' && /^\d{2}-\d{2}-\d{4}$/.test(value)) {
-      const [day, month, year] = value.split('-').map(Number);
-      return new Date(year, month - 1, day);
+    if (typeof value === 'string') {
+      if (/^\d{2}\/\d{2}\/\d{4}$/.test(value)) {
+        // Formato: DD/MM/YYYY
+        return parse(value, 'dd/MM/yyyy', new Date());
+      } else if (/^\d{2}-\d{2}-\d{4}$/.test(value)) {
+        // Formato: DD-MM-YYYY
+        return parse(value, 'dd-MM-yyyy', new Date());
+      }
     }
     if (Array.isArray(value)) {
       return value.map(item => this.parseDates(item));
@@ -50,5 +55,6 @@ export class DateFormatInterceptor implements NestInterceptor {
     return value;
   }
 }
+
 
   

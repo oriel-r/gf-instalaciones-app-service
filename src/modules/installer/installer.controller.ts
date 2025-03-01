@@ -36,17 +36,7 @@ export class InstallerController {
     @ApiResponse({ status: 404, description: 'Instalador no encontrado.' })
     @Get('byEmail')
     async findByEmail( @Query() query: FindUserByEmailDto ) {
-      try {
-        const user = await this.installerService.findByEmail(query.email);
-  
-        if (!user)
-          throw new NotFoundException(
-            `No se encontro el usuario instalador con el email: ${query.email}`,
-          );
-        return user;
-      } catch (error) {
-        throw new NotFoundException(`No se encontro el usuario instalador`);
-      }
+      return await this.installerService.findByEmail(query.email);
     }
 
   @ApiOperation({ summary: 'Crear un nuevo instalador' })

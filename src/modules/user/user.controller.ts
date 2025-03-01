@@ -33,8 +33,8 @@ export class UserController {
   @ApiOperation({ summary: 'Obtener todos los usuarios activos' })
   @ApiResponse({ status: 200, description: 'Lista de usuarios obtenida.', type: [User] })
   @Get()
-  findAll() {
-    return this.userService.findAll();
+  async findAll() {
+    return await this.userService.findAll();
   }
 
   @ApiOperation({ summary: 'Buscar usuario por email' })
@@ -42,17 +42,7 @@ export class UserController {
   @ApiResponse({ status: 404, description: 'Usuario no encontrado.' })
   @Get('byEmail')
   async findByEmail( @Query() query: FindUserByEmailDto ) {
-    try {
-      const user = await this.userService.findByEmail(query.email);
-
-      if (!user)
-        throw new NotFoundException(
-          `No se encontro el usuario con el email: ${query.email}`,
-        );
-      return user;
-    } catch (error) {
-      throw new NotFoundException(`No se encontro el usuario`);
-    }
+    return await this.userService.findByEmail(query.email);
   }
 
   @ApiOperation({ summary: 'Obtener todos los usuarios, incluidos los desactivados' })

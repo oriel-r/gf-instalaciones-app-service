@@ -25,23 +25,19 @@ export class AuthService {
         userDto.password = await hash(userDto.password, 10);
 
         const user = await this.userService.createUser(userDto);
+
         return user;
     }
 
-    async signinUser(credentials: CredentialsUserDto) {
-        const user = await this.userService.findByEmail(credentials.emailSignin);
+    async signInUser(credentials: CredentialsUserDto) {
+        const user = await this.userService.findByEmail(credentials.emailSignIn);
 
         if(!user) {
-
           throw new HttpException('Usuario, contraseña incorrecta', 404);
+        }
 
-        }else {
+        const isPasswordMatching = await  compare(credentials.passwordSignIn, user.password);
 
-          const isPasswordMatching = await compare(
-            credentials.passwordSignin,
-            user.password,
-          );
-      
           if (!isPasswordMatching) {
             throw new HttpException(
               'Credenciales Incorrectas',
@@ -52,13 +48,12 @@ export class AuthService {
           const userPayload = {
             id: user.id,
             email: user.email,
-            role: user.role, 
+            role: user.role,
           }
 
           const token = this.jwtService.sign(userPayload);
 
-          return {token, user}
-        }  
+          return {token, user} 
     }
 
     async signUpInstaller ( installerDto: ExtendedInstallerDto ) {

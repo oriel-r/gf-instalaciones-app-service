@@ -4,6 +4,7 @@ import {
   forwardRef,
   Inject,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -12,7 +13,6 @@ import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { InstallerService } from '../installer/installer.service';
 import { IsNull, Not, Repository } from 'typeorm';
-import { hash } from 'bcrypt';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Role } from './entities/roles.entity';
 
@@ -25,74 +25,108 @@ export class UserService {
     @Inject(forwardRef(() => InstallerService))
     private readonly installerService: InstallerService,
     @InjectRepository(Role)
-    private readonly roleRepository: Repository<Role>
+    private readonly roleRepository: Repository<Role>,
   ) {}
 
   @ApiOperation({ summary: 'Crear un nuevo usuario' })
-  @ApiResponse({ status: 201, description: 'Usuario creado exitosamente.', type: User })
-  @ApiResponse({ status: 409, description: 'Conflicto: email o identificación ya registrada.' })
+  @ApiResponse({
+    status: 201,
+    description: 'Usuario creado exitosamente.',
+    type: User,
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'Conflicto: email o identificación ya registrada.',
+  })
   async createUser(createUserDto: CreateUserDto) {
-    const { email, idNumber } = createUserDto;
+    const { email, idNumber, role } = createUserDto;
 
     const userExisting = await this.findByEmail(email);
 
-    if (userExisting) {
-      const installer = await this.installerService.findByEmail(
-        userExisting.email,
-      );
+      if (userExisting) {
+        try {
+          const installer = await this.installerService.findByEmail(
+            userExisting.email,
+          );
 
-      if (installer) {
-        throw new ConflictException(
-          'El email ya está registrado como instalador',
-        );
+          if (installer) {
+            throw new ConflictException(
+              'El email ya está registrado como instalador, esto es userService',
+            );
+          }
+
+        } catch (error) {
+
+          console.error("Error al buscar instalador: ", error)
+          throw new InternalServerErrorException('Error al verificar instalador');
+        }
+
+        throw new ConflictException('Email existente');
       }
-
-      throw new ConflictException('Email existente');
-    }
 
     const existingNumber = await this.userRepository.findOne({
       where: { idNumber },
     });
+
     if (existingNumber)
       throw new ConflictException(
-        'El documento de identidad ya se encuentra registrado'
+        'El documento de identidad ya se encuentra registrado',
       );
 
-    let userRole = await this.roleRepository.findOne({ where: {name: 'Usuario'}});
+    let userRole = role;
 
-    if(!userRole) {
-      userRole = this.roleRepository.create({
-        name: 'Usuario',
-        description: 'Rol por defecto para usuarios'
+    if (!userRole) {
+      const foundRole = await this.roleRepository.findOne({
+        where: { name: 'Usuario' },
       });
 
-      userRole = await this.roleRepository.save(userRole)
+      if (foundRole) {
+        userRole = foundRole;
+      } else {
+        userRole = this.roleRepository.create({
+          name: 'Usuario',
+          description: 'Rol por defecto para usuarios',
+        });
+
+        userRole = await this.roleRepository.save(userRole);
+      }
     }
 
     const newUser = this.userRepository.create({
       ...createUserDto,
-      password: await hash(createUserDto.password, 10),
-      role: userRole 
+      role: userRole,
     });
 
     return await this.userRepository.save(newUser);
   }
 
   @ApiOperation({ summary: 'Obtener todos los usuarios' })
-  @ApiResponse({ status: 200, description: 'Lista de usuarios recuperada exitosamente.', type: [User] })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de usuarios recuperada exitosamente.',
+    type: [User],
+  })
   async findAll() {
     return await this.userRepository.find();
   }
 
   @ApiOperation({ summary: 'Buscar usuario por email' })
-  @ApiResponse({ status: 200, description: 'Usuario encontrado exitosamente.', type: User })
+  @ApiResponse({
+    status: 200,
+    description: 'Usuario encontrado exitosamente.',
+    type: User,
+  })
   @ApiResponse({ status: 404, description: 'Usuario no encontrado.' })
   async findByEmail(email: string) {
     return await this.userRepository.findOne({ where: { email } });
   }
 
   @ApiOperation({ summary: 'Buscar un usuario por su ID' })
-  @ApiResponse({ status: 200, description: 'Usuario encontrado exitosamente.', type: User })
+  @ApiResponse({
+    status: 200,
+    description: 'Usuario encontrado exitosamente.',
+    type: User,
+  })
   @ApiResponse({ status: 404, description: 'Usuario no encontrado.' })
   async findById(id: string) {
     const user = await this.userRepository.findOne({ where: { id } });
@@ -109,7 +143,10 @@ export class UserService {
   }
 
   @ApiOperation({ summary: 'Desactivar usuario (soft delete)' })
-  @ApiResponse({ status: 200, description: 'Usuario desactivado exitosamente.' })
+  @ApiResponse({
+    status: 200,
+    description: 'Usuario desactivado exitosamente.',
+  })
   @ApiResponse({ status: 404, description: 'Usuario no encontrado.' })
   async softDelete(id: string) {
     await this.userRepository.softDelete(id);
@@ -118,7 +155,10 @@ export class UserService {
 
   @ApiOperation({ summary: 'Restaurar usuario desactivado' })
   @ApiResponse({ status: 200, description: 'Usuario restaurado exitosamente.' })
-  @ApiResponse({ status: 400, description: 'El usuario indicado ya se encuentra activo.' })
+  @ApiResponse({
+    status: 400,
+    description: 'El usuario indicado ya se encuentra activo.',
+  })
   async restore(id: string) {
     const user = await this.findDisabledUserById(id);
     if (user && user.disabledAt !== null) {
@@ -128,32 +168,45 @@ export class UserService {
     throw new BadRequestException('El usuario indicado ya se encuentra activo');
   }
 
-  @ApiOperation({ summary: 'Obtener todos los usuarios, incluidos los desactivados' })
-  @ApiResponse({ status: 200, description: 'Lista de usuarios recuperada exitosamente.', type: [User] })
+  @ApiOperation({
+    summary: 'Obtener todos los usuarios, incluidos los desactivados',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de usuarios recuperada exitosamente.',
+    type: [User],
+  })
   async findAllWhitDeleted() {
     return await this.userRepository.find({ withDeleted: true });
   }
 
   @ApiOperation({ summary: 'Buscar un usuario desactivado por ID' })
-  @ApiResponse({ status: 200, description: 'Usuario desactivado encontrado exitosamente.', type: User })
-  @ApiResponse({ status: 404, description: 'Usuario desactivado no encontrado.' })
+  @ApiResponse({
+    status: 200,
+    description: 'Usuario desactivado encontrado exitosamente.',
+    type: User,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Usuario desactivado no encontrado.',
+  })
   async findDisabledUserById(userId: string): Promise<User | null> {
     const user = await this.userRepository.findOne({
       where: { id: userId, disabledAt: Not(IsNull()) },
       withDeleted: true,
     });
-  
+
     if (!user) {
       throw new NotFoundException('Usuario desactivado no encontrado');
     }
-  
-    return user;
-  } 
 
-  async asignCoordinator( userId: string ) {
+    return user;
+  }
+
+  async asignCoordinator(userId: string) {
     const user = await this.findById(userId);
-    user.role.name = 'Coordinator'
+    user.role.name = 'Coordinator';
     await this.userRepository.save(user);
     return user;
-}
+  }
 }
