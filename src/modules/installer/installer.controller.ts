@@ -8,18 +8,24 @@ import {
   Post,
   Put,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { InstallerService } from './installer.service';
 import { CreateInstallerDto } from './dto/create-installer.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Installer } from './entities/installer.entity';
 import { FindUserByEmailDto } from '../user/dto/find-user-by-email.dto';
+import { AuthGuard } from 'src/common/guards/auth/auth.guard';
+import { RolesGuard } from 'src/common/guards/roles/roles.guard';
+import { Roles } from 'src/common/decorators/roles/roles.decorator';
 
 @ApiTags('Installer')
 @Controller('installer')
 export class InstallerController {
   constructor(private readonly installerService: InstallerService) {}
 
+  @UseGuards(AuthGuard ,RolesGuard)
+  @Roles('Admin')
   @ApiOperation({ summary: 'Obtener todos los instaladores' })
   @ApiResponse({
     status: 200,

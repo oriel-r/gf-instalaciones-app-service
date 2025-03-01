@@ -6,7 +6,7 @@ import {
   HttpStatus,
   Inject,
   Injectable,
-  NotFoundException,
+  NotFoundException
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Installer } from './entities/installer.entity';
@@ -23,6 +23,8 @@ export class InstallerService {
   constructor(
     @InjectRepository(Installer)
     private readonly installerRepository: Repository<Installer>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
     @Inject(forwardRef(() => UserService))
     private readonly userService: UserService,
     @InjectRepository(Role)
@@ -36,7 +38,7 @@ export class InstallerService {
     type: [Installer],
   })
   async findAll() {
-    return await this.installerRepository.find()
+    return await this.installerRepository.find();
   }
 
   @ApiOperation({ summary: 'Crear un nuevo instalador' })
