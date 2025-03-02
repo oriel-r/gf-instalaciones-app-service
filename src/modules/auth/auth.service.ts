@@ -50,8 +50,14 @@ export class AuthService {
             email: user.email,
             role: user.role,
           }
-
           const token = this.jwtService.sign(userPayload);
+
+          const installer = await this.installerService.findByEmail(user.email)
+
+          if(installer) {
+            console.log(installer)
+            return { token , installer}
+          }
 
           return {token, user} 
     }

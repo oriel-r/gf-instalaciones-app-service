@@ -56,7 +56,7 @@ export class UserSeeds {
       {
         fullName: 'User 2',
         email: 'user2@example.com',
-        password: 'User12311@',
+        password: 'User12312@',
         idNumber: '1234562',
         location: 'example',
         address: 'exampleAdress',
@@ -68,7 +68,7 @@ export class UserSeeds {
       {
         fullName: 'User 3',
         email: 'user3@example.com',
-        password: 'User12311@',
+        password: 'User12313@',
         idNumber: '1234563',
         location: 'example',
         address: 'exampleAdress',
@@ -79,7 +79,7 @@ export class UserSeeds {
       },
       {
         fullName: 'User 4',
-        email: 'user11@example.com',
+        email: 'user4@example.com',
         password: 'User1234@',
         idNumber: '1234564',
         location: 'example',

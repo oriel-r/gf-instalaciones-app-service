@@ -39,7 +39,7 @@ export class UserService {
     description: 'Conflicto: email o identificación ya registrada.',
   })
   async createUser(createUserDto: CreateUserDto) {
-    const { email, idNumber, role } = createUserDto;
+    const { email, idNumber, role, phone } = createUserDto;
 
     const userExisting = await this.findByEmail(email);
 
@@ -51,7 +51,7 @@ export class UserService {
 
           if (installer) {
             throw new ConflictException(
-              'El email ya está registrado como instalador, esto es userService',
+              'El email ya está registrado como instalador',
             );
           }
 
@@ -64,21 +64,25 @@ export class UserService {
         throw new ConflictException('Email existente');
       }
 
-    const existingNumber = await this.userRepository.findOne({
-      where: { idNumber },
-    });
+    const existingNumber = await this.userRepository.findOne({where: { idNumber }});
 
     if (existingNumber)
       throw new ConflictException(
         'El documento de identidad ya se encuentra registrado',
       );
 
+      const existingPhone = await this.userRepository.findOne({where: { phone }});
+  
+      if (existingPhone) {
+        throw new ConflictException(
+          'El número de celular ya se encuentra registrado',
+        );
+      }
+
     let userRole = role;
 
     if (!userRole) {
-      const foundRole = await this.roleRepository.findOne({
-        where: { name: 'Usuario' },
-      });
+      const foundRole = await this.roleRepository.findOne({where: { name: 'Usuario' }});
 
       if (foundRole) {
         userRole = foundRole;

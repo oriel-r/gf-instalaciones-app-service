@@ -20,7 +20,7 @@ export class User {
   @Column()
   fullName: string;
 
-  @Column()
+  @Column({ unique: true })
   email: string;
 
   @Column()
@@ -38,7 +38,7 @@ export class User {
   @Column()
   country: string;
 
-  @Column()
+  @Column({ unique: true })
   phone: string;
 
   @Column()
@@ -60,10 +60,10 @@ export class User {
   role: Role;
 
   @OneToOne(() => Coordinator, (coordinator) => coordinator.user, { nullable: true })
-  coordinator: Coordinator;
+  coordinator?: Coordinator;
 
   @OneToOne(() => Admin, (admin) => admin.user, { nullable: true })
-  admin: Admin;
+  admin?: Admin;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createAt: Date;
