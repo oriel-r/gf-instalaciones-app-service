@@ -4,6 +4,7 @@ import { UpdateCityDto } from './dto/update-city.dto';
 import { CityRepository } from './city.repository';
 import { ProvinceService } from '../province/province.service';
 import { DeleteResponse } from 'src/common/entities/delete.response';
+import { Province } from '../province/entities/province.entity';
 
 @Injectable()
 export class CityService {
@@ -20,6 +21,18 @@ export class CityService {
     if(!existProvince) throw new BadRequestException('Provincia no existente o mal escrita')
       return await this.cityRepository.create({name, provice: existProvince})
   }
+
+  async findOrCreate(name: string, province: Province) {
+    const city = await this.cityRepository.getByName(name)
+    if(!city || city.provice.name !== province.name) {
+      const newCity = await this.cityRepository.create({name, provice: province})
+      return newCity
+    }
+    return city
+
+  }
+
+
 
   async findAll() {
     const cities = await this.cityRepository.get()

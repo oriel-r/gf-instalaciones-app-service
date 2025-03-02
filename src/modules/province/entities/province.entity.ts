@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { BaseEntity } from "src/common/entities/base.entity";
 import { City } from "src/modules/city/entities/city.entity";
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, DeepPartial, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class Province extends BaseEntity {
@@ -24,6 +24,11 @@ export class Province extends BaseEntity {
         description: "province's cities"
     })
     @OneToMany(() => City, (city) => city.provice)
-    cities: City[] 
+    cities: City[]
+
+    constructor(partial: DeepPartial<Province>) {
+        super()
+        Object.assign(this, partial)
+    }
 
 }
