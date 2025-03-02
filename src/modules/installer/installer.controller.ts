@@ -3,8 +3,8 @@ import {
   Controller,
   Delete,
   Get,
-  NotFoundException,
   Param,
+  Patch,
   Post,
   Put,
   Query,
@@ -18,14 +18,15 @@ import { FindUserByEmailDto } from '../user/dto/find-user-by-email.dto';
 import { AuthGuard } from 'src/common/guards/auth/auth.guard';
 import { RolesGuard } from 'src/common/guards/roles/roles.guard';
 import { Roles } from 'src/common/decorators/roles/roles.decorator';
+import { UpdateInstallerDto } from './dto/update-installer';
 
 @ApiTags('Installer')
 @Controller('installer')
 export class InstallerController {
   constructor(private readonly installerService: InstallerService) {}
 
-  @UseGuards(AuthGuard ,RolesGuard)
-  @Roles('Admin')
+  /* @UseGuards(AuthGuard ,RolesGuard)
+  @Roles('Admin') */
   @ApiOperation({ summary: 'Obtener todos los instaladores' })
   @ApiResponse({
     status: 200,
@@ -54,6 +55,14 @@ export class InstallerController {
   @Post()
   async createInstaller(@Body() installerDto: CreateInstallerDto) {
     return await this.installerService.createInstaller(installerDto);
+  }
+
+  @Patch(':id')
+  async updateInstaller ( 
+    @Body() updateInstaller: UpdateInstallerDto , 
+    @Param('id') id: string 
+  ) {
+    return await this.installerService.updateInstaller(updateInstaller, id)
   }
 
   @ApiOperation({ summary: 'Obtener todos los instaladores, incluyendo los eliminados' })

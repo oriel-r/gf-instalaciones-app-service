@@ -6,7 +6,7 @@ import { hash } from 'bcrypt';
 import { User } from 'src/modules/user/entities/user.entity';
 import { Role } from 'src/modules/user/entities/roles.entity';
 import { Installer } from 'src/modules/installer/entities/installer.entity';
-import { TaxCategory } from 'src/modules/installer/enum/taxCategory.enum';
+import { TaxCategory } from 'src/common/enums/taxCategory.enum';
 
 @Injectable()
 export class UserSeeds {

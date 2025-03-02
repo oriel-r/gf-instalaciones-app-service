@@ -11,7 +11,8 @@ import {
   Length,
   Matches,
 } from 'class-validator';
-import { TaxCategory } from 'src/modules/installer/enum/taxCategory.enum';
+import { StatusInstaller } from 'src/common/enums/status-installer';
+import { TaxCategory } from 'src/common/enums/taxCategory.enum';
 
 export class ExtendedInstallerDto {
   @ApiProperty({
@@ -88,8 +89,8 @@ export class ExtendedInstallerDto {
     description: 'Número de télefono',
     example: '1134256282',
   })
-@IsString()
-@IsNotEmpty()
+  @IsString()
+  @IsNotEmpty()
   phone: string;
 
   @ApiProperty({
@@ -140,7 +141,8 @@ export class ExtendedInstallerDto {
   taxCondition: TaxCategory;
 
   @ApiPropertyOptional({
-    description: 'Cualquier consulta o comentario adicional proporcionado por el usuario.',
+    description:
+      'Cualquier consulta o comentario adicional proporcionado por el usuario.',
     type: String,
     example: 'Consulta sobre disponibilidad de servicios.',
   })
@@ -158,10 +160,11 @@ export class ExtendedInstallerDto {
   hasPersonalAccidentInsurance: boolean;
 
   @ApiProperty({
-    description: 'Indica si el usuario puede trabajar en altura de forma segura.',
+    description:
+      'Indica si el usuario puede trabajar en altura de forma segura.',
     type: Boolean,
     example: false,
-  })  
+  })
   @IsNotEmpty()
   @IsBoolean()
   canWorkAtHeight: boolean;
@@ -194,7 +197,8 @@ export class ExtendedInstallerDto {
   canInstallFrostedVinyl: boolean;
 
   @ApiProperty({
-    description: 'Indica si el usuario puede instalar vinilo en paredes o vidrios.',
+    description:
+      'Indica si el usuario puede instalar vinilo en paredes o vidrios.',
     type: Boolean,
     example: true,
   })
@@ -203,7 +207,8 @@ export class ExtendedInstallerDto {
   canInstallVinylOnWallsOrGlass: boolean;
 
   @ApiProperty({
-    description: 'Indica si el usuario puede realizar car wrapping (vinilado de autos).',
+    description:
+      'Indica si el usuario puede realizar car wrapping (vinilado de autos).',
     type: Boolean,
     example: false,
   })
@@ -219,4 +224,13 @@ export class ExtendedInstallerDto {
   @IsNotEmpty()
   @IsBoolean()
   hasOwnTransportation: boolean;
+
+  @ApiProperty({
+    description: 'Indica el estado del instalador',
+    enum: StatusInstaller,
+    example: 'En proceso, Aprobado, Rechazado',
+  })
+  @IsOptional()
+  @IsEnum(StatusInstaller)
+  status?: StatusInstaller;
 }

@@ -16,6 +16,7 @@ import { CreateInstallerDto } from './dto/create-installer.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { User } from '../user/entities/user.entity';
 import { Role } from '../user/entities/roles.entity';
+import { UpdateInstallerDto } from './dto/update-installer';
 
 @ApiTags('Installer')
 @Injectable()
@@ -117,6 +118,12 @@ export class InstallerService {
 
     const installer = await this.installerRepository.save(newInstaller);
     return installer;
+  }
+
+  async updateInstaller( updateInstaller: UpdateInstallerDto , installerId: string ) {
+    const installer = await this.findById(installerId);
+      Object.assign(installer, updateInstaller);
+      return await this.installerRepository.save(installer)
   }
 
   @ApiOperation({ summary: 'Buscar instalador por correo electrónico' })
