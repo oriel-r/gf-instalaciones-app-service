@@ -1,26 +1,40 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateInstalationDto } from './dto/create-instalation.dto';
 import { UpdateInstalationDto } from './dto/update-instalation.dto';
+import { InstalationsRepository } from './instalarion.repository';
+import { DeepPartial } from 'typeorm';
+import { Instalation } from './entities/instalation.entity';
+import { DeleteResponse } from 'src/common/entities/delete.response';
 
 @Injectable()
 export class InstalationsService {
-  create(createInstalationDto: CreateInstalationDto) {
-    return 'This action adds a new instalation';
+  constructor(
+    private readonly instalarionsRepository: InstalationsRepository
+  ){}
+  
+  async create(createInstalationDto: CreateInstalationDto) {
   }
 
-  findAll() {
-    return `This action returns all instalations`;
+  async findAll() {
+    const instalations = await this.instalarionsRepository.get()
+    if(!instalations.length) throw new NotFoundException('No se encontraron isntalaciones')
+      return instalations
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} instalation`;
+  async findOne(id: string) {
+    const instalation = await this.instalarionsRepository.getById(id)
+    if(!instalation) throw new NotFoundException('Instalación no encontrada, id incorrecto o inexistente')
+      return instalation  }
+
+  async update(id: string, updateInstalationDto: DeepPartial<Instalation>) {
+    const instalation = await this.instalarionsRepository.getById(id)
+    if(!instalation) throw new NotFoundException('Instalación no encontrada, id incorrecto o inexistente')
+      return this.instalarionsRepository.update(id, updateInstalationDto)
   }
 
-  update(id: number, updateInstalationDto: UpdateInstalationDto) {
-    return `This action updates a #${id} instalation`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} instalation`;
-  }
+  async remove(id: string) {
+    const instalation = await this.instalarionsRepository.getById(id)
+    if(!instalation) throw new NotFoundException('Instalación no encontrada, id incorrecto o inexistente')
+    const result = await this.instalarionsRepository.softDelete(id)
+    if(result.affected) return new DeleteResponse('instalación', id)
 }
