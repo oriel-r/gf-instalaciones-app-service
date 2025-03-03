@@ -1,11 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { UpdateCoordinatorDto } from './dto/update-coordinator.dto';
 import { ApiTags } from '@nestjs/swagger';
+import { CreateCoordinatorDto } from './dto/create-coordinator.dto';
 
 @ApiTags('Coordinators')
 @Injectable()
 export class CoordinatorsService {
   constructor() {}
+  
+  createCoordinator(createCoordinatorDto: CreateCoordinatorDto) {
+    throw new Error('Method not implemented.');
+  }
 
   findAll() {
     return `This action returns all coordinators`;

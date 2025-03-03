@@ -170,7 +170,6 @@ export class InstallerService {
     }
   }
   
-  
   @ApiOperation({ summary: 'Restaurar un instalador deshabilitado' })
   @ApiResponse({
     status: 200,
@@ -224,7 +223,6 @@ export class InstallerService {
     if (!installer) {
       throw new NotFoundException('Instalador desactivado no encontrado');
     }
-  
     return installer;
   }
   

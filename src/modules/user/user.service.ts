@@ -183,7 +183,10 @@ export class UserService {
     type: [User],
   })
   async findAllWhitDeleted() {
-    return await this.userRepository.find({ withDeleted: true });
+    return await this.userRepository.find({
+      relations: ['installer'], 
+      withDeleted: true 
+    });
   }
 
   @ApiOperation({ summary: 'Buscar un usuario desactivado por ID' })
