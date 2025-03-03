@@ -9,32 +9,27 @@ import { ApiTags } from '@nestjs/swagger';
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
-  @Post()
-  create(@Body() createAdminDto: CreateAdminDto) {
-    return this.adminService.create(createAdminDto);
+  @Put('assignAdmin/:id')
+  async assignAdmin(@Param('id') adminId: string) {
+    return await this.adminService.assignAdmin(adminId);
   }
 
   @Get()
-  findAll() {
-    return this.adminService.findAll();
+  async findAll() {
+    return await this.adminService.findAll();
   }
 
-  @Get(':id')
+  @Get('findById/:id')
   findOne(@Param('id') id: string) {
-    return this.adminService.findOne(+id);
+    return this.adminService.findOne(id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAdminDto: UpdateAdminDto) {
-    return this.adminService.update(+id, updateAdminDto);
+  @Delete('removeAdmin/:id')
+  removeAdminRole(@Param('id') adminId: string) {
+    return this.adminService.removeAdminRole(adminId);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.adminService.remove(+id);
-  }
-
-  @Put('/assignCoordinator/:id')
+  @Put('assignCoordinator/:id')
   async assignCoordinator(@Param('id') coordinatorId: string) {
     return await this.adminService.assignCoordinator(coordinatorId);
   }

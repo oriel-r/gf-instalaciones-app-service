@@ -3,6 +3,7 @@ import {
   Column,
   DeleteDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
   OneToOne,
   PrimaryGeneratedColumn,
@@ -58,7 +59,8 @@ export class User {
   @ManyToOne(() => Role, (role) => role.users, { eager: true })
   role: Role;
 
-  @OneToOne(() => Admin, (admin) => admin.user, { nullable: true })
+  @OneToOne(() => Admin, (admin) => admin.user, { nullable: true , cascade: true, onDelete: 'CASCADE'})
+  @JoinColumn() 
   admin?: Admin;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })

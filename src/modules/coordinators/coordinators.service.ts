@@ -7,14 +7,6 @@ import { CreateCoordinatorDto } from './dto/create-coordinator.dto';
 @Injectable()
 export class CoordinatorsService {
   constructor() {}
-  
-  createCoordinator(createCoordinatorDto: CreateCoordinatorDto) {
-    throw new Error('Method not implemented.');
-  }
-
-  findAll() {
-    return `This action returns all coordinators`;
-  }
 
   findOne(id: number) {
     return `This action returns a #${id} coordinator`;
