@@ -9,7 +9,6 @@ import {
 } from 'typeorm';
 import { v4 as uuid } from 'uuid';
 import { Role } from './roles.entity';
-import { Coordinator } from 'src/modules/coordinators/entities/coordinator.entity';
 import { Admin } from 'src/modules/admins/entities/admins.entity';
 
 @Entity({ name: 'users' })
@@ -58,9 +57,6 @@ export class User {
 
   @ManyToOne(() => Role, (role) => role.users, { eager: true })
   role: Role;
-
-  @OneToOne(() => Coordinator, (coordinator) => coordinator.user, { nullable: true })
-  coordinator?: Coordinator;
 
   @OneToOne(() => Admin, (admin) => admin.user, { nullable: true })
   admin?: Admin;
