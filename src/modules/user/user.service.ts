@@ -36,33 +36,22 @@ export class UserService {
   })
   @ApiResponse({
     status: 409,
-    description: 'Conflicto: email o identificación ya registrada.',
+    description: 'Conflicto: Correo electónico o identificación ya registrada.',
   })
   async createUser(createUserDto: CreateUserDto) {
     const { email, idNumber, role, phone } = createUserDto;
 
+    const userDisabled = await this.userByEmailByDisabled(email)
+
+    if (userDisabled?.disabledAt) {
+      throw new ConflictException('El correo electrónico esta deshabilitado');
+    }
+
     const userExisting = await this.findByEmail(email);
 
-      if (userExisting) {
-        try {
-          const installer = await this.installerService.findByEmail(
-            userExisting.email,
-          );
-
-          if (installer) {
-            throw new ConflictException(
-              'El email ya está registrado como instalador',
-            );
-          }
-
-        } catch (error) {
-
-          console.error("Error al buscar instalador: ", error)
-          throw new InternalServerErrorException('Error al verificar instalador');
-        }
-
-        throw new ConflictException('Email existente');
-      }
+    if (userExisting) {
+      throw new ConflictException('El correo electrónico ya existe');
+    }
 
     const existingNumber = await this.userRepository.findOne({where: { idNumber }});
 
@@ -71,18 +60,20 @@ export class UserService {
         'El documento de identidad ya se encuentra registrado',
       );
 
-      const existingPhone = await this.userRepository.findOne({where: { phone }});
-  
-      if (existingPhone) {
-        throw new ConflictException(
-          'El número de celular ya se encuentra registrado',
-        );
-      }
+    const existingPhone = await this.userRepository.findOne({where: { phone }});
+
+    if (existingPhone) {
+      throw new ConflictException(
+        'El número de celular ya se encuentra registrado',
+      );
+    }
 
     let userRole = role;
 
     if (!userRole) {
-      const foundRole = await this.roleRepository.findOne({where: { name: 'Usuario' }});
+      const foundRole = await this.roleRepository.findOne({
+        where: { name: 'Usuario' },
+      });
 
       if (foundRole) {
         userRole = foundRole;
@@ -104,6 +95,15 @@ export class UserService {
     return await this.userRepository.save(newUser);
   }
 
+  async userByEmailByDisabled(email: string) {
+    const user = await this.userRepository.findOne({
+      where: { email },
+      withDeleted: true,
+    });
+  
+    return user; 
+  }
+
   @ApiOperation({ summary: 'Obtener todos los usuarios' })
   @ApiResponse({
     status: 200,
@@ -111,7 +111,9 @@ export class UserService {
     type: [User],
   })
   async findAll() {
-    return await this.userRepository.find();
+    return await this.userRepository.find({
+      relations: ['installer']
+    });
   }
 
   @ApiOperation({ summary: 'Buscar usuario por email' })
@@ -152,7 +154,7 @@ export class UserService {
     description: 'Usuario desactivado exitosamente.',
   })
   @ApiResponse({ status: 404, description: 'Usuario no encontrado.' })
-  async softDelete(id: string) {
+  async softDeleteUser(id: string) {
     await this.userRepository.softDelete(id);
     return { message: 'Se desactivo correctamente' };
   }

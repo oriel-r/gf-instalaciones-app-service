@@ -153,13 +153,23 @@ export class InstallerService {
     description: 'Instalador no encontrado',
   })
   async softDelete(id: string) {
-    await this.installerRepository.softDelete(id);
-    const installer = await this.findDisabledInstallerById(id);
-    if (installer!.user) {
-      await this.userService.softDelete(installer!.user.id);
+    const installer = await this.installerRepository.findOne({
+      where: { id },
+      relations: ['user'],
+    });
+  
+    if (!installer) {
+      throw new NotFoundException('Instalador no encontrado');
     }
-    return { message: 'Se desactivó correctamente' };
+  
+    if (installer.user) {
+      
+      await this.userService.softDeleteUser(installer.user.id);
+       
+      return { message: 'El instalador ha sido deshabilitado correctamente' };
+    }
   }
+  
   
   @ApiOperation({ summary: 'Restaurar un instalador deshabilitado' })
   @ApiResponse({
@@ -172,7 +182,7 @@ export class InstallerService {
   })
   async restore(id: string) {
     const installer = await this.findDisabledInstallerById(id);
-    if (installer && installer.disabledAt !== null) {
+    if (installer && installer.user.disabledAt !== null) {
       await this.installerRepository.restore(id);
       return { message: 'Se restauro correctamente' };
     }
@@ -203,7 +213,11 @@ export class InstallerService {
   })
   async findDisabledInstallerById(installerId: string): Promise<Installer | null> {
     const installer = await this.installerRepository.findOne({
-      where: { id: installerId, disabledAt: Not(IsNull()) },
+      where: { 
+        id: installerId,
+        user: { disabledAt: Not(IsNull()) }
+      },
+      relations: ['user'],
       withDeleted: true,
     });
   

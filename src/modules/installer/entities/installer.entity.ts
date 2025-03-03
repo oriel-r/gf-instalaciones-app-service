@@ -47,9 +47,6 @@ export class Installer {
   @Column()
   hasOwnTransportation: boolean;
 
-  @DeleteDateColumn()
-  disabledAt?: Date;
-
   @Column({
     type: 'enum',
     enum: StatusInstaller,

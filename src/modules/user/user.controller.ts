@@ -81,8 +81,8 @@ export class UserController {
   @ApiOperation({ summary: 'Desactivar usuario (soft delete)' })
   @ApiResponse({ status: 200, description: 'Usuario desactivado correctamente.' })
   @Delete('/disabled/:id')
-  async softDelete(@Param('id') id: string) {
-    return await this.userService.softDelete(id);
+  async softDeleteUser(@Param('id') id: string) {
+    return await this.userService.softDeleteUser(id);
   }
 
   @ApiOperation({ summary: 'Restaurar usuario desactivado' })

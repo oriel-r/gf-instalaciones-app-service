@@ -20,13 +20,13 @@ export class User {
   @Column()
   fullName: string;
 
-  @Column({ unique: true })
+  @Column()
   email: string;
 
   @Column()
   birthDate: Date;
 
-  @Column({ unique: true })
+  @Column()
   idNumber: string;
 
   @Column()
@@ -38,7 +38,7 @@ export class User {
   @Column()
   country: string;
 
-  @Column({ unique: true })
+  @Column()
   phone: string;
 
   @Column()
