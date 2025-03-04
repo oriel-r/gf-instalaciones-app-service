@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Instalation } from "./entities/instalation.entity";
 import { DeepPartial, Repository } from "typeorm";
+import { CreateAdminDto } from "../admins/dto/create-admin.dto";
 
 @Injectable()
 export class InstalationsRepository {
@@ -9,7 +10,7 @@ export class InstalationsRepository {
         @InjectRepository(Instalation) private readonly instalarionsRepository: Repository<Instalation>
     ) {}
 
-    async create(data) {
+    async create(data: DeepPartial<CreateAdminDto>) {
         return await this.instalarionsRepository.save(
             await this.instalarionsRepository.create(data)
         )

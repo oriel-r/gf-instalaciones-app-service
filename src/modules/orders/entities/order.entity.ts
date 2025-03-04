@@ -42,8 +42,8 @@ export class Order extends BaseEntity {
     @Column({nullable: true, type: 'date' })
     endDate: Date | null
 
-    @OneToMany(() => Instalation, (instalation) => instalation.order)
-    instalarions: Instalation[]
+    @OneToMany(() => Instalation, (instalation) => instalation.order, {nullable: true})
+    instalations?: Instalation[]
 
 
     constructor(partial: DeepPartial<Order>) {

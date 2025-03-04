@@ -2,13 +2,15 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { InstalationsService } from './instalations.service';
 import { CreateInstalationDto } from './dto/create-instalation.dto';
 import { UpdateInstalationDto } from './dto/update-instalation.dto';
+import { DeepPartial } from 'typeorm';
+import { Instalation } from './entities/instalation.entity';
 
 @Controller('instalations')
 export class InstalationsController {
   constructor(private readonly instalationsService: InstalationsService) {}
 
   @Post()
-  create(@Body() createInstalationDto: CreateInstalationDto) {
+  create(@Body() createInstalationDto: DeepPartial<Instalation>) {
     return this.instalationsService.create(createInstalationDto);
   }
 
@@ -19,16 +21,16 @@ export class InstalationsController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.instalationsService.findOne(+id);
+    return this.instalationsService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateInstalationDto: UpdateInstalationDto) {
-    return this.instalationsService.update(+id, updateInstalationDto);
+  update(@Param('id') id: string, @Body() updateInstalationDto: DeepPartial<Instalation> ) {
+    return this.instalationsService.update(id, updateInstalationDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.instalationsService.remove(+id);
+    return this.instalationsService.remove(id);
   }
 }

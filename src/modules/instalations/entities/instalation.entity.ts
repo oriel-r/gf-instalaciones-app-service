@@ -19,7 +19,7 @@ export class Instalation extends BaseEntity {
         title: 'order',
         description: "instalarion's order"
     })
-    @ManyToOne(() => Order, (order) => order.instalarions, {nullable: false})
+    @ManyToOne(() => Order, (order) => order.instalations, {nullable: false})
     order: Order
 
     @ApiProperty({

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateInstalationDto } from './dto/create-instalation.dto';
 import { UpdateInstalationDto } from './dto/update-instalation.dto';
 import { InstalationsRepository } from './instalarion.repository';
@@ -13,6 +13,9 @@ export class InstalationsService {
   ){}
   
   async create(createInstalationDto: CreateInstalationDto) {
+    const instalation = await this.instalarionsRepository.create(createInstalationDto)
+    if(!instalation) throw new HttpException('No se pudo crear la isntalción', HttpStatus.INTERNAL_SERVER_ERROR)
+      return instalation
   }
 
   async findAll() {
@@ -37,4 +40,5 @@ export class InstalationsService {
     if(!instalation) throw new NotFoundException('Instalación no encontrada, id incorrecto o inexistente')
     const result = await this.instalarionsRepository.softDelete(id)
     if(result.affected) return new DeleteResponse('instalación', id)
+  }
 }

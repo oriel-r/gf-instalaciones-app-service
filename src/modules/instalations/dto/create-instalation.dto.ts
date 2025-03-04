@@ -14,7 +14,7 @@ export class CreateInstalationDto extends BaseDto{
     })
     @IsNotEmpty()
     @IsUUID()
-    order: string;
+    order: Order;
     
     @ApiProperty({
         title: "startDate",
