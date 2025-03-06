@@ -2,8 +2,6 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './modules/user/user.module';
-import { OrdersModule } from './modules/orders/orders.module';
-import { InstalationsModule } from './modules/instalations/instalations.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { dbConfig } from './config/data-source';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
@@ -17,6 +15,8 @@ import { JwtModule } from '@nestjs/jwt';
 import { InstallerModule } from './modules/installer/installer.module';
 import { AdminModule } from './modules/admins/admins.module';
 import { CoordinatorsModule } from './modules/coordinators/coordinators.module';
+import { LocationsModule } from './modules/locations/locations.module';
+import { OperationsModule } from './modules/operations/operations.module';
 import { ImagesModule } from './modules/images/images.module';
 
 @Module({
@@ -46,8 +46,6 @@ import { ImagesModule } from './modules/images/images.module';
       },
     }),
     UserModule,
-    OrdersModule,
-    InstalationsModule,
     SeedersModule,
     BlogModule,
     EmailModule,
@@ -61,6 +59,8 @@ import { ImagesModule } from './modules/images/images.module';
     InstallerModule,
     AdminModule,
     CoordinatorsModule,
+    OperationsModule,
+    LocationsModule,
     ImagesModule,
   ],
   controllers: [AppController],
