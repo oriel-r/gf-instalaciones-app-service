@@ -96,20 +96,4 @@ export class AdminService {
     console.log('Usuario actualizado:', user);
     return user;
   }
-
-  async assignCoordinator(coordinatorId: string) {
-    const user = await this.userService.findById(coordinatorId);
-
-    const role = await this.roleRepository.findOne({
-      where: { name: 'Coordinador' },
-    });
-    if (!role) {
-      throw new HttpException('Rol no encontrado', HttpStatus.NOT_FOUND);
-    }
-
-    user.role = role;
-    await this.userRepository.save(user);
-
-    return user;
-  }
 }

@@ -2,6 +2,8 @@ import {
   BadRequestException,
   ConflictException,
   forwardRef,
+  HttpException,
+  HttpStatus,
   Inject,
   Injectable,
   InternalServerErrorException,
@@ -15,6 +17,7 @@ import { InstallerService } from '../installer/installer.service';
 import { IsNull, Not, Repository } from 'typeorm';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Role } from './entities/roles.entity';
+import { Coordinator } from '../coordinators/entities/coordinator.entity';
 
 @ApiTags('Users')
 @Injectable()
@@ -26,6 +29,8 @@ export class UserService {
     private readonly installerService: InstallerService,
     @InjectRepository(Role)
     private readonly roleRepository: Repository<Role>,
+    @InjectRepository(Coordinator)
+    private readonly coordinatorRepository: Repository<Coordinator>
   ) {}
 
   @ApiOperation({ summary: 'Crear un nuevo usuario' })
@@ -208,6 +213,35 @@ export class UserService {
     if (!user) {
       throw new NotFoundException('Usuario desactivado no encontrado');
     }
+
+    return user;
+  }
+
+  async assignCoordinator(coordinatorId: string) {
+    const user = await this.userRepository.findOne({
+      where: {id: coordinatorId},
+      relations: ['coordinador']
+    })
+
+     if (!user) {
+          throw new HttpException('Usuario no encontrado', HttpStatus.NOT_FOUND);
+        }
+
+    const role = await this.roleRepository.findOne({
+      where: { name: 'Coordinador' },
+    });
+    if (!role) {
+      throw new HttpException('Rol no encontrado', HttpStatus.NOT_FOUND);
+    }
+
+    user.role = role;
+
+    if (!user.coordinator) {
+      const newCoordinator = this.coordinatorRepository.create({ user });
+      user.coordinator = await this.coordinatorRepository.save(newCoordinator);
+    }
+
+    await this.userRepository.save(user);
 
     return user;
   }

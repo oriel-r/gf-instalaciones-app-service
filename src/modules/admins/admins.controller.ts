@@ -1,7 +1,5 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Put } from '@nestjs/common';
+import { Controller, Get, Param, Delete, Put } from '@nestjs/common';
 import { AdminService } from './admins.service';
-import { CreateAdminDto } from './dto/create-admin.dto';
-import { UpdateAdminDto } from './dto/update-admin.dto';
 import { ApiTags } from '@nestjs/swagger';
 
 @ApiTags('Admin')
@@ -27,10 +25,5 @@ export class AdminController {
   @Delete('removeAdmin/:id')
   removeAdminRole(@Param('id') adminId: string) {
     return this.adminService.removeAdminRole(adminId);
-  }
-
-  @Put('assignCoordinator/:id')
-  async assignCoordinator(@Param('id') coordinatorId: string) {
-    return await this.adminService.assignCoordinator(coordinatorId);
   }
 }

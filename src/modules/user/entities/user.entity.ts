@@ -11,6 +11,7 @@ import {
 import { v4 as uuid } from 'uuid';
 import { Role } from './roles.entity';
 import { Admin } from 'src/modules/admins/entities/admins.entity';
+import { Coordinator } from 'src/modules/coordinators/entities/coordinator.entity';
 
 @Entity({ name: 'users' })
 export class User {
@@ -60,8 +61,13 @@ export class User {
   role: Role;
 
   @OneToOne(() => Admin, (admin) => admin.user, { nullable: true , cascade: true, onDelete: 'CASCADE'})
-  @JoinColumn() 
+  @JoinColumn({name: 'admin_id'}) 
   admin?: Admin;
+
+  @OneToOne(() => Coordinator, (coordinator) => coordinator.user, { nullable: true , cascade: true, onDelete: 'CASCADE'})
+  @JoinColumn({name: 'coordinator_id'})
+  coordinator?: Coordinator;
+
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createAt: Date;

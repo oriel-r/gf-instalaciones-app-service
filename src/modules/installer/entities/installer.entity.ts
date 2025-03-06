@@ -1,9 +1,10 @@
-import { Column, DeleteDateColumn, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { v4 as uuid } from 'uuid';
 import { TaxCategory } from '../../../common/enums/taxCategory.enum';
 import { User } from 'src/modules/user/entities/user.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import { StatusInstaller } from 'src/common/enums/status-installer';
+import { Coordinator } from 'src/modules/coordinators/entities/coordinator.entity';
 
 @Entity()
 export class Installer {
@@ -55,6 +56,9 @@ export class Installer {
   status?: StatusInstaller;
 
   @OneToOne(() => User, (user) => user.installer, { nullable: false, cascade: true, eager: true })
-  @JoinColumn()
+  @JoinColumn({name: 'user_id'})
   user: User;
+
+  @ManyToMany(() => Coordinator, (coordinator) => coordinator.installers)
+  coordinators: Coordinator[];
 }
