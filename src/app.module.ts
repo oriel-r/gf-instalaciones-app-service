@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './modules/user/user.module';
-import { CloudinaryService } from './services/cloudinary/cloudinary.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { dbConfig } from './config/data-source';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
@@ -18,6 +17,7 @@ import { AdminModule } from './modules/admins/admins.module';
 import { CoordinatorsModule } from './modules/coordinators/coordinators.module';
 import { LocationsModule } from './modules/locations/locations.module';
 import { OperationsModule } from './modules/operations/operations.module';
+import { ImagesModule } from './modules/images/images.module';
 
 @Module({
   imports: [
@@ -61,9 +61,10 @@ import { OperationsModule } from './modules/operations/operations.module';
     CoordinatorsModule,
     OperationsModule,
     LocationsModule,
+    ImagesModule,
   ],
   controllers: [AppController],
-  providers: [AppService, CloudinaryService],
+  providers: [AppService],
 })
 export class AppModule {}
 

@@ -12,9 +12,10 @@ import { BlogPostTemplate } from "src/modules/blog/blog-post-tamplates/entities/
 import { BlogPost } from "src/modules/blog/blog-posts/entities/blog-post.entity";
 import { BlogTemplatesSeeder } from "./blog/blog-templates.seeder";
 import { BlogPostsSeeder } from "./blog/blog-posts.seeder";
+import { Installer } from "src/modules/installer/entities/installer.entity";
 
 @Module({
-    imports:[TypeOrmModule.forFeature([User,Role, BlogCategory, BlogPostTemplate, BlogPost]),
+    imports:[TypeOrmModule.forFeature([User,Role, BlogCategory, BlogPostTemplate, BlogPost, Installer]),
     JwtModule,
     BlogModule,
 ],

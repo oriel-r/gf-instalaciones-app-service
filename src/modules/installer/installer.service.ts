@@ -2,9 +2,11 @@ import {
   BadRequestException,
   ConflictException,
   forwardRef,
+  HttpException,
+  HttpStatus,
   Inject,
   Injectable,
-  NotFoundException,
+  NotFoundException
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Installer } from './entities/installer.entity';
@@ -13,6 +15,8 @@ import { UserService } from '../user/user.service';
 import { CreateInstallerDto } from './dto/create-installer.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { User } from '../user/entities/user.entity';
+import { Role } from '../user/entities/roles.entity';
+import { UpdateInstallerDto } from './dto/update-installer';
 
 @ApiTags('Installer')
 @Injectable()
@@ -20,8 +24,12 @@ export class InstallerService {
   constructor(
     @InjectRepository(Installer)
     private readonly installerRepository: Repository<Installer>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
     @Inject(forwardRef(() => UserService))
     private readonly userService: UserService,
+    @InjectRepository(Role)
+    private readonly roleRepository: Repository<Role>,
   ) {}
 
   @ApiOperation({ summary: 'Obtener todos los instaladores' })
@@ -62,11 +70,21 @@ export class InstallerService {
       });
 
       if (existingInstaller) {
-        throw new ConflictException(
-          'El email ya está registrado como instalador',
-        );
+        throw new HttpException('El email ya está registrado como instalador', HttpStatus.CONFLICT);
       }
     } else {
+
+    let userRole = await this.roleRepository.findOne({ where: {name: 'Instalador'}});
+
+    if(!userRole) {
+      userRole = this.roleRepository.create({
+        name: 'Instalador',
+        description: 'Rol asignado a instaladores'
+      });
+
+      userRole = await this.roleRepository.save(userRole)
+    }
+
       user = await this.userService.createUser({
         email,
         password,
@@ -78,6 +96,7 @@ export class InstallerService {
         phone,
         birthDate,
         coverage,
+        role: userRole,
       });
     }
 
@@ -99,6 +118,12 @@ export class InstallerService {
 
     const installer = await this.installerRepository.save(newInstaller);
     return installer;
+  }
+
+  async updateInstaller( updateInstaller: UpdateInstallerDto , installerId: string ) {
+    const installer = await this.findById(installerId);
+      Object.assign(installer, updateInstaller);
+      return await this.installerRepository.save(installer)
   }
 
   @ApiOperation({ summary: 'Buscar instalador por correo electrónico' })
@@ -128,12 +153,21 @@ export class InstallerService {
     description: 'Instalador no encontrado',
   })
   async softDelete(id: string) {
-    await this.installerRepository.softDelete(id);
-    const installer = await this.findDisabledInstallerById(id);
-    if (installer!.user) {
-      await this.userService.softDelete(installer!.user.id);
+    const installer = await this.installerRepository.findOne({
+      where: { id },
+      relations: ['user'],
+    });
+  
+    if (!installer) {
+      throw new NotFoundException('Instalador no encontrado');
     }
-    return { message: 'Se desactivó correctamente' };
+  
+    if (installer.user) {
+      
+      await this.userService.softDeleteUser(installer.user.id);
+       
+      return { message: 'El instalador ha sido deshabilitado correctamente' };
+    }
   }
   
   @ApiOperation({ summary: 'Restaurar un instalador deshabilitado' })
@@ -147,7 +181,7 @@ export class InstallerService {
   })
   async restore(id: string) {
     const installer = await this.findDisabledInstallerById(id);
-    if (installer && installer.disabledAt !== null) {
+    if (installer && installer.user.disabledAt !== null) {
       await this.installerRepository.restore(id);
       return { message: 'Se restauro correctamente' };
     }
@@ -178,14 +212,17 @@ export class InstallerService {
   })
   async findDisabledInstallerById(installerId: string): Promise<Installer | null> {
     const installer = await this.installerRepository.findOne({
-      where: { id: installerId, disabledAt: Not(IsNull()) },
+      where: { 
+        id: installerId,
+        user: { disabledAt: Not(IsNull()) }
+      },
+      relations: ['user'],
       withDeleted: true,
     });
   
     if (!installer) {
       throw new NotFoundException('Instalador desactivado no encontrado');
     }
-  
     return installer;
   }
   

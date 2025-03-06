@@ -1,6 +1,5 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Body, Patch, Param, Delete } from '@nestjs/common';
 import { CoordinatorsService } from './coordinators.service';
-import { CreateCoordinatorDto } from './dto/create-coordinator.dto';
 import { UpdateCoordinatorDto } from './dto/update-coordinator.dto';
 import { ApiTags } from '@nestjs/swagger';
 
@@ -8,16 +7,6 @@ import { ApiTags } from '@nestjs/swagger';
 @Controller('coordinators')
 export class CoordinatorsController {
   constructor(private readonly coordinatorsService: CoordinatorsService) {}
-
-  /* @Post()
-  createCoordinator(@Body() createCoordinatorDto: CreateCoordinatorDto) {
-    return this.coordinatorsService.createCoordinator(createCoordinatorDto);
-  } */
-
-  @Get()
-  findAll() {
-    return this.coordinatorsService.findAll();
-  }
 
   @Get(':id')
   findOne(@Param('id') id: string) {

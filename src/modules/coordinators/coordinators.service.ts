@@ -1,15 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { UpdateCoordinatorDto } from './dto/update-coordinator.dto';
 import { ApiTags } from '@nestjs/swagger';
+import { CreateCoordinatorDto } from './dto/create-coordinator.dto';
 
 @ApiTags('Coordinators')
 @Injectable()
 export class CoordinatorsService {
   constructor() {}
-
-  findAll() {
-    return `This action returns all coordinators`;
-  }
 
   findOne(id: number) {
     return `This action returns a #${id} coordinator`;
