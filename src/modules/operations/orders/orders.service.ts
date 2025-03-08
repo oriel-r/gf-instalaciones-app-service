@@ -6,6 +6,7 @@ import { InstalationsService } from '../instalations/instalations.service';
 import { Instalation } from '../instalations/entities/instalation.entity';
 import { DeleteResponse } from 'src/common/entities/delete.response';
 import { DeleteResult } from 'typeorm';
+import { InstalationDataRequesDto } from './dto/instalation-data.request.dto';
 
 @Injectable()
 export class OrdersService {
@@ -37,6 +38,24 @@ export class OrdersService {
     return await this.findByOrderNumber(orderData.orderNumber);
   }
 
+  async addInstalations(orderNumber: string, data: InstalationDataRequesDto | InstalationDataRequesDto[]) {
+    const order = await this.findByOrderNumber(orderNumber);
+    if (!order) throw new NotFoundException('orden no encontrada o numero invalido');
+  
+    // Forzamos a array
+    const dataArray = Array.isArray(data) ? data : [data];
+  
+    return await Promise.all(
+      dataArray.map((instalation) =>
+        this.instalarionsService.createFromOrder({
+          ...instalation,
+          order
+        })
+      )
+    );
+  }
+  
+
   async findAll() {
     const orders = await this.ordersRepository.get()
     if(!orders.length) throw new NotFoundException('No se encontraron ordenes')
@@ -51,6 +70,8 @@ export class OrdersService {
 
   async findByOrderNumber(orderNumber: string) {
     const order = await this.ordersRepository.getByNumber(orderNumber)
+    if(!order) throw new NotFoundException('No se encontro la orden')
+      return order
   }
 
   async update(id: string, updateOrderDto: UpdateOrderDto) {

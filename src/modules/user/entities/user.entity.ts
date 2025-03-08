@@ -64,7 +64,7 @@ export class User {
   @JoinColumn({name: 'admin_id'}) 
   admin?: Admin;
 
-  @OneToOne(() => Coordinator, (coordinator) => coordinator.user, { nullable: true , cascade: true, onDelete: 'CASCADE'})
+  @OneToOne(() => Coordinator, (coordinator) => coordinator.user, { nullable: true , onDelete: 'CASCADE'})
   @JoinColumn({name: 'coordinator_id'})
   coordinator?: Coordinator;
 

@@ -10,9 +10,10 @@ import { InstallerModule } from "../installer/installer.module";
 import { InstallerService } from "../installer/installer.service";
 import { Installer } from "../installer/entities/installer.entity";
 import { Role } from "../user/entities/roles.entity";
+import { Coordinator } from "../coordinators/entities/coordinator.entity";
 
 @Module({
-    imports: [TypeOrmModule.forFeature([User, Installer, Role]),
+    imports: [TypeOrmModule.forFeature([User, Installer, Role, Coordinator]),
     UserModule,
     InstallerModule,
     JwtModule.register({
