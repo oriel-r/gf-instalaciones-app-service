@@ -9,11 +9,6 @@ import { Instalation } from './entities/instalation.entity';
 export class InstalationsController {
   constructor(private readonly instalationsService: InstalationsService) {}
 
-  @Post()
-  create(@Body() createInstalationDto: DeepPartial<Instalation>) {
-    return this.instalationsService.create(createInstalationDto);
-  }
-
   @Get()
   findAll() {
     return this.instalationsService.findAll();

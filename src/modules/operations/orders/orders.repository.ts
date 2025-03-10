@@ -28,7 +28,7 @@ export class OrdersRepository {
         return await this.ordersRepository.findOneBy({orderNumber})
     }
 
-    async update(id: string, data: UpdateOrderDto) {
+    async update(id: string, data: DeepPartial<Order>) {
         return await this.ordersRepository.update(id, data)
     }
 

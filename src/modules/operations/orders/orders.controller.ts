@@ -4,6 +4,7 @@ import { CreateOrderRequestDto } from './dto/create-order.request.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { ApiBody, ApiOperation } from '@nestjs/swagger';
 import { InstalationDataRequesDto } from './dto/instalation-data.request.dto';
+import { UpdateInstalationStatus } from './dto/update-instalation.dto';
 
 @Controller('orders')
 export class OrdersController {
@@ -43,6 +44,15 @@ export class OrdersController {
   @Patch(':id')
   async update(@Param('id') id: string, @Body() updateOrderDto: UpdateOrderDto) {
     return this.ordersService.update(id, updateOrderDto);
+  }
+
+  @Patch(':orderId/instalation/:instalationId')
+  async updateInstalation(
+    @Param('orderId') orderId: string, 
+    @Param('instalationId') instalationId: string , 
+    @Body() status: UpdateInstalationStatus
+  ) {
+    return this.ordersService.updateInstalationStatus(orderId, instalationId, status);
   }
 
   @Delete(':id')
