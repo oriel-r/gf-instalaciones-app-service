@@ -6,7 +6,6 @@ import {
   HttpStatus,
   Inject,
   Injectable,
-  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { UpdateUserDto } from './dto/update-user.dto';

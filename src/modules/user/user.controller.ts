@@ -6,14 +6,13 @@ import {
   Patch,
   Param,
   Delete,
-  NotFoundException,
   Put,
   Query,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { CreateUserDto } from './dto/create-user.dto';
-import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { User } from './entities/user.entity';
 import { FindUserByEmailDto } from './dto/find-user-by-email.dto';
 
