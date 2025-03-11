@@ -1,19 +1,16 @@
 import {
   Controller,
   Get,
-  Post,
   Body,
   Patch,
   Param,
   Delete,
-  NotFoundException,
   Put,
   Query,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { CreateUserDto } from './dto/create-user.dto';
-import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { User } from './entities/user.entity';
 import { FindUserByEmailDto } from './dto/find-user-by-email.dto';
 
@@ -21,14 +18,6 @@ import { FindUserByEmailDto } from './dto/find-user-by-email.dto';
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
-
-  @ApiOperation({ summary: 'Crear un nuevo usuario' })
-  @ApiResponse({ status: 201, description: 'Usuario creado exitosamente.', type: User })
-  @ApiResponse({ status: 409, description: 'Conflicto: email o identificación duplicados.' })
-  @Post()
-  async createUser(@Body() createUserDto: CreateUserDto) {
-    return await this.userService.createUser(createUserDto);
-  }
 
   @ApiOperation({ summary: 'Obtener todos los usuarios activos' })
   @ApiResponse({ status: 200, description: 'Lista de usuarios obtenida.', type: [User] })
