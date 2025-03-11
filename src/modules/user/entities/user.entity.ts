@@ -68,7 +68,6 @@ export class User {
   @JoinColumn({name: 'coordinator_id'})
   coordinator?: Coordinator;
 
-
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createAt: Date;
 }
