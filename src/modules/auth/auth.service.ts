@@ -24,8 +24,6 @@ export class AuthService {
         HttpStatus.BAD_REQUEST,
       );
     }
-    
-    userDto.password = await hash(userDto.password, 10);
 
     const user = await this.userService.createUser(userDto);
     return user;

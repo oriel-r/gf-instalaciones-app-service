@@ -37,13 +37,7 @@ export class UserService {
   async createUser(createUserDto: CreateUserDto) {
     const { email, idNumber, role, phone, password} = createUserDto;
 
-    const userDisabled = await this.userByEmailByDisabled(email)
-
-    if (userDisabled?.disabledAt) {
-      throw new ConflictException('El correo electrónico esta deshabilitado');
-    }
-
-    const existingUser = await this.userRepository.findOne({ where: [{ email }, { idNumber }, { phone }]});
+    const existingUser = await this.userRepository.findOne({ where: { email }});
 
     if (existingUser) {
 
@@ -63,6 +57,12 @@ export class UserService {
         );
       };
     };
+
+    const userDisabled = await this.userByEmailByDisabled(email)
+
+    if (userDisabled?.disabledAt) {
+      throw new ConflictException('El correo electrónico esta deshabilitado');
+    }
 
     let userRole = role;
 
@@ -119,12 +119,23 @@ export class UserService {
     return user;
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async updateUser(id: string, updateUserDto: UpdateUserDto) {
+    const user = await this.userRepository.findOne({ where: { id } });
+  
+    if (!user) {
+      throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
+    }
+  
+    Object.assign(user, updateUserDto);
+  
+    return await this.userRepository.save(user); 
   }
+  
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async removeUser(id: string) {
+    const user = await this.findById(id);
+    await this.userRepository.remove(user);
+    return { message: 'Usuario eliminado correctamente.' };
   }
 
   async softDeleteUser(id: string) {
