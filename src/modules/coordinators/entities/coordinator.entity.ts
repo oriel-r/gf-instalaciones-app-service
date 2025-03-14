@@ -1,19 +1,19 @@
-import { User } from "src/modules/user/entities/user.entity";
-import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Instalation } from 'src/modules/operations/instalations/entities/instalation.entity';
+import { User } from 'src/modules/user/entities/user.entity';
+import { Entity, PrimaryGeneratedColumn, OneToOne, OneToMany } from 'typeorm';
 import { v4 as uuid } from 'uuid';
 
-@Entity()
+@Entity('coordinators')
 export class Coordinator {
   @PrimaryGeneratedColumn('uuid')
   id: string = uuid();
 
-  @Column()
-  department: string;
-
-  @Column()
-  region: string;
-
-  @OneToOne(() => User, (user) => user.coordinator)
+  @OneToOne(() => User, (user) => user.coordinator, {
+    nullable: false,
+    eager: true,
+  })
   user: User;
-}   
 
+  @OneToMany(() => Instalation, (instalation) => instalation.coordinator)
+  instalations: Instalation[]; 
+}

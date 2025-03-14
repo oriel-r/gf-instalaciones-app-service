@@ -3,14 +3,15 @@ import {
   Column,
   DeleteDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { v4 as uuid } from 'uuid';
 import { Role } from './roles.entity';
-import { Coordinator } from 'src/modules/coordinators/entities/coordinator.entity';
 import { Admin } from 'src/modules/admins/entities/admins.entity';
+import { Coordinator } from 'src/modules/coordinators/entities/coordinator.entity';
 
 @Entity({ name: 'users' })
 export class User {
@@ -26,7 +27,7 @@ export class User {
   @Column()
   birthDate: Date;
 
-  @Column({ unique: true })
+  @Column()
   idNumber: string;
 
   @Column()
@@ -44,8 +45,8 @@ export class User {
   @Column()
   password: string;
 
-  @Column({default: '+54'})
-  coverage: string;
+  @Column({default: '+54', nullable: true})
+  coverage?: string;
 
   @Column({ default: true })
   isSubscribed: boolean;
@@ -59,11 +60,13 @@ export class User {
   @ManyToOne(() => Role, (role) => role.users, { eager: true })
   role: Role;
 
-  @OneToOne(() => Coordinator, (coordinator) => coordinator.user, { nullable: true })
-  coordinator: Coordinator;
+  @OneToOne(() => Admin, (admin) => admin.user, { nullable: true , cascade: true, onDelete: 'CASCADE'})
+  @JoinColumn({name: 'admin_id'}) 
+  admin?: Admin;
 
-  @OneToOne(() => Admin, (admin) => admin.user, { nullable: true })
-  admin: Admin;
+  @OneToOne(() => Coordinator, (coordinator) => coordinator.user, { nullable: true , onDelete: 'CASCADE'})
+  @JoinColumn({name: 'coordinator_id'})
+  coordinator?: Coordinator;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createAt: Date;

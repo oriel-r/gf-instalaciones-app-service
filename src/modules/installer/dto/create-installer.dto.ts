@@ -1,7 +1,8 @@
 import { IsBoolean, IsEnum, IsOptional, IsString } from 'class-validator';
 import { CreateUserDto } from 'src/modules/user/dto/create-user.dto';
-import { TaxCategory } from '../enum/taxCategory.enum';
+import { TaxCategory } from '../../../common/enums/taxCategory.enum';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { StatusInstaller } from 'src/common/enums/status-installer';
 
 export class CreateInstallerDto extends CreateUserDto {
   @ApiProperty({
@@ -84,4 +85,13 @@ export class CreateInstallerDto extends CreateUserDto {
     })
     @IsBoolean()
     hasOwnTransportation: boolean;
+
+    @ApiProperty({
+      description: 'Indica el estado del instalador',
+      enum: StatusInstaller,
+      example: 'En proceso, Aprobado, Rechazado',
+    })
+    @IsOptional()
+    @IsEnum(StatusInstaller)
+    status?: StatusInstaller;
 }

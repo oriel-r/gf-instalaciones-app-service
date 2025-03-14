@@ -4,12 +4,13 @@ import { UserController } from './user.controller';
 import { InstallerModule } from '../installer/installer.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
-import { Coordinator } from '../coordinators/entities/coordinator.entity';
 import { Role } from './entities/roles.entity';
+import { Coordinator } from '../coordinators/entities/coordinator.entity';
+import { CoordinatorsModule } from '../coordinators/coordinators.module';
 
 
 @Module({
-  imports:[TypeOrmModule.forFeature([User, Coordinator, Role]), forwardRef(() => InstallerModule)],
+  imports:[TypeOrmModule.forFeature([User, Role, Coordinator]), forwardRef(() => InstallerModule), CoordinatorsModule],
   controllers: [UserController],
   providers: [UserService],
   exports:[UserService]

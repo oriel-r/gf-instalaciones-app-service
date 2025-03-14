@@ -1,19 +1,16 @@
 import {
   Controller,
   Get,
-  Post,
   Body,
   Patch,
   Param,
   Delete,
-  NotFoundException,
   Put,
   Query,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { CreateUserDto } from './dto/create-user.dto';
-import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { User } from './entities/user.entity';
 import { FindUserByEmailDto } from './dto/find-user-by-email.dto';
 
@@ -22,19 +19,11 @@ import { FindUserByEmailDto } from './dto/find-user-by-email.dto';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @ApiOperation({ summary: 'Crear un nuevo usuario' })
-  @ApiResponse({ status: 201, description: 'Usuario creado exitosamente.', type: User })
-  @ApiResponse({ status: 409, description: 'Conflicto: email o identificación duplicados.' })
-  @Post()
-  async createUser(@Body() createUserDto: CreateUserDto) {
-    return await this.userService.createUser(createUserDto);
-  }
-
   @ApiOperation({ summary: 'Obtener todos los usuarios activos' })
   @ApiResponse({ status: 200, description: 'Lista de usuarios obtenida.', type: [User] })
   @Get()
-  findAll() {
-    return this.userService.findAll();
+  async findAll() {
+    return await this.userService.findAll();
   }
 
   @ApiOperation({ summary: 'Buscar usuario por email' })
@@ -42,17 +31,7 @@ export class UserController {
   @ApiResponse({ status: 404, description: 'Usuario no encontrado.' })
   @Get('byEmail')
   async findByEmail( @Query() query: FindUserByEmailDto ) {
-    try {
-      const user = await this.userService.findByEmail(query.email);
-
-      if (!user)
-        throw new NotFoundException(
-          `No se encontro el usuario con el email: ${query.email}`,
-        );
-      return user;
-    } catch (error) {
-      throw new NotFoundException(`No se encontro el usuario`);
-    }
+    return await this.userService.findByEmail(query.email);
   }
 
   @ApiOperation({ summary: 'Obtener todos los usuarios, incluidos los desactivados' })
@@ -91,8 +70,8 @@ export class UserController {
   @ApiOperation({ summary: 'Desactivar usuario (soft delete)' })
   @ApiResponse({ status: 200, description: 'Usuario desactivado correctamente.' })
   @Delete('/disabled/:id')
-  async softDelete(@Param('id') id: string) {
-    return await this.userService.softDelete(id);
+  async softDeleteUser(@Param('id') id: string) {
+    return await this.userService.softDeleteUser(id);
   }
 
   @ApiOperation({ summary: 'Restaurar usuario desactivado' })
@@ -103,8 +82,8 @@ export class UserController {
     return await this.userService.restore(id);
   }
 
-  @Put('/asignCoordinator/:id')
-  asignCoordinator(@Param('id') userId: string) {
-    return this.userService.asignCoordinator(userId);
+  @Put('assignCoordinator/:id')
+  async assignCoordinator(@Param('id') coordinatorId: string) {
+    return await this.userService.assignCoordinator(coordinatorId);
   }
 }
