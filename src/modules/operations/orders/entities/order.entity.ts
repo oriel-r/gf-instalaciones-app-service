@@ -41,9 +41,39 @@ export class Order extends BaseEntity {
     })
     @Column({nullable: true, type: 'date' })
     endDate: Date | null
+    
+    @ApiProperty({
+        title: 'progress',
+        description: "order that all order's instalations are completed",
+        type: 'boolean',
+        default: 'false'
+    })
+    @Column('boolean', {default: false})
+    completed: boolean
 
+    @ApiProperty({
+        title: 'progress',
+        description: "order's progress",
+        type: 'number'
+    })
+    @Column( 'varchar', {default: '0/0'})
+    instalationsFinished: string
+
+    @ApiProperty({
+        title: 'progress',
+        description: "order's progress",
+        type: 'number'
+    })
+    @Column('decimal', {precision: 5, scale: 2, default: 0.00})
+    progress: number
+    
+    @ApiProperty({
+        title: 'instalations',
+        description: 'list of instalations',
+        type: [Instalation]
+    })
     @OneToMany(() => Instalation, (instalation) => instalation.order, {nullable: true})
-    instalations?: Instalation[]
+    instalations: Instalation[]
 
 
     constructor(partial: DeepPartial<Order>) {

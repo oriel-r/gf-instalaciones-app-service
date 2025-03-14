@@ -1,8 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderRequestDto } from './dto/create-order.request.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { ApiBody, ApiOperation } from '@nestjs/swagger';
+import { InstalationDataRequesDto } from './dto/instalation-data.request.dto';
+import { UpdateInstalationStatus } from './dto/update-instalation.dto';
 
 @Controller('orders')
 export class OrdersController {
@@ -12,27 +14,49 @@ export class OrdersController {
     summary: 'Create new order',
   })
   @Post()
-  create(@Body() createOrderDto: CreateOrderRequestDto) {
+  async create(@Body() createOrderDto: CreateOrderRequestDto) {
     return this.ordersService.create(createOrderDto);
   }
 
+  @ApiOperation({
+    summary: 'Add instalation to an existed order',
+  })
+  @ApiBody({
+    type: [InstalationDataRequesDto]
+  })
+  @HttpCode(HttpStatus.CREATED)
+  @HttpCode(HttpStatus.NOT_FOUND)
+  @Post(':id/instalations')
+  async addInstalation(@Param('id') id: string, @Body() data: InstalationDataRequesDto | InstalationDataRequesDto[]) {
+    return this.ordersService.addInstalations(id, data);
+  }
+
   @Get()
-  findAll() {
+  async findAll() {
     return this.ordersService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  async findOne(@Param('id') id: string) {
     return this.ordersService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateOrderDto: UpdateOrderDto) {
+  async update(@Param('id') id: string, @Body() updateOrderDto: UpdateOrderDto) {
     return this.ordersService.update(id, updateOrderDto);
   }
 
+  @Patch(':orderId/instalation/:instalationId')
+  async updateInstalation(
+    @Param('orderId') orderId: string, 
+    @Param('instalationId') instalationId: string , 
+    @Body() status: UpdateInstalationStatus
+  ) {
+    return this.ordersService.updateInstalationStatus(orderId, instalationId, status);
+  }
+
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  async remove(@Param('id') id: string) {
     return this.ordersService.remove(id);
   }
 }
