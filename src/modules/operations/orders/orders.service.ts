@@ -61,14 +61,22 @@ export class OrdersService {
     }
 
 
-  async instalationToReview(id: string, data) {
-    // traer instalación
-
-    // subiir imagenes
+  async instalationToReview(orderId: string, instalarionId: string, data: Express.Multer.File) {
+    const order = await this.findOne(orderId)
+    const instalation = order.instalations.find(instalation => instalation.id === instalarionId)
+    
+    if(!instalation) throw new NotFoundException('Instalción no encontrada')
+    
+    const result = await this.instalationsService.sendToReview(instalarionId, data)
 
     // actualizaar instalación con los links
-
+    /* 
+    if(!result)
+    this.eventEmiter.send('add-to-review', order)
+    
+    */
     // retornar instalacion con links
+    return result
   }
 
   async findAll() {

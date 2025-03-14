@@ -17,7 +17,9 @@ export class OrdersRepository {
     }
 
     async get() {
-        return await this.ordersRepository.find()
+        return await this.ordersRepository.find({
+            relations: ['instalations']
+        })
     }
 
     async getById(id: string) {

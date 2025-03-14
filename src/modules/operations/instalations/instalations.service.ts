@@ -58,6 +58,10 @@ export class InstalationsService {
     return await this.instalationsRepository.getById(id)
   }
 
+  async sendToReview(id: string, data) {
+    return 'Work in progress'
+  }
+
   async remove(id: string) {
     const instalation = await this.instalationsRepository.getById(id)
     if(!instalation) throw new NotFoundException('Instalación no encontrada, id incorrecto o inexistente')

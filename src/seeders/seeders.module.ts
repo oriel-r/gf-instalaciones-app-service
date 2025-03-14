@@ -13,14 +13,16 @@ import { BlogPost } from "src/modules/blog/blog-posts/entities/blog-post.entity"
 import { BlogTemplatesSeeder } from "./blog/blog-templates.seeder";
 import { BlogPostsSeeder } from "./blog/blog-posts.seeder";
 import { Installer } from "src/modules/installer/entities/installer.entity";
+import { LocationsSeeder } from "./locations/locations.seeds";
+import { OrdersSeeder } from "./orders/orders.seeds";
 
 @Module({
     imports:[TypeOrmModule.forFeature([User,Role, BlogCategory, BlogPostTemplate, BlogPost, Installer]),
     JwtModule,
     BlogModule,
 ],
-    providers: [UserSeeds, BlogCategoriesSeeder, BlogTemplatesSeeder, BlogPostsSeeder],
-    exports: [UserSeeds, BlogCategoriesSeeder, BlogTemplatesSeeder ],
+    providers: [UserSeeds, BlogCategoriesSeeder, BlogTemplatesSeeder, BlogPostsSeeder, LocationsSeeder, OrdersSeeder],
+    exports: [UserSeeds, BlogCategoriesSeeder, BlogTemplatesSeeder, LocationsSeeder, BlogPostsSeeder, OrdersSeeder],
 })
 
 export class SeedersModule {}
