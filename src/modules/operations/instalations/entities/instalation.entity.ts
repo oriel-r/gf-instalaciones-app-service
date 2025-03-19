@@ -49,7 +49,7 @@ export class Instalation extends BaseEntity {
         title: 'images',
         description: 'an urls array of images'
     })
-    @Column('array', {nullable: true})
+    @Column('varchar', {nullable: true, array: true})
     images: string[] | null
 
     @ApiProperty({
