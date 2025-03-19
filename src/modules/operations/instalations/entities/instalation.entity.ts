@@ -46,6 +46,13 @@ export class Instalation extends BaseEntity {
     startDate: string
     
     @ApiProperty({
+        title: 'images',
+        description: 'an urls array of images'
+    })
+    @Column('varchar', {nullable: true, array: true})
+    images: string[] | null
+
+    @ApiProperty({
         title: 'startDate',
         description: "The day when start the instalation"
     })

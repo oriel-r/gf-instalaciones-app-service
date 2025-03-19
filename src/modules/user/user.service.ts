@@ -104,9 +104,11 @@ export class UserService {
   }
 
   async findAll() {
-    return await this.userRepository.find({
+    const result = await this.userRepository.find({
       relations: ['installer']
     });
+    if(!result || !result.length ) throw new NotFoundException('No se encontraron ususarios')
+      return result
   }
 
   async findByEmail(email: string) {

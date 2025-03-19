@@ -18,6 +18,7 @@ import { CoordinatorsModule } from './modules/coordinators/coordinators.module';
 import { LocationsModule } from './modules/locations/locations.module';
 import { OperationsModule } from './modules/operations/operations.module';
 import { ImagesModule } from './modules/images/images.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { ImagesModule } from './modules/images/images.module';
         return config;
       },
     }),
+    EventEmitterModule.forRoot(),
     UserModule,
     SeedersModule,
     BlogModule,
