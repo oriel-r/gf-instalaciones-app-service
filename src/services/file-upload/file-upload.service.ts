@@ -22,6 +22,7 @@ export class FileUploadService {
       // Conectar al servidor FTP
       await client.access({
         host: this.ftpConfig.host,
+        port: 8000,
         user: this.ftpConfig.user,
         password: this.ftpConfig.password,
         secure: false, // Asegúrate de que SiteGround permita conexiones no seguras o cambia a 'true' si usas SFTP
