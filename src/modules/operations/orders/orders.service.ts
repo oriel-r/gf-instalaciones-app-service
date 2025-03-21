@@ -1,4 +1,4 @@
-import { BadRequestException, HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateOrderRequestDto } from './dto/create-order.request.dto';
 import { OrdersRepository } from './orders.repository';
 import { InstallationsService } from '../installations/installations.service';
@@ -39,7 +39,7 @@ export class OrdersService {
 
     if (!order) throw new NotFoundException('orden no encontrada o numero invalido');
     const newInstallations = await this.installationsService.createFromOrder({order, installations})
-    if(!newInstallations || newInstallations.length === 0) throw new InternalServerErrorException    
+    if(!newInstallations) throw new InternalServerErrorException('No se crearon las instalaciónes')
     const fraction = calculateProgressFraction((await this.findOne(id)).installations)
     return await this.update(order.id, {installationsFinished: fraction})
 
@@ -80,8 +80,6 @@ export class OrdersService {
 
   async findAll() {
     const orders = await this.ordersRepository.get()
-    console.log(orders[0].installations[0].adress.city)
-    console.log(orders[0].installations[0].adress.city.province)
     if(!orders.length) throw new NotFoundException('No se encontraron ordenes')
       return orders.map(order => new GetOrderResponseDto(order))
   }

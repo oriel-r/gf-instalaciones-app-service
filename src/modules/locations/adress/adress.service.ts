@@ -18,7 +18,6 @@ export class AdressService {
   ) {}
 
   async create(data: CreateAdressDto) {
-    console.log(data)
     const {city, province, ...adress} = data
     const existProvince = await this.provincesService.findOneByName(province)
     if(!existProvince) throw new BadRequestException('Provincia no encontrada o invalida')
