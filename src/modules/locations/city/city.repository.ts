@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { City } from "./entities/city.entity";
 import { DeepPartial, Repository } from "typeorm";
+import { UpdateCityDto } from "./dto/update-city.dto";
 
 @Injectable()
 export class CityRepository {

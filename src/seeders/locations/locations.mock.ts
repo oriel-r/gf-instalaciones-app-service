@@ -1,7 +1,6 @@
 export const provincesMock = [
     { name: 'Buenos Aires' },
-    { name: 'CABA' },
-    { name: 'GBA' },
+    { name: 'CABA/GBA' },
     { name: 'Catamarca' },
     { name: 'Chaco' },
     { name: 'Chubut' },

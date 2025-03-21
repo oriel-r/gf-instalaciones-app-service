@@ -6,7 +6,7 @@ import { provincesMock, createCitiesMock, createAdressMock } from './locations.m
 
 export class LocationsSeeder {
   async seed(): Promise<void> {
-    // Aseguramos que la dataSource esté inicializada
+
     if (!appDataSource.isInitialized) {
       await appDataSource.initialize();
     }
@@ -16,12 +16,13 @@ export class LocationsSeeder {
         const provinces = provincesMock.map((provinceData) =>
           manager.create(Province, provinceData)
         );
+        
         const savedProvinces = await manager.save(provinces);
         if (savedProvinces) console.log('Provinces are created');
 
         const citiesToInsert = savedProvinces.flatMap((province) =>
           createCitiesMock(province.name).map((cityData) =>
-            manager.create(City, { ...cityData, provice: province })
+            manager.create(City, { ...cityData, province: province })
           )
         );
         const savedCities = await manager.save(citiesToInsert);

@@ -19,6 +19,6 @@ export class AdresResponseDto extends BaseDto {
         this.postalCode = data.postalCode,
         this.note = data.note,
         this.city = data.city.name,
-        this.province = data.city.provice.name
+        this.province = data.city.province.name
     }
 }
