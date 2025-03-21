@@ -18,7 +18,7 @@ export class OrdersRepository {
 
     async get() {
         return await this.ordersRepository.find({
-            relations: ['instalations'],
+            relations: ['installations'],
             order: {
                 createdAt: 'DESC'
             }

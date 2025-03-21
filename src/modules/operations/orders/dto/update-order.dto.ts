@@ -1,7 +1,7 @@
 import { BaseDto } from "src/common/entities/base.dto";
 import { Order } from "../entities/order.entity";
-import { Instalation } from "src/modules/operations/instalations/entities/instalation.entity";
-import { CreateInstalationDto } from "src/modules/operations/instalations/dto/create-instalation.dto";
+import { Installation } from "src/modules/operations/installations/entities/installation.entity";
+import { CreateInstallationDto } from "src/modules/operations/installations/dto/create-installation.dto";
 import { ApiProperty } from "@nestjs/swagger";
 import { IsArray, IsNotEmpty, IsOptional, IsString } from "class-validator";
 import { IsInstance, ValidateNested } from "@nestjs/class-validator";

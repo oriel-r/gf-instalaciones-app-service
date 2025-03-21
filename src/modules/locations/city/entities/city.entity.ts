@@ -24,7 +24,7 @@ export class City extends BaseEntity {
         title: "cities",
         description: "city's province"
     })
-    @ManyToOne(() => Province, (province) => province.cities)
+    @ManyToOne(() => Province, (province) => province.cities, {eager: true})
     provice: Province
 
 

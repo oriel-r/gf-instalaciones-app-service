@@ -1,8 +1,8 @@
-import { Instalation } from "src/modules/operations/instalations/entities/instalation.entity";
-import { InstalationStatus } from "../enums/instalations-status.enum";
+import { Installation } from "src/modules/operations/installations/entities/installation.entity";
+import { InstallationStatus } from "../enums/installations-status.enum";
 
-export const calculateProgressFraction = (data: Instalation[]) => {
+export const calculateProgressFraction = (data: Installation[]) => {
   if (!data.length) return "0/0";
-  const finishedCount = data.filter(instalation => instalation.status === InstalationStatus.FINISHED).length;
+  const finishedCount = data.filter(installation => installation.status === InstallationStatus.FINISHED).length;
   return `${finishedCount}/${data.length}`;
 };

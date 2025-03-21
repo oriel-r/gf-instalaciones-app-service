@@ -1,10 +1,10 @@
-import { Instalation } from "src/modules/operations/instalations/entities/instalation.entity";
-import { InstalationStatus } from "../enums/instalations-status.enum";
+import { Installation } from "src/modules/operations/installations/entities/installation.entity";
+import { InstallationStatus } from "../enums/installations-status.enum";
 
-export const calculateProgress = (data: Instalation[]) => {
+export const calculateProgress = (data: Installation[]) => {
   if (data.length === 0) return 0
 
-  const finishedCount = data.filter(inst => inst.status === InstalationStatus.FINISHED).length;
+  const finishedCount = data.filter(inst => inst.status === InstallationStatus.FINISHED).length;
 
   const percentage = (finishedCount / data.length) * 100;
 
