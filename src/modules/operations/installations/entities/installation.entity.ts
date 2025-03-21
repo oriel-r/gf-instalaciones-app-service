@@ -28,15 +28,15 @@ export class Installation extends BaseEntity {
         title: 'order',
         description: "installation installer"
     })
-    @ManyToMany(() => Installer, (installer) => installer.installations, { onDelete: 'SET NULL' })
-    installers: Installer[];
+    @ManyToMany(() => Installer, (installer) => installer.installations, { onDelete: 'SET NULL', nullable: true})
+    installers: Installer[] | null;
 
     @ApiProperty({
         title: 'Coordinators',
         description: "installation coordinators"
     })
-    @ManyToOne(() => Coordinator, (coordinator) => coordinator.installations, { onDelete: 'SET NULL' })
-    coordinator: Coordinator;
+    @ManyToOne(() => Coordinator, (coordinator) => coordinator.installations, { onDelete: 'SET NULL', nullable: true})
+    coordinator: Coordinator | null;
 
     @ApiProperty({
         title: 'startDate',

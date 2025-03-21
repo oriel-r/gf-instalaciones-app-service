@@ -29,12 +29,12 @@ export class InstallationDataRequesDto extends BaseDto{
         title: 'installers',
         description: 'am installers array'
     })
-    @IsNotEmpty()
+    @IsOptional()
     @ValidateNested({each: true})
     installers: Installer[]
 
     @ApiProperty()
-    @IsNotEmpty()
+    @IsOptional()
     @IsInstance(Coordinator)
     coordinator: Coordinator
 
