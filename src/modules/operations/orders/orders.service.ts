@@ -10,6 +10,7 @@ import { Order } from './entities/order.entity';
 import { InstallationStatus } from 'src/common/enums/installations-status.enum';
 import { calculateProgress } from 'src/common/helpers/calculate-progress';
 import { UpdateInstallationStatus } from './dto/update-installation-status.dto';
+import { GetOrderResponseDto } from './dto/get-order-response.dto';
 
 @Injectable()
 export class OrdersService {
@@ -79,8 +80,10 @@ export class OrdersService {
 
   async findAll() {
     const orders = await this.ordersRepository.get()
+    console.log(orders[0].installations[0].adress.city)
+    console.log(orders[0].installations[0].adress.city.province)
     if(!orders.length) throw new NotFoundException('No se encontraron ordenes')
-      return orders
+      return orders.map(order => new GetOrderResponseDto(order))
   }
 
   async findOne(id: string) {

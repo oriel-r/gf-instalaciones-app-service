@@ -23,7 +23,7 @@ export class Province extends BaseEntity {
         title: "cities",
         description: "province's cities"
     })
-    @OneToMany(() => City, (city) => city.provice)
+    @OneToMany(() => City, (city) => city.province)
     cities: City[]
 
     constructor(partial: DeepPartial<Province>) {

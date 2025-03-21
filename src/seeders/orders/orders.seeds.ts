@@ -15,7 +15,7 @@ export class OrdersSeeder {
       const cabaAddress = await manager
         .createQueryBuilder(Adress, 'adress')
         .leftJoinAndSelect('adress.city', 'city')
-        .where('city.name = :cityName', { cityName: 'Ciudad 1 de CABA' })
+        .where('city.name = :cityName', { cityName: 'Ciudad 1 de CABA/GBA' })
         .getOne();
 
       if (!cabaAddress) {
