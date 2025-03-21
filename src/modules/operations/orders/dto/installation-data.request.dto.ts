@@ -1,17 +1,17 @@
 import { BaseDto } from "src/common/entities/base.dto";
 import { CreateAdressDto } from "src/modules/locations/adress/dto/create-adress.dto";
-import { IsDateString, IsInstance, IsNotEmpty, IsOptional, IsString, IsUUID } from "class-validator";
+import { IsInstance, IsNotEmpty, IsOptional, IsString, IsUUID } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { isInstance, IsISO8601, ValidateNested } from "@nestjs/class-validator";
+import { IsISO8601, ValidateNested } from "@nestjs/class-validator";
 import { Installer } from "src/modules/installer/entities/installer.entity";
 import { Coordinator } from "src/modules/coordinators/entities/coordinator.entity";
 
-export class InstalationDataRequesDto extends BaseDto{
+export class InstallationDataRequesDto extends BaseDto{
     
     @ApiProperty({
         title: "startDate",
-        description: "An date string to indicate the date will doing the instalation"
+        description: "An date string to indicate the date will doing the installation"
     })
     @IsNotEmpty()
     @IsISO8601()

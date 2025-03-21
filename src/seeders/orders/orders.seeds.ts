@@ -1,6 +1,6 @@
 import { appDataSource } from 'src/config/data-source';
 import { Order } from 'src/modules/operations/orders/entities/order.entity';
-import { Instalation } from 'src/modules/operations/instalations/entities/instalation.entity';
+import { Installation } from 'src/modules/operations/installations/entities/installation.entity';
 import { Adress } from 'src/modules/locations/adress/entities/adress.entity';
 import { ordersMock, createInstallationMocks } from './orders.mock';
 
@@ -11,7 +11,7 @@ export class OrdersSeeder {
     }
 
     await appDataSource.transaction(async (manager) => {
-      // Obtener una dirección en CABA (por ejemplo, de la ciudad "Ciudad 1 de CABA")
+
       const cabaAddress = await manager
         .createQueryBuilder(Adress, 'adress')
         .leftJoinAndSelect('adress.city', 'city')
@@ -22,12 +22,11 @@ export class OrdersSeeder {
         throw new Error('No se encontró una dirección en CABA');
       }
 
-      // Crear las órdenes con progress 0.00, instalationsFinished "0/X" (X = número de instalaciones) y sin completarse
       const orders = ordersMock.map((orderData, index) =>
         manager.create(Order, { 
           ...orderData, 
           progress: 0.00, 
-          instalationsFinished: `0/${index + 1}`, 
+          installationsFinished: `0/${index + 1}`, 
           completed: false 
         })
       );
@@ -40,7 +39,7 @@ export class OrdersSeeder {
         const count = index + 1;
         const installationMocks = createInstallationMocks(order.title, count);
         return installationMocks.map((installationData) =>
-          manager.create(Instalation, {
+          manager.create(Installation, {
             ...installationData,
             order,
             adress: cabaAddress,

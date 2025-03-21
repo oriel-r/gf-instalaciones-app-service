@@ -1,4 +1,4 @@
-import { Instalation } from 'src/modules/operations/instalations/entities/instalation.entity';
+import { Installation } from 'src/modules/operations/installations/entities/installation.entity';
 import { User } from 'src/modules/user/entities/user.entity';
 import { Entity, PrimaryGeneratedColumn, OneToOne, OneToMany } from 'typeorm';
 import { v4 as uuid } from 'uuid';
@@ -14,6 +14,6 @@ export class Coordinator {
   })
   user: User;
 
-  @OneToMany(() => Instalation, (instalation) => instalation.coordinator)
-  instalations: Instalation[]; 
+  @OneToMany(() => Installation, (installation) => installation.coordinator)
+  installations: Installation[]; 
 }

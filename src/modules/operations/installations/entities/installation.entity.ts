@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { BaseEntity } from "src/common/entities/base.entity";
-import { InstalationStatus } from "src/common/enums/instalations-status.enum";
+import { InstallationStatus } from "src/common/enums/installations-status.enum";
 import { Coordinator } from "src/modules/coordinators/entities/coordinator.entity";
 import { Installer } from "src/modules/installer/entities/installer.entity";
 import { Adress } from "src/modules/locations/adress/entities/adress.entity";
@@ -8,7 +8,7 @@ import { Order } from "src/modules/operations/orders/entities/order.entity";
 import { Column, DeepPartial, Entity, ManyToMany, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
-export class Instalation extends BaseEntity {
+export class Installation extends BaseEntity {
 
     @ApiProperty({
         title: 'id',
@@ -21,26 +21,26 @@ export class Instalation extends BaseEntity {
         title: 'Installer',
         description: "instalarion's order"
     })
-    @ManyToOne(() => Order, (order) => order.instalations, {nullable: false})
+    @ManyToOne(() => Order, (order) => order.installations, {nullable: false})
     order: Order
 
     @ApiProperty({
         title: 'order',
         description: "installation installer"
     })
-    @ManyToMany(() => Installer, (installer) => installer.instalations, { onDelete: 'SET NULL' })
+    @ManyToMany(() => Installer, (installer) => installer.installations, { onDelete: 'SET NULL' })
     installers: Installer[];
 
     @ApiProperty({
         title: 'Coordinators',
         description: "installation coordinators"
     })
-    @ManyToOne(() => Coordinator, (coordinator) => coordinator.instalations, { onDelete: 'SET NULL' })
+    @ManyToOne(() => Coordinator, (coordinator) => coordinator.installations, { onDelete: 'SET NULL' })
     coordinator: Coordinator;
 
     @ApiProperty({
         title: 'startDate',
-        description: "The day when start the instalation"
+        description: "The day when start the installation"
     })
     @Column('varchar', {nullable: true})
     startDate: string
@@ -54,16 +54,16 @@ export class Instalation extends BaseEntity {
 
     @ApiProperty({
         title: 'startDate',
-        description: "The day when start the instalation"
+        description: "The day when start the installation"
     })
-    @Column({default: InstalationStatus.PENDING, type: 'enum', enum: InstalationStatus})
-    status: InstalationStatus
+    @Column({default: InstallationStatus.PENDING, type: 'enum', enum: InstallationStatus})
+    status: InstallationStatus
     
     @ApiProperty({
         title: 'adress',
         description: "inslation adress"
     })
-    @ManyToOne(() => Adress, (adress) => adress.instalations, {nullable: false})
+    @ManyToOne(() => Adress, (adress) => adress.installations, {nullable: false, eager: true})
     adress: Adress
 
     @ApiProperty({
@@ -75,12 +75,12 @@ export class Instalation extends BaseEntity {
 
     @ApiProperty({
         title: 'endDate',
-        description: "The day in that the instalation is finished"
+        description: "The day in that the installation is finished"
     })
     @Column('date', {nullable: true})
     endDate: Date
 
-    constructor(partial: DeepPartial<Instalation>) {
+    constructor(partial: DeepPartial<Installation>) {
         super()
         Object.assign(this, partial)
     }
