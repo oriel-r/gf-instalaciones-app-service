@@ -2,9 +2,9 @@ import { IsEnum, IsISO8601 } from "@nestjs/class-validator";
 import { ApiOperation, ApiProperty } from "@nestjs/swagger";
 import { IsNotEmpty, IsOptional, IsString } from "class-validator";
 import { BaseDto } from "src/common/entities/base.dto";
-import { InstalationStatus } from "src/common/enums/instalations-status.enum";
+import { InstallationStatus } from "src/common/enums/installations-status.enum";
 
-export class UpdateInstalationStatus extends BaseDto {
+export class UpdateInstallationStatus extends BaseDto {
 
     @ApiProperty({
         title: 'startDate',
@@ -19,7 +19,7 @@ export class UpdateInstalationStatus extends BaseDto {
         description: 'new status'
     })
     @IsNotEmpty()
-    @IsEnum(InstalationStatus)
-    status: InstalationStatus
+    @IsEnum(InstallationStatus)
+    status: InstallationStatus
     
 }

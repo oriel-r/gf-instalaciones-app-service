@@ -3,8 +3,8 @@ import { OrdersService } from './orders.service';
 import { CreateOrderRequestDto } from './dto/create-order.request.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { ApiBody, ApiOperation } from '@nestjs/swagger';
-import { InstalationDataRequesDto } from './dto/instalation-data.request.dto';
-import { UpdateInstalationStatus } from './dto/update-instalation.dto';
+import { InstallationDataRequesDto } from './dto/installation-data.request.dto';
+import { UpdateInstallationStatus } from './dto/update-installation-status.dto';
 
 @Controller('orders')
 export class OrdersController {
@@ -19,16 +19,16 @@ export class OrdersController {
   }
 
   @ApiOperation({
-    summary: 'Add instalation to an existed order',
+    summary: 'Add installation to an existed order',
   })
   @ApiBody({
-    type: [InstalationDataRequesDto]
+    type: [InstallationDataRequesDto]
   })
   @HttpCode(HttpStatus.CREATED)
   @HttpCode(HttpStatus.NOT_FOUND)
-  @Post(':id/instalations')
-  async addInstalation(@Param('id') id: string, @Body() data: InstalationDataRequesDto | InstalationDataRequesDto[]) {
-    return this.ordersService.addInstalations(id, data);
+  @Post(':id/installations')
+  async addInstallation(@Param('id') id: string, @Body() data: InstallationDataRequesDto | InstallationDataRequesDto[]) {
+    return this.ordersService.addInstallations(id, data);
   }
 
   @Get()
@@ -46,13 +46,13 @@ export class OrdersController {
     return this.ordersService.update(id, updateOrderDto);
   }
 
-  @Patch(':orderId/instalation/:instalationId')
-  async updateInstalation(
+  @Patch(':orderId/installation/:installationId')
+  async updateInstallation(
     @Param('orderId') orderId: string, 
-    @Param('instalationId') instalationId: string , 
-    @Body() status: UpdateInstalationStatus
+    @Param('installationId') installationId: string , 
+    @Body() status: UpdateInstallationStatus
   ) {
-    return this.ordersService.updateInstalationStatus(orderId, instalationId, status);
+    return this.ordersService.updateInstallationStatus(orderId, installationId, status);
   }
 
   @Delete(':id')

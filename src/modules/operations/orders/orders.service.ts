@@ -1,27 +1,26 @@
 import { BadRequestException, HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateOrderRequestDto } from './dto/create-order.request.dto';
-import { UpdateOrderDto } from './dto/update-order.dto';
 import { OrdersRepository } from './orders.repository';
-import { InstalationsService } from '../instalations/instalations.service';
-import { Instalation } from '../instalations/entities/instalation.entity';
+import { InstallationsService } from '../installations/installations.service';
 import { DeleteResponse } from 'src/common/entities/delete.response';
 import { DeepPartial, DeleteResult } from 'typeorm';
-import { InstalationDataRequesDto } from './dto/instalation-data.request.dto';
+import { InstallationDataRequesDto } from './dto/installation-data.request.dto';
 import { calculateProgressFraction } from 'src/common/helpers/calculate-progress-fraction';
 import { Order } from './entities/order.entity';
-import { InstalationStatus } from 'src/common/enums/instalations-status.enum';
+import { InstallationStatus } from 'src/common/enums/installations-status.enum';
 import { calculateProgress } from 'src/common/helpers/calculate-progress';
-import { UpdateInstalationStatus } from './dto/update-instalation.dto';
+import { UpdateInstallationStatus } from './dto/update-installation-status.dto';
+import { GetOrderResponseDto } from './dto/get-order-response.dto';
 
 @Injectable()
 export class OrdersService {
   constructor(
     private readonly ordersRepository: OrdersRepository,
-    private readonly instalationsService: InstalationsService
+    private readonly installationsService: InstallationsService
   ) {}
   
   async create(createOrderDto: CreateOrderRequestDto) {
-    const { instalations, ...orderData } = createOrderDto;
+    const { installations, ...orderData } = createOrderDto;
   
     const existOrder = await this.ordersRepository.getByNumber(orderData.orderNumber);
     if (existOrder) throw new BadRequestException('Ya existe una orden con este número de referencia')
@@ -33,41 +32,41 @@ export class OrdersService {
     return newOrder
   }
 
-  async addInstalations(id: string, data: InstalationDataRequesDto | InstalationDataRequesDto[]) {
+  async addInstallations(id: string, data: InstallationDataRequesDto | InstallationDataRequesDto[]) {
     const order = await this.findOne(id);
-    const instalations = Array.isArray(data) ? data : [data];
-    let fractioningOfInstalations: string = ''
+    const installations = Array.isArray(data) ? data : [data];
+    let fractioningOfInstallations: string = ''
 
     if (!order) throw new NotFoundException('orden no encontrada o numero invalido');
-    const newInstalations = await this.instalationsService.createFromOrder({order, instalations})
-    if(!newInstalations || newInstalations.length === 0) throw new InternalServerErrorException    
-    const fraction = calculateProgressFraction((await this.findOne(id)).instalations)
-    return await this.update(order.id, {instalationsFinished: fraction})
+    const newInstallations = await this.installationsService.createFromOrder({order, installations})
+    if(!newInstallations || newInstallations.length === 0) throw new InternalServerErrorException    
+    const fraction = calculateProgressFraction((await this.findOne(id)).installations)
+    return await this.update(order.id, {installationsFinished: fraction})
 
   }
   
-  async updateInstalationStatus(orderId: string, instalationId: string, status: UpdateInstalationStatus) {
+  async updateInstallationStatus(orderId: string, installationId: string, status: UpdateInstallationStatus) {
     const order = await this.findOne(orderId)
-    const instalation = order.instalations.find((instalation) => instalation.id === instalationId)
-    if(!instalation) throw new NotFoundException('Instalación no encontrada o id invalido')
+    const installation = order.installations.find((installation) => installation.id === installationId)
+    if(!installation) throw new NotFoundException('Instalación no encontrada o id invalido')
     
-    const instalationWithChanges = await this.instalationsService.update(instalation.id, status)
+    const installationWithChanges = await this.installationsService.update(installation.id, status)
 
-    if(instalationWithChanges && instalationWithChanges.status !== InstalationStatus.FINISHED) return instalationWithChanges
+    if(installationWithChanges && installationWithChanges.status !== InstallationStatus.FINISHED) return installationWithChanges
 
     await this.updateProgress(orderId)
 
-    return instalationWithChanges
+    return installationWithChanges
     }
 
 
-  async instalationToReview(orderId: string, instalarionId: string, data: Express.Multer.File) {
+  async installationToReview(orderId: string, installationId: string, data: Express.Multer.File) {
     const order = await this.findOne(orderId)
-    const instalation = order.instalations.find(instalation => instalation.id === instalarionId)
+    const installation = order.installations.find(installation => installation.id === installationId)
     
-    if(!instalation) throw new NotFoundException('Instalción no encontrada')
+    if(!installation) throw new NotFoundException('Instalción no encontrada')
     
-    const result = await this.instalationsService.sendToReview(instalarionId, data)
+    const result = await this.installationsService.sendToReview(installationId, data)
 
     // actualizaar instalación con los links
     /* 
@@ -81,8 +80,10 @@ export class OrdersService {
 
   async findAll() {
     const orders = await this.ordersRepository.get()
+    console.log(orders[0].installations[0].adress.city)
+    console.log(orders[0].installations[0].adress.city.province)
     if(!orders.length) throw new NotFoundException('No se encontraron ordenes')
-      return orders
+      return orders.map(order => new GetOrderResponseDto(order))
   }
 
   async findOne(id: string) {
@@ -113,10 +114,10 @@ export class OrdersService {
   }
 
   private async updateProgress(id: string) {
-    const instalations = (await this.findOne(id)).instalations
-    const progress = calculateProgress(instalations)
-    const instalationsFinished = calculateProgressFraction(instalations)
+    const installations = (await this.findOne(id)).installations
+    const progress = calculateProgress(installations)
+    const installationsFinished = calculateProgressFraction(installations)
 
-    return await this.update(id, {progress, instalationsFinished})
+    return await this.update(id, {progress, installationsFinished})
   }
 }

@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { BaseEntity } from "src/common/entities/base.entity";
 import { City } from "src/modules/locations/city/entities/city.entity";
-import { Instalation } from "src/modules/operations/instalations/entities/instalation.entity";
+import { Installation } from "src/modules/operations/installations/entities/installation.entity";
 import { Column, DeepPartial, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
@@ -41,15 +41,15 @@ export class Adress extends BaseEntity{
 
     @ApiProperty({
         title: 'startDate',
-        description: "The day when start the instalation"
+        description: "The day when start the installation"
     })
-    @OneToMany(() => Instalation, (instalation) => instalation.adress, {nullable: true})
-    instalations: Instalation[]
+    @OneToMany(() => Installation, (installation) => installation.adress, {nullable: true})
+    installations: Installation[]
 
     @ApiProperty({
         title: 'city'
     })
-    @ManyToOne(() => City, (city) => city.adresses)
+    @ManyToOne(() => City, (city) => city.adresses, {eager: true})
     city: City
 
     constructor(partial: DeepPartial<Adress>) {

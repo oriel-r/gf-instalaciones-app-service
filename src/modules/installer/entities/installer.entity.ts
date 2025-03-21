@@ -4,7 +4,7 @@
     import { User } from 'src/modules/user/entities/user.entity';
     import { ApiProperty } from '@nestjs/swagger';
     import { StatusInstaller } from 'src/common/enums/status-installer';
-    import { Instalation } from 'src/modules/operations/instalations/entities/instalation.entity';
+    import { Installation } from 'src/modules/operations/installations/entities/installation.entity';
 
     @Entity()
     export class Installer {
@@ -59,7 +59,7 @@
       @JoinColumn({name: 'user_id'})
       user: User;
 
-      @ManyToMany(() => Instalation, (Instalation) => Instalation.installers)
-      @JoinTable({name: 'installer_instalation'})
-      instalations: Instalation[];
+      @ManyToMany(() => Installation, (Installation) => Installation.installers)
+      @JoinTable({name: 'installer_installation'})
+      installations: Installation[];
     }

@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { BaseEntity } from "src/common/entities/base.entity";
-import { Instalation } from "src/modules/operations/instalations/entities/instalation.entity";
+import { Installation } from "src/modules/operations/installations/entities/installation.entity";
 import { Column, DeepPartial, Entity, OneToMany, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
@@ -44,7 +44,7 @@ export class Order extends BaseEntity {
     
     @ApiProperty({
         title: 'progress',
-        description: "order that all order's instalations are completed",
+        description: "order that all order's installations are completed",
         type: 'boolean',
         default: 'false'
     })
@@ -57,7 +57,7 @@ export class Order extends BaseEntity {
         type: 'number'
     })
     @Column( 'varchar', {default: '0/0'})
-    instalationsFinished: string
+    installationsFinished: string
 
     @ApiProperty({
         title: 'progress',
@@ -68,12 +68,12 @@ export class Order extends BaseEntity {
     progress: number
     
     @ApiProperty({
-        title: 'instalations',
-        description: 'list of instalations',
-        type: [Instalation]
+        title: 'installations',
+        description: 'list of installations',
+        type: [Installation]
     })
-    @OneToMany(() => Instalation, (instalation) => instalation.order, {nullable: true})
-    instalations: Instalation[]
+    @OneToMany(() => Installation, (installation) => installation.order, {nullable: true})
+    installations: Installation[]
 
 
     constructor(partial: DeepPartial<Order>) {

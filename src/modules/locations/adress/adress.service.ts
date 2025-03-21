@@ -7,6 +7,7 @@ import { ProvinceService } from '../province/province.service';
 import { DeepPartial } from 'typeorm';
 import { Adress } from './entities/adress.entity';
 import { DeleteResponse } from 'src/common/entities/delete.response';
+import { AdresResponseDto } from './dto/adress-response.dto';
 
 @Injectable()
 export class AdressService {
@@ -28,7 +29,7 @@ export class AdressService {
   async findAll() {
     const adresses = await this.adressesRepository.get()
     if(!adresses.length) throw new NotFoundException('No se encontraron direcciónes')
-      return adresses
+      return adresses.map(adress => new AdresResponseDto(adress))
   }
 
   async findOne(id: string) {

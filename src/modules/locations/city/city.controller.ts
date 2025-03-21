@@ -4,6 +4,7 @@ import { CreateCityDto } from './dto/create-city.dto';
 import { UpdateCityDto } from './dto/update-city.dto';
 import { ApiResponse, ApiOperation} from '@nestjs/swagger';
 import { City } from './entities/city.entity';
+import { DeepPartial } from 'typeorm';
 
 @Controller('city')
 export class CityController {
@@ -69,7 +70,7 @@ export class CityController {
   @HttpCode(HttpStatus.OK)
   @HttpCode(HttpStatus.NOT_FOUND)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCityDto: UpdateCityDto) {
+  update(@Param('id') id: string, @Body() updateCityDto: DeepPartial<City>) {
     return this.cityService.update(id, updateCityDto);
   }
 
