@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { CreateInstallationDto } from './dto/create-installation.dto';
 import { UpdateInstallationDto } from './dto/update-installation.dto';
-import { InstallationsRepository } from './installarion.repository';
+import { InstallationsRepository } from './installations.repository';
 import { DeepPartial } from 'typeorm';
 import { Installation } from './entities/installation.entity';
 import { DeleteResponse } from 'src/common/entities/delete.response';

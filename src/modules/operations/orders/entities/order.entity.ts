@@ -72,7 +72,7 @@ export class Order extends BaseEntity {
         description: 'list of installations',
         type: [Installation]
     })
-    @OneToMany(() => Installation, (installation) => installation.order, {nullable: true})
+    @OneToMany(() => Installation, (installation) => installation.order, {nullable: true, eager: true})
     installations: Installation[]
 
 

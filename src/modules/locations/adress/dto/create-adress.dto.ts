@@ -10,7 +10,7 @@ export class CreateAdressDto extends BaseDto{
     })
     @IsString()
     @IsNotEmpty()
-    streeet: string
+    street: string
     
     @ApiProperty({
         title: "stree's number",
