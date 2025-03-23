@@ -99,9 +99,4 @@ export class UserController {
   async restore(@Param('id') id: string) {
     return await this.userService.restore(id);
   }
-
-  @Put('assignCoordinator/:id')
-  async assignCoordinator(@Param('id') coordinatorId: string) {
-    return await this.userService.assignCoordinator(coordinatorId);
-  }
 }

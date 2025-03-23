@@ -51,13 +51,13 @@ export class AuthService {
     const userPayload = {
       id: user.id,
       email: user.email,
-      role: user.role,
+      role: user.userRoles,
     };
     const token = this.jwtService.sign(userPayload);
 
-    const installer = await this.installerService.findByEmail(user.email);
+    /* const installer = await this.installerService.findByEmail(user.email); */
 
-    if (installer) {
+    /* if (installer) {
       if (installer.status === 'EN_PROCESO' || installer.status === 'RECHAZADO') {
 
         throw new HttpException(
@@ -68,7 +68,7 @@ export class AuthService {
       } else {
         return { token, installer };
       }
-    }
+    } */
 
     return { token, user };
   }

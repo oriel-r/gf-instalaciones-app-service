@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import * as bcrypt from 'bcrypt';
 import { hash } from 'bcrypt';
-import { User } from 'src/modules/user/entities/user.entity';
-import { Role } from 'src/modules/user/entities/roles.entity';
-import { Installer } from 'src/modules/installer/entities/installer.entity';
 import { TaxCategory } from 'src/common/enums/taxCategory.enum';
+import { Installer } from 'src/modules/installer/entities/installer.entity';
+import { Role } from 'src/modules/user/entities/roles.entity';
+import { User } from 'src/modules/user/entities/user.entity';
+import { UserRole } from 'src/modules/user-role/entities/user-role.entity';
 
 @Injectable()
 export class UserSeeds {
@@ -19,27 +19,38 @@ export class UserSeeds {
 
     @InjectRepository(Installer)
     private readonly installerRepository: Repository<Installer>,
+
+    @InjectRepository(UserRole)
+    private readonly userRoleRepository: Repository<UserRole>,
   ) {}
 
   async seed() {
-    // Verificar si ya existen usuarios
     const userCount = await this.usersRepository.count();
     if (userCount > 0) {
       console.log('Users already seeded!');
       return;
     }
 
-    // Crear roles si no existen
-    const adminRole = await this.rolesRepository.save({ name: 'Admin' });
-    const coordinadorRole = await this.rolesRepository.save({
-      name: 'Coordinador',
-    });
-    const instaladorRole = await this.rolesRepository.save({
-      name: 'Instalador',
-    });
-    const userRole = await this.rolesRepository.save({ name: 'Usuario' });
+    const roles = await this.createRoles();
+    await this.createUsers(roles);
+  }
 
-    // Usuarios a insertar
+  private async createRoles() {
+    const roleNames = ['Admin', 'Coordinador', 'Instalador', 'Usuario'];
+    const roles: Record<string, Role> = {};
+
+    for (const name of roleNames) {
+      let role = await this.rolesRepository.findOne({ where: { name } });
+      if (!role) {
+        role = this.rolesRepository.create({ name });
+        await this.rolesRepository.save(role);
+      }
+      roles[name] = role;
+    }
+    return roles;
+  }
+
+  private async createUsers(roles: Record<string, Role>) {
     const usersData = [
       {
         fullName: 'User 1',
@@ -51,7 +62,7 @@ export class UserSeeds {
         phone: '1234561',
         country: 'Argentina',
         birthDate: '1999-08-03',
-        role: 'Admin',
+        userRoles: 'Admin',
       },
       {
         fullName: 'User 2',
@@ -63,7 +74,7 @@ export class UserSeeds {
         phone: '1234562',
         country: 'Argentina',
         birthDate: '1999-08-03',
-        role: 'Usuario',
+        userRoles: 'Usuario',
       },
       {
         fullName: 'User 3',
@@ -75,7 +86,7 @@ export class UserSeeds {
         phone: '1234563',
         country: 'Argentina',
         birthDate: '1999-08-03',
-        role: 'Usuario',
+        userRoles: 'Usuario',
       },
       {
         fullName: 'User 4',
@@ -87,7 +98,7 @@ export class UserSeeds {
         phone: '1234564',
         country: 'Argentina',
         birthDate: '1999-08-03',
-        role: 'Usuario',
+        userRoles: 'Usuario',
       },
       {
         fullName: 'User 5',
@@ -99,7 +110,7 @@ export class UserSeeds {
         phone: '1234565',
         country: 'Argentina',
         birthDate: '1999-08-03',
-        role: 'Usuario',
+        userRoles: 'Usuario',
       },
       {
         fullName: 'User 6',
@@ -111,7 +122,7 @@ export class UserSeeds {
         phone: '1234566',
         country: 'Argentina',
         birthDate: '1999-08-03',
-        role: 'Usuario',
+        userRoles: 'Usuario',
       },
       {
         fullName: 'User 7',
@@ -123,7 +134,7 @@ export class UserSeeds {
         phone: '1234567',
         country: 'Argentina',
         birthDate: '1999-08-03',
-        role: 'Usuario',
+        userRoles: 'Usuario',
       },
       {
         fullName: 'User 8',
@@ -135,7 +146,7 @@ export class UserSeeds {
         phone: '1234568',
         country: 'Argentina',
         birthDate: '1999-08-03',
-        role: 'Usuario',
+        userRoles: 'Usuario',
       },
       {
         fullName: 'User 9',
@@ -147,7 +158,7 @@ export class UserSeeds {
         phone: '1234569',
         country: 'Argentina',
         birthDate: '1999-08-03',
-        role: 'Usuario',
+        userRoles: 'Usuario',
       },
       {
         fullName: 'User 10',
@@ -159,7 +170,7 @@ export class UserSeeds {
         phone: '12345610',
         country: 'Argentina',
         birthDate: '1999-08-03',
-        role: 'Usuario',
+        userRoles: 'Usuario',
       },
       {
         fullName: 'User 11',
@@ -171,7 +182,7 @@ export class UserSeeds {
         phone: '12345611',
         country: 'Argentina',
         birthDate: '1999-08-03',
-        role: 'Usuario',
+        userRoles: 'Usuario',
       },
       {
         fullName: 'User 12',
@@ -183,7 +194,7 @@ export class UserSeeds {
         phone: '12345712',
         country: 'Peru',
         birthDate: '2001-01-04',
-        role: 'Usuario',
+        userRoles: 'Usuario',
       },
       {
         fullName: 'User 13',
@@ -195,7 +206,7 @@ export class UserSeeds {
         country: 'Argentina',
         phone: '12345813',
         birthDate: '2003-06-05',
-        role: 'Coordinador',
+        userRoles: 'Usuario',
       },
       {
         fullName: 'User 14',
@@ -207,7 +218,7 @@ export class UserSeeds {
         phone: '12345714',
         country: 'Peru',
         birthDate: '2001-01-04',
-        role: 'Usuario',
+        userRoles: 'Usuario',
       },
       {
         fullName: 'User 15',
@@ -219,7 +230,7 @@ export class UserSeeds {
         phone: '12345715',
         country: 'Peru',
         birthDate: '2001-01-04',
-        role: 'Usuario',
+        userRoles: 'Coordinador',
       },
       {
         fullName: 'User 16',
@@ -231,7 +242,7 @@ export class UserSeeds {
         phone: '12345716',
         country: 'Peru',
         birthDate: '2001-01-04',
-        role: 'Usuario',
+        userRoles: 'Coordinador',
       },
       {
         fullName: 'User 17',
@@ -243,7 +254,7 @@ export class UserSeeds {
         phone: '12345717',
         country: 'Peru',
         birthDate: '2001-01-04',
-        role: 'Usuario',
+        userRoles: 'Usuario',
       },
       {
         fullName: 'User 18',
@@ -255,7 +266,7 @@ export class UserSeeds {
         phone: '12345718',
         country: 'Peru',
         birthDate: '2001-01-04',
-        role: 'Instalador',
+        userRoles: 'Instalador',
         taxCondition: TaxCategory.Monotributist,
         hasPersonalAccidentInsurance: true,
         canWorkAtHeight: true,
@@ -276,7 +287,7 @@ export class UserSeeds {
         phone: '12345719',
         country: 'Peru',
         birthDate: '2001-01-04',
-        role: 'Instalador',
+        userRoles: 'Instalador',
         taxCondition: TaxCategory.Monotributist,
         hasPersonalAccidentInsurance: true,
         canWorkAtHeight: true,
@@ -297,7 +308,7 @@ export class UserSeeds {
         phone: '12345720',
         country: 'Peru',
         birthDate: '2001-01-04',
-        role: 'Instalador',
+        userRoles: 'Instalador',
         taxCondition: TaxCategory.Monotributist,
         hasPersonalAccidentInsurance: true,
         canWorkAtHeight: true,
@@ -311,40 +322,24 @@ export class UserSeeds {
     ];
 
     for (const userData of usersData) {
-      const { role, ...rest } = userData;
+      const { userRoles, password, ...userProps } = userData;
 
-      // Asignar el rol correspondiente
-      let roleUsers: Role;
-      switch (role) {
-        case 'Admin':
-          roleUsers = adminRole;
-          break;
-        case 'Coordinador':
-          roleUsers = coordinadorRole;
-          break;
-        case 'Instalador':
-          roleUsers = instaladorRole;
-          break;
-        default:
-          roleUsers = userRole;
-      }
-
-      // Hashear la contraseña
       const hashedPassword = await hash(userData.password, 10);
-
-      // Crear usuario con los datos correspondientes
       const user = this.usersRepository.create({
-        ...rest, // Otros campos como phone, address, etc.
-        email: userData.email,
+        ...userProps,
         password: hashedPassword,
-        role: roleUsers,
       });
-
-      // Guardar el usuario
       await this.usersRepository.save(user);
 
-      if ( role === 'Instalador') {
+      const userRole = this.userRoleRepository.create({
+        user,
+        role: roles[userRoles],
+      });
+      await this.userRoleRepository.save(userRole);
+
+      if (userRoles === 'Instalador') {
         const installer = this.installerRepository.create({
+          ...user, // Copia todas las propiedades del usuario
           taxCondition: userData.taxCondition,
           hasPersonalAccidentInsurance: userData.hasPersonalAccidentInsurance,
           canWorkAtHeight: userData.canWorkAtHeight,
@@ -354,12 +349,10 @@ export class UserSeeds {
           canInstallVinylOnWallsOrGlass: userData.canInstallVinylOnWallsOrGlass,
           canDoCarWrapping: userData.canDoCarWrapping,
           hasOwnTransportation: userData.hasOwnTransportation,
-          user: user, //
         });
         await this.installerRepository.save(installer);
+        console.log('Installer created', installer);
       }
     }
-
-    console.log('Users and installers seeded successfully');
   }
 }

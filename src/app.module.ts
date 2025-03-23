@@ -18,6 +18,7 @@ import { CoordinatorsModule } from './modules/coordinators/coordinators.module';
 import { LocationsModule } from './modules/locations/locations.module';
 import { OperationsModule } from './modules/operations/operations.module';
 import { ImagesModule } from './modules/images/images.module';
+import { UserRoleModule } from './modules/user-role/user-role.module';
 
 @Module({
   imports: [
@@ -62,6 +63,7 @@ import { ImagesModule } from './modules/images/images.module';
     OperationsModule,
     LocationsModule,
     ImagesModule,
+    UserRoleModule,
   ],
   controllers: [AppController],
   providers: [AppService],
