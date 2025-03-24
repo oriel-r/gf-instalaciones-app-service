@@ -5,7 +5,7 @@ import swaggerConfig from './config/documentation';
 import { loggerMiddleware } from './common/helpers/logger';
 import { ValidationPipe } from '@nestjs/common';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
-import { UsersSeeds } from './seeders/users/user.seeds';
+import { UserSeeds } from './seeders/users/user.seeds';
 import { DateFormatInterceptor } from './common/interceptors/date-format.interceptor';
 import { BlogCategoriesSeeder } from './seeders/blog/blog-categories.seeder';
 import { BlogTemplatesSeeder } from './seeders/blog/blog-templates.seeder';
@@ -33,7 +33,7 @@ async function bootstrap() {
   
   app.useGlobalInterceptors(new DateFormatInterceptor());
   
-  const usersSeed = app.get(UsersSeeds);
+  const usersSeed = app.get(UserSeeds);
   await usersSeed.seed();
   
   const categoriesSeeder = app.get(BlogCategoriesSeeder)
@@ -54,6 +54,6 @@ async function bootstrap() {
   const documentation = () => SwaggerModule.createDocument(app, swaggerConfig)
   SwaggerModule.setup('docs', app, documentation)
 
-  await app.listen(process.env.PORT ?? 3001);
+  await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();
