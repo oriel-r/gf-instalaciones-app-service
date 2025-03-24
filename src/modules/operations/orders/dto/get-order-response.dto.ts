@@ -3,7 +3,7 @@ import { Installation } from "../../installations/entities/installation.entity";
 import { Order } from "../entities/order.entity";
 import { GetInstallationsDto } from "../../installations/dto/get-installations-response.dto";
 
-export class GetOrderResponseDto extends BaseDto {
+export class GetOrderResponseDto {
     id: string;
     orderNumber: string;
     description: string;
@@ -14,7 +14,6 @@ export class GetOrderResponseDto extends BaseDto {
     installations: GetInstallationsDto[];
 
     constructor(data: Order){
-        super(data)
 
         this.id = data.id
         this.orderNumber = data.orderNumber

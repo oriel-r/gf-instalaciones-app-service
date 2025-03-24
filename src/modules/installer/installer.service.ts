@@ -1,22 +1,18 @@
 import {
-  BadRequestException,
   ConflictException,
   forwardRef,
-  HttpException,
-  HttpStatus,
   Inject,
   Injectable,
-  NotFoundException
+  NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Installer } from './entities/installer.entity';
-import { IsNull, Not, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { UserService } from '../user/user.service';
 import { CreateInstallerDto } from './dto/create-installer.dto';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { User } from '../user/entities/user.entity';
-import { Role } from '../user/entities/roles.entity';
+import { ApiTags } from '@nestjs/swagger';
 import { UpdateInstallerDto } from './dto/update-installer';
+import { UserRoleService } from '../user-role/user-role.service';
 
 @ApiTags('Installer')
 @Injectable()
@@ -24,162 +20,96 @@ export class InstallerService {
   constructor(
     @InjectRepository(Installer)
     private readonly installerRepository: Repository<Installer>,
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
     @Inject(forwardRef(() => UserService))
     private readonly userService: UserService,
-    @InjectRepository(Role)
-    private readonly roleRepository: Repository<Role>,
+    private readonly userRoleService: UserRoleService,
   ) {}
 
-  @ApiOperation({ summary: 'Obtener todos los instaladores' })
-  @ApiResponse({
-    status: 200,
-    description: 'Lista de todos los instaladores',
-    type: [Installer],
-  })
   async findAll() {
-    return await this.installerRepository.find();
+    return await this.installerRepository.find({
+      relations: ['userRoleDetail', 'userRoleDetail.user'],
+    });
   }
 
-  @ApiOperation({ summary: 'Crear un nuevo instalador' })
-  @ApiResponse({
-    status: 201,
-    description: 'El instalador ha sido creado exitosamente',
-    type: Installer,
-  })
-  @ApiResponse({
-    status: 409,
-    description: 'El email o el documento de identidad ya están registrados',
-  })
   async createInstaller(createInstallerDto: CreateInstallerDto) {
-    const { email, idNumber, password, fullName,
+    const {
+      email,
+      idNumber,
+      password,
+      fullName,
       location,
       address,
       country,
       phone,
-      birthDate, coverage, ...installerData } =
-      createInstallerDto;
-
+      birthDate,
+      ...installerData
+    } = createInstallerDto;
+  
     let user = await this.userService.findByEmail(email);
-
     if (user) {
-      const existingInstaller = await this.installerRepository.findOne({
-        where: { user: { id: user.id } },
-        relations: ['user'],
-      });
-
-      if (existingInstaller) {
-        throw new HttpException('El email ya está registrado como instalador', HttpStatus.CONFLICT);
+      const existingInstaller = await this.userRoleService.findUserRoleById(user.id);
+  
+      if (existingInstaller && existingInstaller.role.name === 'Instalador') {
+        throw new ConflictException('El email ya está registrado como instalador');
       }
-    } else {
-
-    let userRole = await this.roleRepository.findOne({ where: {name: 'Instalador'}});
-
-    if(!userRole) {
-      userRole = this.roleRepository.create({
-        name: 'Instalador',
-        description: 'Rol asignado a instaladores'
-      });
-
-      userRole = await this.roleRepository.save(userRole)
     }
-
-      user = await this.userService.createUser({
-        email,
-        password,
-        idNumber,
-        fullName,
-        location,
-        address,
-        country,
-        phone,
-        birthDate,
-        coverage,
-        role: userRole,
-      });
+  
+    const existingIdNumber = await this.userService.findByIdNumber(idNumber);
+    if (existingIdNumber) {
+      throw new ConflictException('El documento de identidad ya se encuentra registrado');
     }
-
-    const existingNumber = await this.installerRepository.findOne({
-      where: { user: { idNumber } },
-      relations: ['user'],
+  
+    user = await this.userService.createUser({
+      email,
+      password,
+      idNumber,
+      fullName,
+      location,
+      address,
+      country,
+      phone,
+      birthDate,
     });
-
-    if (existingNumber) {
-      throw new ConflictException(
-        'El documento de identidad ya se encuentra registrado',
-      );
-    }
-
+  
+    const userRole = await this.userRoleService.assignRole(user.id, 'Instalador');
+  
     const newInstaller = this.installerRepository.create({
       ...installerData,
-      user: user as User,
+      userRoleDetail: userRole,
     });
+  
+    await this.installerRepository.save(newInstaller);
+  
+    return newInstaller;
+  }  
 
-    const installer = await this.installerRepository.save(newInstaller);
-    return installer;
-  }
-
-  async updateInstaller( updateInstaller: UpdateInstallerDto , installerId: string ) {
+  async updateInstaller(
+    updateInstaller: UpdateInstallerDto,
+    installerId: string,
+  ) {
     const installer = await this.findById(installerId);
-      Object.assign(installer, updateInstaller);
-      return await this.installerRepository.save(installer)
+    Object.assign(installer, updateInstaller);
+    return await this.installerRepository.save(installer);
   }
 
-  @ApiOperation({ summary: 'Buscar instalador por correo electrónico' })
-  @ApiResponse({
-    status: 200,
-    description: 'Instalador encontrado por correo electrónico',
-    type: Installer,
-  })
-  @ApiResponse({
-    status: 404,
-    description: 'Instalador no encontrado',
-  })
-  async findByEmail(email: string) {
-    return await this.installerRepository.findOne({
-      where: { user: { email } },
-      relations: ['user'],
-    });
-  }
-
-  @ApiOperation({ summary: 'Deshabilitar un instalador' })
-  @ApiResponse({
-    status: 200,
-    description: 'El instalador ha sido deshabilitado correctamente',
-  })
-  @ApiResponse({
-    status: 404,
-    description: 'Instalador no encontrado',
-  })
-  async softDelete(id: string) {
+  /*  async softDelete(id: string) {
     const installer = await this.installerRepository.findOne({
       where: { id },
       relations: ['user'],
     });
-  
+
     if (!installer) {
       throw new NotFoundException('Instalador no encontrado');
     }
-  
+
     if (installer.user) {
-      
       await this.userService.softDeleteUser(installer.user.id);
-       
+
       return { message: 'El instalador ha sido deshabilitado correctamente' };
     }
-  }
-  
-  @ApiOperation({ summary: 'Restaurar un instalador deshabilitado' })
-  @ApiResponse({
-    status: 200,
-    description: 'El instalador ha sido restaurado correctamente',
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'El instalador ya está activo',
-  })
-  async restore(id: string) {
+  } */
+
+  /*  async restore(id: string) {
     const installer = await this.findDisabledInstallerById(id);
     if (installer && installer.user.disabledAt !== null) {
       await this.installerRepository.restore(id);
@@ -188,58 +118,33 @@ export class InstallerService {
     throw new BadRequestException(
       'El intalador indicado ya se encuentra activo',
     );
-  }
+  } */
 
-  @ApiOperation({ summary: 'Obtener todos los instaladores, incluyendo los eliminados' })
-  @ApiResponse({
-    status: 200,
-    description: 'Lista de instaladores, incluyendo los eliminados',
-    type: [Installer],
-  })
   async findAllWithDeleted() {
     return await this.installerRepository.find({ withDeleted: true });
   }
 
-  @ApiOperation({ summary: 'Buscar un instalador deshabilitado por ID' })
-  @ApiResponse({
-    status: 200,
-    description: 'Detalles del instalador deshabilitado',
-    type: Installer,
-  })
-  @ApiResponse({
-    status: 404,
-    description: 'Instalador deshabilitado no encontrado',
-  })
-  async findDisabledInstallerById(installerId: string): Promise<Installer | null> {
+  /*  async findDisabledInstallerById(
+    installerId: string,
+  ): Promise<Installer | null> {
     const installer = await this.installerRepository.findOne({
-      where: { 
+      where: {
         id: installerId,
-        user: { disabledAt: Not(IsNull()) }
+        user: { disabledAt: Not(IsNull()) },
       },
       relations: ['user'],
       withDeleted: true,
     });
-  
+
     if (!installer) {
       throw new NotFoundException('Instalador desactivado no encontrado');
     }
     return installer;
-  }
-  
-  @ApiOperation({ summary: 'Buscar instalador por ID' })
-  @ApiResponse({
-    status: 200,
-    description: 'Instalador encontrado por ID',
-    type: Installer,
-  })
-  @ApiResponse({
-    status: 404,
-    description: 'Instalador no encontrado',
-  })
+  } */
+
   async findById(id: string) {
     const installer = await this.installerRepository.findOne({
       where: { id },
-      relations: ['user'],
     });
     if (!installer) throw new NotFoundException('Instalador no encontrado');
     return installer;
