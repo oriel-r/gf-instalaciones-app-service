@@ -2,7 +2,7 @@ import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { JwtModule } from "@nestjs/jwt";
 import { User } from "src/modules/user/entities/user.entity";
-import { UsersSeeds } from "./users/user.seeds";
+import { UserSeeds } from "./users/user.seeds";
 import { Role } from "src/modules/user/entities/roles.entity";
 import { BlogModule } from './blog/blog.sseder.module';
 import { BlogCategoriesSeeder } from "./blog/blog-categories.seeder";
@@ -24,8 +24,8 @@ import { OrdersSeeder } from "./orders/orders.seeds";
     JwtModule,
     BlogModule,
 ],
-    providers: [UsersSeeds, BlogCategoriesSeeder, BlogTemplatesSeeder, BlogPostsSeeder, LocationsSeeder, OrdersSeeder],
-    exports: [UsersSeeds, BlogCategoriesSeeder, BlogTemplatesSeeder, LocationsSeeder, BlogPostsSeeder, OrdersSeeder],
+    providers: [UserSeeds, BlogCategoriesSeeder, BlogTemplatesSeeder, BlogPostsSeeder, LocationsSeeder, OrdersSeeder],
+    exports: [UserSeeds, BlogCategoriesSeeder, BlogTemplatesSeeder, LocationsSeeder, BlogPostsSeeder, OrdersSeeder],
 })
 
 export class SeedersModule {}

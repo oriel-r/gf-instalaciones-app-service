@@ -351,8 +351,8 @@ export class UserSeeds {
           hasOwnTransportation: userData.hasOwnTransportation,
         });
         await this.installerRepository.save(installer);
-        console.log('Installer created', installer);
       }
     }
+    console.log('Users and role preload succesfully')
   }
 }

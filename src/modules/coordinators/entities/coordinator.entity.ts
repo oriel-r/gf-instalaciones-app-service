@@ -9,5 +9,5 @@ export class Coordinator extends User {
   id: string = uuid();
 
   @OneToMany(() => Installation, (installation) => installation.coordinator)
-  instalations: Installation[]; 
+  installations: Installation[]; 
 }
