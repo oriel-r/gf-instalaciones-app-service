@@ -19,6 +19,7 @@ import { LocationsModule } from './modules/locations/locations.module';
 import { OperationsModule } from './modules/operations/operations.module';
 import { ImagesModule } from './modules/images/images.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { UserRoleModule } from './modules/user-role/user-role.module';
 
 @Module({
   imports: [
@@ -64,6 +65,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
     OperationsModule,
     LocationsModule,
     ImagesModule,
+    UserRoleModule,
   ],
   controllers: [AppController],
   providers: [AppService],

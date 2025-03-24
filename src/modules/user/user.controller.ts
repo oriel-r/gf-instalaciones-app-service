@@ -57,14 +57,32 @@ export class UserController {
     return await this.userService.findById(id);
   }
 
+  @ApiOperation({ summary: 'Actualizar un usuario por ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Usuario actualizado correctamente.',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Usuario no encontrado.',
+  })
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.update(+id, updateUserDto);
+  async updateUser(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+    return await this.userService.updateUser(id, updateUserDto);
   }
 
+  @ApiOperation({ summary: 'Eliminar un usuario por ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Usuario eliminado correctamente.',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Usuario no encontrado.',
+  })
   @Delete(':id')
-    remove(@Param('id') id: string) {
-    return this.userService.remove(+id);
+    async removeUser(@Param('id') id: string) {
+    return await this.userService.removeUser(id);
   }
 
   @ApiOperation({ summary: 'Desactivar usuario (soft delete)' })
@@ -80,10 +98,5 @@ export class UserController {
   @Put('/restore/:id')
   async restore(@Param('id') id: string) {
     return await this.userService.restore(id);
-  }
-
-  @Put('assignCoordinator/:id')
-  async assignCoordinator(@Param('id') coordinatorId: string) {
-    return await this.userService.assignCoordinator(coordinatorId);
   }
 }

@@ -1,7 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, IsStrongPassword, Length, Matches } from "class-validator";
-import { Role } from "../entities/roles.entity";
 
 export class CreateUserDto {
         @ApiProperty({
@@ -108,11 +107,4 @@ export class CreateUserDto {
           @IsOptional()
           @IsString()
           coverage?: string;
-
-          @ApiProperty({
-            description: 'Rol del usuario',
-            example: 'Instalador, Admin, Usuario',
-          })
-          @IsOptional()
-          role?: Role;
 }

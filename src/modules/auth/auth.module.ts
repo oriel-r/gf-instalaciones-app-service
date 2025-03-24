@@ -9,13 +9,14 @@ import { JwtModule } from "@nestjs/jwt";
 import { InstallerModule } from "../installer/installer.module";
 import { InstallerService } from "../installer/installer.service";
 import { Installer } from "../installer/entities/installer.entity";
-import { Role } from "../user/entities/roles.entity";
-import { Coordinator } from "../coordinators/entities/coordinator.entity";
 import { CoordinatorsModule } from "../coordinators/coordinators.module";
+import { UserRoleModule } from "../user-role/user-role.module";
+import { Role } from "../user/entities/roles.entity";
 
 @Module({
-    imports: [TypeOrmModule.forFeature([User, Installer, Role, Coordinator]),
+    imports: [TypeOrmModule.forFeature([User, Installer, Role]),
     UserModule,
+    UserRoleModule,
     InstallerModule,
     CoordinatorsModule,
     JwtModule.register({

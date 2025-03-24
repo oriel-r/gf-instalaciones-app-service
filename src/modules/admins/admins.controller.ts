@@ -7,11 +7,6 @@ import { ApiTags } from '@nestjs/swagger';
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
-  @Put('assignAdmin/:id')
-  async assignAdmin(@Param('id') adminId: string) {
-    return await this.adminService.assignAdmin(adminId);
-  }
-
   @Get()
   async findAll() {
     return await this.adminService.findAll();
@@ -22,8 +17,8 @@ export class AdminController {
     return this.adminService.findOne(id);
   }
 
-  @Delete('removeAdmin/:id')
+  /* @Delete('removeAdmin/:id')
   removeAdminRole(@Param('id') adminId: string) {
     return this.adminService.removeAdminRole(adminId);
-  }
+  } */
 }

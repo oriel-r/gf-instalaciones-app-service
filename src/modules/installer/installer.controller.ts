@@ -14,10 +14,6 @@ import { InstallerService } from './installer.service';
 import { CreateInstallerDto } from './dto/create-installer.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Installer } from './entities/installer.entity';
-import { FindUserByEmailDto } from '../user/dto/find-user-by-email.dto';
-import { AuthGuard } from 'src/common/guards/auth/auth.guard';
-import { RolesGuard } from 'src/common/guards/roles/roles.guard';
-import { Roles } from 'src/common/decorators/roles/roles.decorator';
 import { UpdateInstallerDto } from './dto/update-installer';
 
 @ApiTags('Installer')
@@ -37,14 +33,6 @@ export class InstallerController {
   async findAll() {
     return await this.installerService.findAll();
   }
-
-   @ApiOperation({ summary: 'Buscar instalador por email' })
-    @ApiResponse({ status: 200, description: 'Instalador encontrado.', type: Installer })
-    @ApiResponse({ status: 404, description: 'Instalador no encontrado.' })
-    @Get('byEmail')
-    async findByEmail( @Query() query: FindUserByEmailDto ) {
-      return await this.installerService.findByEmail(query.email);
-    }
 
   @ApiOperation({ summary: 'Crear un nuevo instalador' })
   @ApiResponse({
@@ -76,7 +64,7 @@ export class InstallerController {
     return await this.installerService.findAllWithDeleted();
   }
 
-  @ApiOperation({ summary: 'Deshabilitar un instalador' })
+  /* @ApiOperation({ summary: 'Deshabilitar un instalador' })
   @ApiResponse({
     status: 200,
     description: 'El instalador ha sido deshabilitado correctamente',
@@ -84,9 +72,9 @@ export class InstallerController {
   @Delete('/disabled/:id')
   async softDelete(@Param('id') id: string) {
     return await this.installerService.softDelete(id);
-  }
+  } */
 
-  @ApiOperation({ summary: 'Restaurar un instalador deshabilitado' })
+ /*  @ApiOperation({ summary: 'Restaurar un instalador deshabilitado' })
   @ApiResponse({
     status: 200,
     description: 'El instalador ha sido restaurado correctamente',
@@ -94,9 +82,9 @@ export class InstallerController {
   @Put('/restore/:id')
   async restore(@Param('id') id: string) {
     return await this.installerService.restore(id);
-  }
+  } */
 
-  @ApiOperation({ summary: 'Buscar un instalador deshabilitado por ID' })
+  /* @ApiOperation({ summary: 'Buscar un instalador deshabilitado por ID' })
   @ApiResponse({
     status: 200,
     description: 'Detalles del instalador deshabilitado',
@@ -109,5 +97,5 @@ export class InstallerController {
   @Get('/findDisabledById/:id')
   async findDisabledInstallerById(@Param('id') installerId: string) {
     return await this.installerService.findDisabledInstallerById(installerId);
-  }
+  } */
 }
