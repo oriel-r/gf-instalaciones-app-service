@@ -49,8 +49,10 @@ export class OrdersService {
     const newInstallations = await this.installationsService.createFromOrder({order, installations})
     if(!newInstallations) throw new InternalServerErrorException('No se crearon las instalaciónes')
     const fraction = calculateProgressFraction((await this.findOne(id)).installations)
-    return await this.update(order.id, {installationsFinished: fraction})
+    
+    await this.update(order.id, {installationsFinished: fraction})
 
+    return newInstallations
   }
   
   async updateInstallationStatus(orderId: string, installationId: string, status: UpdateInstallationStatus) {
