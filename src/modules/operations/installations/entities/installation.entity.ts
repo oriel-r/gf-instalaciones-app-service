@@ -1,11 +1,11 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { BaseEntity } from "src/common/entities/base.entity";
 import { InstallationStatus } from "src/common/enums/installations-status.enum";
-import { Coordinator } from "src/modules/coordinators/entities/coordinator.entity";
 import { Installer } from "src/modules/installer/entities/installer.entity";
 import { Adress } from "src/modules/locations/adress/entities/adress.entity";
 import { Order } from "src/modules/operations/orders/entities/order.entity";
-import { Column, DeepPartial, Entity, ManyToMany, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { UserRole } from "src/modules/user-role/entities/user-role.entity";
+import { Column, DeepPartial, Entity, JoinColumn, ManyToMany, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class Installation extends BaseEntity {
@@ -32,11 +32,12 @@ export class Installation extends BaseEntity {
     installers: Installer[] | null;
 
     @ApiProperty({
-        title: 'Coordinators',
+        title: 'Coordinator',
         description: "installation coordinators"
     })
-    @ManyToOne(() => Coordinator, (coordinator) => coordinator.installations, { onDelete: 'SET NULL', nullable: true})
-    coordinator: Coordinator | null;
+    @ManyToOne(() => UserRole, { onDelete: 'SET NULL', nullable: true})
+    @JoinColumn({name: 'coordinator_id'})
+    coordinator: UserRole | null;
 
     @ApiProperty({
         title: 'startDate',

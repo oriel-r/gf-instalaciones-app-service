@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { CreateInstallationDto } from './dto/create-installation.dto';
 import { UpdateInstallationDto } from './dto/update-installation.dto';
 import { InstallationsRepository } from './installations.repository';
@@ -23,13 +23,18 @@ export class InstallationsService {
 
     const newInstallations = await Promise.all(
       createInstallationDto.installations.map(async (installation) => {
-        const { adress, ...otherData } = installation;
+        const { adress, coordinatorId,...otherData } = installation;
+
+        const coordinator = await this.evenEmitter.emitAsync('verifyRole.coordinator', coordinatorId)
   
+        if(!coordinator[0]) throw new BadRequestException('Coordinador no encontrado')
+
         const installationAdress = await this.adressService.create(adress);
   
         return await this.installationsRepository.create({
           ...otherData,
           order: createInstallationDto.order,
+          coordinator: coordinator[0],
           adress: installationAdress,
         })
 
