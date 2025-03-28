@@ -2,7 +2,7 @@ import { ApiProperty } from "@nestjs/swagger";
 import { BaseEntity } from "src/common/entities/base.entity";
 import { InstallationStatus } from "src/common/enums/installations-status.enum";
 import { Installer } from "src/modules/installer/entities/installer.entity";
-import { Adress } from "src/modules/locations/adress/entities/adress.entity";
+import { Address } from "src/modules/locations/address/entities/address.entity";
 import { Order } from "src/modules/operations/orders/entities/order.entity";
 import { UserRole } from "src/modules/user-role/entities/user-role.entity";
 import { Column, DeepPartial, Entity, JoinColumn, ManyToMany, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
@@ -61,11 +61,11 @@ export class Installation extends BaseEntity {
     status: InstallationStatus
     
     @ApiProperty({
-        title: 'adress',
-        description: "inslation adress"
+        title: 'Address',
+        description: "inslation Address"
     })
-    @ManyToOne(() => Adress, (adress) => adress.installations, {nullable: false, eager: true})
-    adress: Adress
+    @ManyToOne(() => Address, (address) => address.installations, {nullable: false, eager: true})
+    address: Address
 
     @ApiProperty({
         title: 'notes',

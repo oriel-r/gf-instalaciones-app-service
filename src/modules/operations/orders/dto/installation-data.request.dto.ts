@@ -1,5 +1,5 @@
 import { BaseDto } from "src/common/entities/base.dto";
-import { CreateAdressDto } from "src/modules/locations/adress/dto/create-adress.dto";
+import { CreateAddressDto } from "src/modules/locations/address/dto/create-address.dto";
 import { IsInstance, IsNotEmpty, IsOptional, IsString, IsUppercase, isUUID, IsUUID } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
@@ -19,12 +19,12 @@ export class InstallationDataRequesDto extends BaseDto{
     startDate: string;
     
     @ApiProperty({
-        title: "adress",
-        description: "instalrion's adress, if no exist it created"
+        title: "Address",
+        description: "instalrion's Address, if no exist it created"
     })
     @IsNotEmpty()
-    @Type(() => CreateAdressDto)
-    adress: CreateAdressDto;
+    @Type(() => CreateAddressDto)
+    address: CreateAddressDto;
 
     @ApiProperty({
         title: 'installers',

@@ -31,7 +31,7 @@ export const provincesMock = [
     { name: `Ciudad 3 de ${provinceName}` },
   ];
   
-  export const createAdressMock = (cityName: string) => [
+  export const createAddressMock = (cityName: string) => [
     { street: `Calle 1 de ${cityName}`, number: '100', note: 'Nota 1', postalCode: '0001' },
     { street: `Calle 2 de ${cityName}`, number: '200', note: 'Nota 2', postalCode: '0002' },
     { street: `Calle 3 de ${cityName}`, number: '300', note: 'Nota 3', postalCode: '0003' },

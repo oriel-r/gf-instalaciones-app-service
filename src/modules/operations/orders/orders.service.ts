@@ -41,8 +41,7 @@ export class OrdersService {
   async addInstallations(id: string, data: InstallationDataRequesDto | InstallationDataRequesDto[]) {
     const order = await this.findOne(id);
     const installations = Array.isArray(data) ? data : [data];
-    let fractioningOfInstallations: string = ''
-
+      
     if (!order) throw new NotFoundException('orden no encontrada o numero invalido');
     const newInstallations = await this.installationsService.createFromOrder({order, installations})
     if(!newInstallations) throw new InternalServerErrorException('No se crearon las instalaciónes')
