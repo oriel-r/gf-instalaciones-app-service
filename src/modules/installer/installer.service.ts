@@ -143,9 +143,7 @@ export class InstallerService {
   } */
 
   async findById(id: string) {
-    const installer = await this.installerRepository.findOne({
-      where: { id },
-    });
+    const installer = await this.installerRepository.findOneBy({ id });
     if (!installer) throw new NotFoundException('Instalador no encontrado');
     return installer;
   }

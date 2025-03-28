@@ -47,7 +47,9 @@ import { UserRoleModule } from './modules/user-role/user-role.module';
         return config;
       },
     }),
-    EventEmitterModule.forRoot(),
+    EventEmitterModule.forRoot({
+      wildcard: true
+    }),
     UserModule,
     SeedersModule,
     BlogModule,
