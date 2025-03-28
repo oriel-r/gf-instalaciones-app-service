@@ -4,6 +4,8 @@ import { UserRole } from "../user-role/entities/user-role.entity";
 import { Repository } from "typeorm";
 import { Role } from "../user/entities/roles.entity";
 import { UserService } from "../user/user.service";
+import { OnEvent } from "@nestjs/event-emitter";
+import { RoleEnum } from "src/common/enums/user-role.enum";
 
 @Injectable()
 export class UserRoleService {
@@ -39,5 +41,24 @@ export class UserRoleService {
       where: { user: { id: userId } },
       relations: ['role'], 
     });
+  }
+
+  @OnEvent('verifyRole.coordinator')
+  async handleVerifyCoordinatorRole(id: string): Promise<UserRole | false> {
+    const role = await this.userRoleRepository.findOne({
+      where: {id: id, role:{name: RoleEnum.COORDINATOR }},
+      relations: {role: true}
+    });
+    return role || false;
+  }
+
+  @OnEvent('verifyRole.client')
+  async handleVerifyClientRole(id: string): Promise<UserRole | false> {
+    const role = await this.userRoleRepository.findOne({
+      where: {id: id, role:{name: RoleEnum.USER}},
+      relations: {role: true}
+    });
+
+    return role || false;
   }
 }

@@ -1,7 +1,8 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { BaseEntity } from "src/common/entities/base.entity";
 import { Installation } from "src/modules/operations/installations/entities/installation.entity";
-import { Column, DeepPartial, Entity, OneToMany, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
+import { UserRole } from "src/modules/user-role/entities/user-role.entity";
+import { Column, DeepPartial, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class Order extends BaseEntity {
@@ -13,7 +14,14 @@ export class Order extends BaseEntity {
     @PrimaryGeneratedColumn('uuid')
     id: string
 
-
+    @ApiProperty({
+        title: 'Client',
+        description: "order's client"
+    })
+    @ManyToOne(() => UserRole, { onDelete: 'SET NULL', nullable: true, eager: true})
+    @JoinColumn({name: 'client_id'})
+    client: UserRole | null;
+    
     @ApiProperty({
         title: 'orderNumber',
         description: 'the order number inserted by admin'

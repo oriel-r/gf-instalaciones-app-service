@@ -11,21 +11,27 @@ import { InstallationStatus } from 'src/common/enums/installations-status.enum';
 import { calculateProgress } from 'src/common/helpers/calculate-progress';
 import { UpdateInstallationStatus } from './dto/update-installation-status.dto';
 import { GetOrderResponseDto } from './dto/get-order-response.dto';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class OrdersService {
   constructor(
     private readonly ordersRepository: OrdersRepository,
-    private readonly installationsService: InstallationsService
+    private readonly installationsService: InstallationsService,
+    private readonly eventEmiiter: EventEmitter2
   ) {}
   
   async create(createOrderDto: CreateOrderRequestDto) {
-    const { installations, ...orderData } = createOrderDto;
+    const { clientId, ...orderData } = createOrderDto;
   
     const existOrder = await this.ordersRepository.getByNumber(orderData.orderNumber);
     if (existOrder) throw new BadRequestException('Ya existe una orden con este número de referencia')
   
-    const newOrder = await this.ordersRepository.create(orderData);
+    const client = await this.eventEmiiter.emitAsync('verifyRole.client', clientId)
+    
+    if(!client[0]) throw new BadRequestException('Cliente no encontrado')
+
+    const newOrder = await this.ordersRepository.create({...orderData, client: client[0]});
   
     if(!newOrder) throw new InternalServerErrorException('Hubo un problema al crear la orden')
   
@@ -35,8 +41,7 @@ export class OrdersService {
   async addInstallations(id: string, data: InstallationDataRequesDto | InstallationDataRequesDto[]) {
     const order = await this.findOne(id);
     const installations = Array.isArray(data) ? data : [data];
-    let fractioningOfInstallations: string = ''
-
+      
     if (!order) throw new NotFoundException('orden no encontrada o numero invalido');
     const newInstallations = await this.installationsService.createFromOrder({order, installations})
     if(!newInstallations) throw new InternalServerErrorException('No se crearon las instalaciónes')

@@ -3,7 +3,7 @@ import { IsNotEmpty, IsNumberString, IsString, Length } from "class-validator";
 import { BaseDto } from "src/common/entities/base.dto";
 import { DeepPartial } from "typeorm";
 
-export class CreateAdressDto extends BaseDto{
+export class CreateAddressDto extends BaseDto{
 
     @ApiProperty({
         title: 'street'

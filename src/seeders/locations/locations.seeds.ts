@@ -1,8 +1,8 @@
 import { appDataSource } from 'src/config/data-source';
 import { Province } from 'src/modules/locations/province/entities/province.entity';
 import { City } from 'src/modules/locations/city/entities/city.entity';
-import { Adress } from 'src/modules/locations/adress/entities/adress.entity';
-import { provincesMock, createCitiesMock, createAdressMock } from './locations.mock';
+import { Address } from 'src/modules/locations/address/entities/address.entity';
+import { provincesMock, createCitiesMock, createAddressMock } from './locations.mock';
 
 export class LocationsSeeder {
   async seed(): Promise<void> {
@@ -29,12 +29,12 @@ export class LocationsSeeder {
         if (savedCities) console.log('Cities are created');
 
         const addressesToInsert = savedCities.flatMap((city) =>
-          createAdressMock(city.name).map((adressData) =>
-            manager.create(Adress, { ...adressData, city })
+          createAddressMock(city.name).map((addressData) =>
+            manager.create(Address, { ...addressData, city })
           )
         );
-        const savedAdress = await manager.save(addressesToInsert);
-        if (savedAdress) console.log('Adress created');
+        const savedAddress = await manager.save(addressesToInsert);
+        if (savedAddress) console.log('Address created');
       } catch (error) {
         console.log(error);
       }

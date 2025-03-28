@@ -52,6 +52,6 @@ export class User {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 
-  @OneToMany(() => UserRole, (userRole) => userRole.user,  { cascade: true })
+  @OneToMany(() => UserRole, (userRole) => userRole.user,  { cascade: true, eager: true})
   userRoles: UserRole[];
 }

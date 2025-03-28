@@ -20,9 +20,9 @@ export class OrdersRepository {
         return await this.ordersRepository.find({
             relations: [
                 'installations',
-                'installations.adress',
-                'installations.adress.city',
-                'installations.adress.city.province'
+                'installations.address',
+                'installations.address.city',
+                'installations.address.city.province'
             ],
             order: {
                 createdAt: 'DESC'

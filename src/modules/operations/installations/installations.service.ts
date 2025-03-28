@@ -1,11 +1,10 @@
-import { HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { CreateInstallationDto } from './dto/create-installation.dto';
-import { UpdateInstallationDto } from './dto/update-installation.dto';
 import { InstallationsRepository } from './installations.repository';
 import { DeepPartial } from 'typeorm';
 import { Installation } from './entities/installation.entity';
 import { DeleteResponse } from 'src/common/entities/delete.response.dto';
-import { AdressService } from 'src/modules/locations/adress/adress.service';
+import { AddressService } from 'src/modules/locations/address/address.service';
 import { Order } from '../orders/entities/order.entity';
 import { FileUploadService } from 'src/services/file-upload/file-upload.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
@@ -14,7 +13,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 export class InstallationsService {
   constructor(
     private readonly installationsRepository: InstallationsRepository,
-    private readonly adressService: AdressService,
+    private readonly addressService: AddressService,
     private readonly fileUploadService: FileUploadService,
     private evenEmitter: EventEmitter2
   ){}
@@ -23,14 +22,19 @@ export class InstallationsService {
 
     const newInstallations = await Promise.all(
       createInstallationDto.installations.map(async (installation) => {
-        const { adress, ...otherData } = installation;
+        const { address, coordinatorId,...otherData } = installation;
+
+        const coordinator = await this.evenEmitter.emitAsync('verifyRole.coordinator', coordinatorId)
   
-        const installationAdress = await this.adressService.create(adress);
+        if(!coordinator[0]) throw new BadRequestException('Coordinador no encontrado')
+
+        const installationAddress = await this.addressService.create(address);
   
         return await this.installationsRepository.create({
           ...otherData,
           order: createInstallationDto.order,
-          adress: installationAdress,
+          coordinator: coordinator[0],
+          address: installationAddress,
         })
 
       })

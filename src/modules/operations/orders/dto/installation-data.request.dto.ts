@@ -1,11 +1,12 @@
 import { BaseDto } from "src/common/entities/base.dto";
-import { CreateAdressDto } from "src/modules/locations/adress/dto/create-adress.dto";
-import { IsInstance, IsNotEmpty, IsOptional, IsString, IsUUID } from "class-validator";
+import { CreateAddressDto } from "src/modules/locations/address/dto/create-address.dto";
+import { IsInstance, IsNotEmpty, IsOptional, IsString, IsUppercase, isUUID, IsUUID } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsISO8601, ValidateNested } from "@nestjs/class-validator";
 import { Installer } from "src/modules/installer/entities/installer.entity";
 import { Coordinator } from "src/modules/coordinators/entities/coordinator.entity";
+import { UserRole } from "src/modules/user-role/entities/user-role.entity";
 
 export class InstallationDataRequesDto extends BaseDto{
     
@@ -18,12 +19,12 @@ export class InstallationDataRequesDto extends BaseDto{
     startDate: string;
     
     @ApiProperty({
-        title: "adress",
-        description: "instalrion's adress, if no exist it created"
+        title: "Address",
+        description: "instalrion's Address, if no exist it created"
     })
     @IsNotEmpty()
-    @Type(() => CreateAdressDto)
-    adress: CreateAdressDto;
+    @Type(() => CreateAddressDto)
+    address: CreateAddressDto;
 
     @ApiProperty({
         title: 'installers',
@@ -35,8 +36,8 @@ export class InstallationDataRequesDto extends BaseDto{
 
     @ApiProperty()
     @IsOptional()
-    @IsInstance(Coordinator)
-    coordinator: Coordinator
+    @IsUUID()
+    coordinatorId: string
 
     @ApiProperty({
         title: 'notes',
