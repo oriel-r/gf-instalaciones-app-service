@@ -5,11 +5,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Order } from './entities/order.entity';
 import { OrdersRepository } from './orders.repository';
 import { InstallationsModule } from '../installations/installations.module';
+import { UserRoleModule } from 'src/modules/user-role/user-role.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Order]),
-    InstallationsModule
+    InstallationsModule,
+    UserRoleModule
   ],
   controllers: [OrdersController],
   providers: [OrdersService, OrdersRepository],

@@ -43,22 +43,12 @@ export class UserRoleService {
     });
   }
 
-  @OnEvent('verifyRole.coordinator')
-  async handleVerifyCoordinatorRole(id: string): Promise<UserRole | false> {
+  async getByIdWhenRole (id: string, roleName: RoleEnum): Promise<UserRole | null> {
     const role = await this.userRoleRepository.findOne({
-      where: {id: id, role:{name: RoleEnum.COORDINATOR }},
-      relations: {role: true}
-    });
-    return role || false;
-  }
-
-  @OnEvent('verifyRole.client')
-  async handleVerifyClientRole(id: string): Promise<UserRole | false> {
-    const role = await this.userRoleRepository.findOne({
-      where: {id: id, role:{name: RoleEnum.USER}},
+      where: {id: id, role:{name: roleName}},
       relations: {role: true}
     });
 
-    return role || false;
+    return role 
   }
 }

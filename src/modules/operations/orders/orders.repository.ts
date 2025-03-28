@@ -18,12 +18,18 @@ export class OrdersRepository {
 
     async get() {
         return await this.ordersRepository.find({
-            relations: [
-                'installations',
-                'installations.address',
-                'installations.address.city',
-                'installations.address.city.province'
-            ],
+        relations: {
+            client: true, 
+            installations:{
+                coordinator: true, 
+                installers: true, 
+                address:{
+                    city:{
+                        province: true
+                    }
+                }
+            }
+        },
             order: {
                 createdAt: 'DESC'
             }

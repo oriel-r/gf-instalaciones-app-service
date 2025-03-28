@@ -12,13 +12,16 @@ import { calculateProgress } from 'src/common/helpers/calculate-progress';
 import { UpdateInstallationStatus } from './dto/update-installation-status.dto';
 import { GetOrderResponseDto } from './dto/get-order-response.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { UserRoleService } from 'src/modules/user-role/user-role.service';
+import { RoleEnum } from 'src/common/enums/user-role.enum';
 
 @Injectable()
 export class OrdersService {
   constructor(
     private readonly ordersRepository: OrdersRepository,
     private readonly installationsService: InstallationsService,
-    private readonly eventEmiiter: EventEmitter2
+    private readonly eventEmiiter: EventEmitter2,
+    private readonly userRoleService: UserRoleService
   ) {}
   
   async create(createOrderDto: CreateOrderRequestDto) {
@@ -27,11 +30,11 @@ export class OrdersService {
     const existOrder = await this.ordersRepository.getByNumber(orderData.orderNumber);
     if (existOrder) throw new BadRequestException('Ya existe una orden con este número de referencia')
   
-    const client = await this.eventEmiiter.emitAsync('verifyRole.client', clientId)
+    const client = await this.userRoleService.getByIdWhenRole(clientId, RoleEnum.USER)
     
-    if(!client[0]) throw new BadRequestException('Cliente no encontrado')
+    if(!client) throw new BadRequestException('Cliente no encontrado')
 
-    const newOrder = await this.ordersRepository.create({...orderData, client: client[0]});
+    const newOrder = await this.ordersRepository.create({...orderData, client: client});
   
     if(!newOrder) throw new InternalServerErrorException('Hubo un problema al crear la orden')
   
@@ -76,7 +79,7 @@ export class OrdersService {
     // actualizaar instalación con los links
     /* 
     if(!result)
-    this.eventEmiter.send('add-to-review', order)
+    this.eventEmiter.send('tracking.toReview', order)
     
     */
     // retornar instalacion con links

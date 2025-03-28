@@ -8,6 +8,11 @@ import { AddressService } from 'src/modules/locations/address/address.service';
 import { Order } from '../orders/entities/order.entity';
 import { FileUploadService } from 'src/services/file-upload/file-upload.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { UserRoleService } from 'src/modules/user-role/user-role.service';
+import { RoleEnum } from 'src/common/enums/user-role.enum';
+import { Installer } from 'src/modules/installer/entities/installer.entity';
+import { InstallerService } from 'src/modules/installer/installer.service';
+import { UserRole } from 'src/modules/user-role/entities/user-role.entity';
 
 @Injectable()
 export class InstallationsService {
@@ -15,6 +20,8 @@ export class InstallationsService {
     private readonly installationsRepository: InstallationsRepository,
     private readonly addressService: AddressService,
     private readonly fileUploadService: FileUploadService,
+    private readonly userRoleService: UserRoleService,
+    private readonly installerService: InstallerService,
     private evenEmitter: EventEmitter2
   ){}
   
@@ -22,18 +29,28 @@ export class InstallationsService {
 
     const newInstallations = await Promise.all(
       createInstallationDto.installations.map(async (installation) => {
-        const { address, coordinatorId,...otherData } = installation;
+        const { address, coordinatorId, installersIds, ...otherData } = installation;
 
-        const coordinator = await this.evenEmitter.emitAsync('verifyRole.coordinator', coordinatorId)
-  
-        if(!coordinator[0]) throw new BadRequestException('Coordinador no encontrado')
+        const coordinator = await this.userRoleService.getByIdWhenRole(coordinatorId, RoleEnum.COORDINATOR)
+        
+        const getInstallers = await Promise.all(
+        installersIds.map( async(installer) => {
+           return await this.installerService.findById(installer)
+        }))
+              
+        const installers = getInstallers.filter((i): i is Installer => i !== null)
+              
+        if(!coordinator) throw new BadRequestException('Coordinador no encontrado')
+        
+        if(!installers.length) throw new BadRequestException('No se encontraron los instaladores')
 
         const installationAddress = await this.addressService.create(address);
   
         return await this.installationsRepository.create({
           ...otherData,
+          installers: installers,
+          coordinator: coordinator, 
           order: createInstallationDto.order,
-          coordinator: coordinator[0],
           address: installationAddress,
         })
 

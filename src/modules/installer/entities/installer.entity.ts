@@ -55,7 +55,7 @@ import { UserRole } from 'src/modules/user-role/entities/user-role.entity';
       })
       status?: StatusInstaller;
 
-      @OneToOne(() => UserRole)
+      @OneToOne(() => UserRole, {eager: true})
       @JoinColumn()
       userRoleDetail: UserRole;
 
