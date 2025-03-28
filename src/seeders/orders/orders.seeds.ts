@@ -1,7 +1,7 @@
 import { appDataSource } from 'src/config/data-source';
 import { Order } from 'src/modules/operations/orders/entities/order.entity';
 import { Installation } from 'src/modules/operations/installations/entities/installation.entity';
-import { Adress } from 'src/modules/locations/adress/entities/adress.entity';
+import { Address } from 'src/modules/locations/address/entities/address.entity';
 import { ordersMock, createInstallationMocks } from './orders.mock';
 
 export class OrdersSeeder {
@@ -13,8 +13,8 @@ export class OrdersSeeder {
     await appDataSource.transaction(async (manager) => {
 
       const cabaAddress = await manager
-        .createQueryBuilder(Adress, 'adress')
-        .leftJoinAndSelect('adress.city', 'city')
+        .createQueryBuilder(Address, 'address')
+        .leftJoinAndSelect('address.city', 'city')
         .where('city.name = :cityName', { cityName: 'Ciudad 1 de CABA/GBA' })
         .getOne();
 
@@ -42,7 +42,7 @@ export class OrdersSeeder {
           manager.create(Installation, {
             ...installationData,
             order,
-            adress: cabaAddress,
+            address: cabaAddress,
           })
         );
       });

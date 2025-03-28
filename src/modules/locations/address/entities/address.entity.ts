@@ -5,7 +5,7 @@ import { Installation } from "src/modules/operations/installations/entities/inst
 import { Column, DeepPartial, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
-export class Adress extends BaseEntity{
+export class Address extends BaseEntity{
     
     @ApiProperty({
         title: "id",
@@ -43,16 +43,16 @@ export class Adress extends BaseEntity{
         title: 'startDate',
         description: "The day when start the installation"
     })
-    @OneToMany(() => Installation, (installation) => installation.adress, {nullable: true})
+    @OneToMany(() => Installation, (installation) => installation.address, {nullable: true})
     installations: Installation[]
 
     @ApiProperty({
         title: 'city'
     })
-    @ManyToOne(() => City, (city) => city.adresses, {eager: true})
+    @ManyToOne(() => City, (city) => city.addresses, {eager: true})
     city: City
 
-    constructor(partial: DeepPartial<Adress>) {
+    constructor(partial: DeepPartial<Address>) {
         super()
         Object.assign(this, partial)
     }

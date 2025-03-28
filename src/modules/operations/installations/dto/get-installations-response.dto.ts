@@ -1,7 +1,7 @@
 import { InstallationStatus } from "src/common/enums/installations-status.enum";
 import { Installation } from "../entities/installation.entity";
 import { BaseDto } from "src/common/entities/base.dto";
-import { AdresResponseDto } from "src/modules/locations/adress/dto/adress-response.dto";
+import { AddressResponseDto } from "src/modules/locations/address/dto/address-response.dto";
 
 export class GetInstallationsDto extends BaseDto {
     id: string;
@@ -9,7 +9,7 @@ export class GetInstallationsDto extends BaseDto {
     startDate: string;
     endDate: Date;
     status: InstallationStatus;
-    adress: AdresResponseDto;
+    address: AddressResponseDto;
 
     constructor(data: Installation) {
         super(data)
@@ -18,6 +18,6 @@ export class GetInstallationsDto extends BaseDto {
         this.startDate = data.startDate
         this.endDate = data.endDate
         this.status = data.status
-        this.adress = new AdresResponseDto(data.adress)
+        this.address = new AddressResponseDto(data.address)
     }
 }

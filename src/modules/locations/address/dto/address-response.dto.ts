@@ -1,8 +1,8 @@
 import { BaseDto } from "src/common/entities/base.dto";
 import { City } from "../../city/entities/city.entity";
-import { Adress } from "../entities/adress.entity";
+import { Address } from "../entities/address.entity";
 
-export class AdresResponseDto extends BaseDto {
+export class AddressResponseDto extends BaseDto {
     id: string;
     street: string;
     number: string;
@@ -11,7 +11,7 @@ export class AdresResponseDto extends BaseDto {
     city: string
     province: string
 
-    constructor(data: Adress){
+    constructor(data: Address){
         super(data)
         this.id = data.id,
         this.street = data.street
