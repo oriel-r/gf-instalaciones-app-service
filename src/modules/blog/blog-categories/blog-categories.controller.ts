@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, HttpCode, HttpException, HttpStatus, Param, Post } from '@nestjs/common';
 import { BlogCategoriesService } from './blog-categories.service';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { DeleteResponse } from 'src/common/entities/delete.response';
+import { DeleteResponse } from 'src/common/entities/delete.response.dto';
 import { BlogCategory } from './entities/blog-category.entity';
 import { CreateBlogPostDto } from '../blog-posts/dtos/create-post.dto';
 import { CreateCategoryDto } from './dtos/create-blog-category.dto';

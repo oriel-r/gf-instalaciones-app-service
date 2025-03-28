@@ -2,7 +2,7 @@ import { BadRequestException, ConflictException, HttpException, HttpStatus, Inje
 import { CreateOrderRequestDto } from './dto/create-order.request.dto';
 import { OrdersRepository } from './orders.repository';
 import { InstallationsService } from '../installations/installations.service';
-import { DeleteResponse } from 'src/common/entities/delete.response';
+import { DeleteResponse } from 'src/common/entities/delete.response.dto';
 import { DeepPartial, DeleteResult } from 'typeorm';
 import { InstallationDataRequesDto } from './dto/installation-data.request.dto';
 import { calculateProgressFraction } from 'src/common/helpers/calculate-progress-fraction';

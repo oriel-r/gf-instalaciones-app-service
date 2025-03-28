@@ -3,7 +3,7 @@ import { CreateCityDto } from './dto/create-city.dto';
 import { UpdateCityDto } from './dto/update-city.dto';
 import { CityRepository } from './city.repository';
 import { ProvinceService } from '../province/province.service';
-import { DeleteResponse } from 'src/common/entities/delete.response';
+import { DeleteResponse } from 'src/common/entities/delete.response.dto';
 import { Province } from '../province/entities/province.entity';
 import { DeepPartial } from 'typeorm';
 import { City } from './entities/city.entity';

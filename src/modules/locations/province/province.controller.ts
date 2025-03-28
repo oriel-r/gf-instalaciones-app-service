@@ -4,7 +4,7 @@ import { CreateProvinceDto } from './dto/create-province.dto';
 import { UpdateProvinceDto } from './dto/update-province.dto';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { Province } from './entities/province.entity';
-import { DeleteResponse } from 'src/common/entities/delete.response';
+import { DeleteResponse } from 'src/common/entities/delete.response.dto';
 
 @Controller('province')
 export class ProvinceController {

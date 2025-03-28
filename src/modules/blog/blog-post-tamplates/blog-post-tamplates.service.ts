@@ -2,7 +2,7 @@ import { ConflictException, HttpException, Injectable, InternalServerErrorExcept
 import { BlogPostTemplatesRepository } from './blog-post-templates.repository';
 import { BlogPostTemplate } from './entities/blog-template.entity';
 import { CreateBlogPostTemplate } from './dtos/create-template.dto';
-import { DeleteResponse } from 'src/common/entities/delete.response';
+import { DeleteResponse } from 'src/common/entities/delete.response.dto';
 
 @Injectable()
 export class BlogPostTamplatesService {
