@@ -4,7 +4,7 @@ import { UpdateInstallationDto } from './dto/update-installation.dto';
 import { InstallationsRepository } from './installations.repository';
 import { DeepPartial } from 'typeorm';
 import { Installation } from './entities/installation.entity';
-import { DeleteResponse } from 'src/common/entities/delete.response';
+import { DeleteResponse } from 'src/common/entities/delete.response.dto';
 import { AdressService } from 'src/modules/locations/adress/adress.service';
 import { Order } from '../orders/entities/order.entity';
 import { FileUploadService } from 'src/services/file-upload/file-upload.service';

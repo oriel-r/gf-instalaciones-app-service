@@ -7,12 +7,17 @@ import {
   Delete,
   Put,
   Query,
+  Req,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { User } from './entities/user.entity';
 import { FindUserByEmailDto } from './dto/find-user-by-email.dto';
+import { UserQueryOptions } from './dto/users-filter.dto';
+import { PaginatedResponseDto } from 'src/common/entities/paginated-response.dto';
+import { QueryOptionsPipe } from 'src/common/pipes/query-options/query-options.pipe';
+import { Request } from 'express';
 
 @ApiTags('Users')
 @Controller('user')
@@ -26,6 +31,18 @@ export class UserController {
     return await this.userService.findAll();
   }
 
+  @ApiOperation({ summary: 'Obtener todos los usuarios activos filtrando segun el rol' })
+  @ApiResponse({ status: 200, description: 'Lista de usuarios obtenida.', type: [User] })
+  @Get('filter')
+  async findAllAndFilter(@Req() req: Request, @Query(new QueryOptionsPipe(UserQueryOptions)) query: UserQueryOptions,) {   
+  
+    const baseUrl = `${req.protocol}://${req.host}${req.path}` + "?" + `${new URLSearchParams(Object.entries(query).map(([k, v]) => [k, String(v)])).toString()}`
+    
+    const result = await this.userService.findFilterSort(query);
+
+    return new PaginatedResponseDto<User>(result, baseUrl  ,query.page,query.limit)
+  }
+ 
   @ApiOperation({ summary: 'Buscar usuario por email' })
   @ApiResponse({ status: 200, description: 'Usuario encontrado.', type: User })
   @ApiResponse({ status: 404, description: 'Usuario no encontrado.' })

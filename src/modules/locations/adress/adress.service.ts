@@ -6,7 +6,7 @@ import { CityService } from '../city/city.service';
 import { ProvinceService } from '../province/province.service';
 import { DeepPartial } from 'typeorm';
 import { Adress } from './entities/adress.entity';
-import { DeleteResponse } from 'src/common/entities/delete.response';
+import { DeleteResponse } from 'src/common/entities/delete.response.dto';
 import { AdresResponseDto } from './dto/adress-response.dto';
 
 @Injectable()
