@@ -1,12 +1,13 @@
 import { BaseDto } from "src/common/entities/base.dto";
 import { CreateAddressDto } from "src/modules/locations/address/dto/create-address.dto";
-import { IsInstance, IsNotEmpty, IsOptional, IsString, IsUppercase, isUUID, IsUUID } from "class-validator";
+import { IsArray, IsInstance, IsNotEmpty, IsOptional, IsString, IsUppercase, isUUID, IsUUID } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsISO8601, ValidateNested } from "@nestjs/class-validator";
 import { Installer } from "src/modules/installer/entities/installer.entity";
 import { Coordinator } from "src/modules/coordinators/entities/coordinator.entity";
 import { UserRole } from "src/modules/user-role/entities/user-role.entity";
+import { UUID } from "crypto";
 
 export class InstallationDataRequesDto extends BaseDto{
     
@@ -31,8 +32,9 @@ export class InstallationDataRequesDto extends BaseDto{
         description: 'am installers array'
     })
     @IsOptional()
+    @IsArray()
     @ValidateNested({each: true})
-    installers: Installer[]
+    installersIds: UUID[]
 
     @ApiProperty()
     @IsOptional()
