@@ -3,7 +3,7 @@ import { BlogPostTamplatesService } from './blog-post-tamplates.service';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { BlogPostTemplate } from './entities/blog-template.entity';
 import { CreateBlogPostTemplate } from './dtos/create-template.dto';
-import { DeleteResponse } from 'src/common/entities/delete.response';
+import { DeleteResponse } from 'src/common/entities/delete.response.dto';
 
 @Controller('blog/templates')
 export class BlogPostTamplatesController {

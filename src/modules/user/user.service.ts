@@ -10,11 +10,14 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
-import { IsNull, Not, Repository } from 'typeorm';
+import { IsNull, Not, QueryBuilder, Repository } from 'typeorm';
 import { ApiTags } from '@nestjs/swagger';
 import { hash } from 'bcrypt';
 import { UserRoleService } from '../user-role/user-role.service';
 import { Role } from './entities/roles.entity';
+import { RoleEnum } from 'src/common/enums/user-role.enum';
+import { PaginationResult } from 'src/common/interfaces/pagination-result.interface';
+import { UserQueryOptions } from './dto/users-filter.dto';
 
 @ApiTags('Users')
 @Injectable()
@@ -79,6 +82,28 @@ export class UserService {
 
     return users;
   }
+
+  async findFilterSort(queryOptions: UserQueryOptions) {
+
+    const queryBuilder = this.userRepository.createQueryBuilder('users')
+    
+    queryBuilder
+    .leftJoinAndSelect('users.userRoles', 'userRole' )
+    .leftJoinAndSelect('userRole.role', 'role')
+
+    queryBuilder.andWhere('role.name = :name', {name: queryOptions.role})
+
+   
+    queryBuilder
+      .orderBy('users.createdAt', 'DESC')
+      .skip((queryOptions.page - 1) * queryOptions.limit)
+      .take(queryOptions.limit);
+    
+    const findResult: PaginationResult<User> = await queryBuilder.getManyAndCount()
+
+    return findResult
+  }
+
 
   async findByEmail(email: string) {
     return await this.userRepository.findOne({ where: { email } });

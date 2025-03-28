@@ -5,7 +5,7 @@ import { BlogCategoriesService } from '../blog-categories/blog-categories.servic
 import { BlogPost } from './entities/blog-post.entity';
 import { DeepPartial, UpdateResult } from 'typeorm';
 import { isEqual } from 'src/common';
-import { DeleteResponse } from 'src/common/entities/delete.response';
+import { DeleteResponse } from 'src/common/entities/delete.response.dto';
 
 @Injectable()
 export class BlogPostsService {

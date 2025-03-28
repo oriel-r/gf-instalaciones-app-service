@@ -5,7 +5,7 @@ import { UpdateAdressDto } from './dto/update-adress.dto';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { Adress } from './entities/adress.entity';
 import { DeepPartial } from 'typeorm';
-import { DeleteResponse } from 'src/common/entities/delete.response';
+import { DeleteResponse } from 'src/common/entities/delete.response.dto';
 
 @Controller('adress')
 export class AdressController {
