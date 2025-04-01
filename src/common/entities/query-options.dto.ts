@@ -8,11 +8,11 @@ export class BaseQueryOptions {
     
     @IsOptional()
     @IsString()
-    createdAt: string
+    createdAt: Sort | undefined = undefined
     
     @IsOptional()
     @IsString()
-    updatedAt: string
+    updatedAt: Sort | undefined = undefined
     
     @IsOptional()
     @Type(() => Number)
