@@ -12,6 +12,7 @@ import { PaginatedResponseDto } from 'src/common/entities/paginated-response.dto
 import { Order } from './entities/order.entity';
 import { GetOrderResponseDto } from './dto/get-order-response.dto';
 import { PaginationResult } from 'src/common/interfaces/pagination-result.interface';
+import { InstallationQueryOptionsDto } from '../installations/dto/installation-query-options.dto';
 
 @Controller('orders')
 export class OrdersController {
@@ -54,8 +55,13 @@ export class OrdersController {
   
   }
 
+  @Get(':id/installations')
+  async findOne(@Param('id') id: string, @Query() query: InstallationQueryOptionsDto) {
+    return this.ordersService.findOneAndFilter(id,query);
+  }
+
   @Get(':id')
-  async findOne(@Param('id') id: string) {
+  async findInstallationsByOrder(@Param('id') id: string) {
     return this.ordersService.findOne(id);
   }
 

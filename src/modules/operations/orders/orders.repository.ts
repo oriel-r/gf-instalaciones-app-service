@@ -5,12 +5,20 @@ import { DeepPartial, Repository } from "typeorm";
 import { UpdateOrderDto } from "./dto/update-order.dto";
 import { OrderQueryOptionsDto } from "./dto/orders-query-options.dto";
 import { PaginationResult } from "src/common/interfaces/pagination-result.interface";
+import { InstallationQueryOptionsDto } from "../installations/dto/installation-query-options.dto";
+import { Provinces } from "src/common/enums/provinces.enum";
 
 @Injectable()
-export class OrdersRepository {
+export class OrdersRepository { 
     constructor(
         @InjectRepository(Order) private readonly ordersRepository: Repository<Order>
     ) {}
+
+    private readonly filterConditions = {
+        province: 'province.name = :province',
+        city: 'city.name = :city',
+        status: 'installations.status = :status'
+      };
 
     async create(data: Partial<Order>) {
         return await this.ordersRepository.save(
@@ -61,6 +69,37 @@ export class OrdersRepository {
 
     async getById(id: string) {
         return await this.ordersRepository.findOneBy({id})
+    }
+
+    async getOneAndFilterInstallations (id: string, query: InstallationQueryOptionsDto) {
+        const queryBuilder = this.ordersRepository.createQueryBuilder('order')
+
+        queryBuilder
+        .where({id})
+        .leftJoinAndSelect('order.installations', 'installations')
+        .leftJoinAndSelect('installations.coordinator', 'coordinator')
+        .leftJoinAndSelect('installations.installers', 'installers')
+        .leftJoinAndSelect('installations.address', 'address')
+        .leftJoinAndSelect('address.city', 'city')
+        .leftJoinAndSelect('city.province', 'province')
+
+        Object.entries(this.filterConditions).forEach(([key, condition]) => {
+            if (query[key]) {
+              queryBuilder.andWhere(condition, { [key]: query[key] });
+            }
+          });
+        
+          if(query.createdAt) {
+            queryBuilder.addSelect('installations.createdAt')
+            queryBuilder.addOrderBy('installations.createdAt', query.createdAt)
+        }
+
+        if(query.updatedAt) {
+            queryBuilder.addSelect('installations.updatedAt')
+            queryBuilder.addOrderBy('installations.updatedAt', query.updatedAt)
+        }
+        const result = await queryBuilder.getOne()
+        return result?.installations
     }
 
     async getByNumber(orderNumber: string) {
