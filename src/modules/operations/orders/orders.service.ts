@@ -14,6 +14,8 @@ import { GetOrderResponseDto } from './dto/get-order-response.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { UserRoleService } from 'src/modules/user-role/user-role.service';
 import { RoleEnum } from 'src/common/enums/user-role.enum';
+import { OrderQueryOptionsDto } from './dto/orders-query-options.dto';
+import { PaginationResult } from 'src/common/interfaces/pagination-result.interface';
 
 @Injectable()
 export class OrdersService {
@@ -88,10 +90,11 @@ export class OrdersService {
     return result
   }
 
-  async findAll() {
-    const orders = await this.ordersRepository.get()
-    if(!orders.length) throw new NotFoundException('No se encontraron ordenes')
-      return orders.map(order => new GetOrderResponseDto(order))
+  async findAll(query: OrderQueryOptionsDto) {
+    const orders = await this.ordersRepository.get(query)
+
+      const result: PaginationResult<GetOrderResponseDto> = [orders[0].map(order => new GetOrderResponseDto(order)),orders[1]]
+      return result
   }
 
   async findOne(id: string) {
