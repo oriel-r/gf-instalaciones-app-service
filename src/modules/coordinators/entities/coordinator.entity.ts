@@ -4,7 +4,7 @@ import { Entity, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
 import { v4 as uuid } from 'uuid';
 
 @Entity('coordinators')
-export class Coordinator extends User {
+export class Coordinator {
   @PrimaryGeneratedColumn('uuid')
   id: string = uuid();
 
