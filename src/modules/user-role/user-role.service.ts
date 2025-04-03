@@ -1,4 +1,4 @@
-import { forwardRef, Inject, Injectable } from "@nestjs/common";
+import { forwardRef, HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { UserRole } from "../user-role/entities/user-role.entity";
 import { Repository } from "typeorm";
@@ -18,23 +18,23 @@ export class UserRoleService {
     private readonly userService: UserService,
   ) {}
 
-  async assignRole(userId: string, roleName: string) {
+  async assignRole(userId: string, roleId: string) {
     const user = await this.userService.findById(userId);
+    if (!user) {
+        throw new HttpException('Usuario no encontrado', HttpStatus.NOT_FOUND);
+    }
 
-    let role = await this.roleRepository.findOne({ where: { name: roleName } });
+    const role = await this.roleRepository.findOne({ where: { id: roleId } });
     if (!role) {
-        role = this.roleRepository.create({
-            name: roleName,
-          });
-          role = await this.roleRepository.save(role);
+        throw new HttpException('Rol no encontrado', HttpStatus.NOT_FOUND);
     }
 
     const userRole = this.userRoleRepository.create({
-      user:user, 
-      role:role,
+        user, 
+        role,
     });
     return this.userRoleRepository.save(userRole);
-  }
+}
 
   async findUserRoleById(userId: string) {
     return await this.userRoleRepository.findOne({
