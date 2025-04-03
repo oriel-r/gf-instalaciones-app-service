@@ -5,14 +5,12 @@ import { DeepPartial } from 'typeorm';
 import { Installation } from './entities/installation.entity';
 import { DeleteResponse } from 'src/common/entities/delete.response.dto';
 import { AddressService } from 'src/modules/locations/address/address.service';
-import { Order } from '../orders/entities/order.entity';
-import { FileUploadService } from 'src/services/file-upload/file-upload.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { UserRoleService } from 'src/modules/user-role/user-role.service';
 import { RoleEnum } from 'src/common/enums/user-role.enum';
 import { Installer } from 'src/modules/installer/entities/installer.entity';
 import { InstallerService } from 'src/modules/installer/installer.service';
-import { UserRole } from 'src/modules/user-role/entities/user-role.entity';
+import { FileUploadService } from 'src/services/files/file-upload.service';
 
 @Injectable()
 export class InstallationsService {
