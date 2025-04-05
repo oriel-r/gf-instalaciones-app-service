@@ -49,7 +49,7 @@ export class UserSeeds {
 
         if (userRoles === 'Instalador') {
           const installer = manager.create(Installer, {
-            ...user,
+            ...user, // Copiamos todas las propiedades del usuario
             taxCondition: userData.taxCondition,
             hasPersonalAccidentInsurance: userData.hasPersonalAccidentInsurance,
             canWorkAtHeight: userData.canWorkAtHeight,

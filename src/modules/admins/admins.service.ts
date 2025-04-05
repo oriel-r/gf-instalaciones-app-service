@@ -5,7 +5,6 @@ import { User } from '../user/entities/user.entity';
 import { Repository } from 'typeorm';
 import { Role } from '../user/entities/roles.entity';
 import { Admin } from './entities/admins.entity';
-import { UserRole } from '../user-role/entities/user-role.entity';
 
 @ApiTags('Admin')
 @Injectable()
@@ -17,8 +16,6 @@ export class AdminService {
     private readonly roleRepository: Repository<Role>,
     @InjectRepository(Admin)
     private readonly adminRepository: Repository<Admin>,
-    @InjectRepository(UserRole)
-    private readonly userRoleRepository: Repository<UserRole>,
   ) {}
 
   async findAll() {
@@ -32,40 +29,38 @@ export class AdminService {
     return admin;
   }
 
-  async removeAdminRole(adminId: string) {
+ /*  async removeAdminRole(adminId: string) {
     const user = await this.userRepository.findOne({
-        where: { id: adminId },
-        relations: ['userRoles', 'userRoles.role'],
+      where: { id: adminId },
+      relations: ['admin'],
     });
 
     if (!user) {
-        throw new HttpException('Usuario no encontrado', HttpStatus.NOT_FOUND);
+      throw new HttpException('Usuario no encontrado', HttpStatus.NOT_FOUND);
     }
 
-    const adminRole = user.userRoles.find(ur => ur.role.name === 'Admin');
-
-    if (!adminRole) {
-        throw new HttpException('El usuario no tiene rol de administrador', HttpStatus.BAD_REQUEST);
-    }
-
-    const userRole = await this.roleRepository.findOne({
-        where: { name: 'Usuario' },
+    const role = await this.roleRepository.findOne({
+      where: { name: 'Usuario' },
     });
-
-    if (!userRole) {
-        throw new HttpException('Rol de usuario no encontrado', HttpStatus.NOT_FOUND);
+    if (!role) {
+      throw new HttpException('Rol no encontrado', HttpStatus.NOT_FOUND);
     }
 
-    await this.userRoleRepository.delete({ user: { id: adminId }, role: { id: adminRole.role.id } });
+    user.userRoles = role;
 
-    const newUserRole = this.userRoleRepository.create({
-        user,
-        role: userRole,
-    });
+    if (user.admin) {
 
-    await this.userRoleRepository.save(newUserRole);
+      const admin = await this.findOne(user.admin.id);
 
+      if (admin) {
+        user.admin = undefined;
+        await this.userRepository.save(user);
+        await this.adminRepository.remove(admin);
+      }
+    }
+
+    await this.userRepository.save(user);
     console.log('Usuario actualizado:', user);
     return user;
-} 
+  } */
 }

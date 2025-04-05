@@ -17,8 +17,8 @@ export class AdminController {
     return this.adminService.findOne(id);
   }
 
-  @Delete('removeAdmin/:id')
+  /* @Delete('removeAdmin/:id')
   removeAdminRole(@Param('id') adminId: string) {
     return this.adminService.removeAdminRole(adminId);
-  } 
+  } */
 }

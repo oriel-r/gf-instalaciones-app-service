@@ -3,7 +3,7 @@ import { ImagesService } from './images.service';
 import { ImagesController } from './images.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Image } from './entities/images.entity';
-import { FileUploadService } from 'src/services/files/file-upload.service';
+import { FileUploadService } from 'src/services/file-upload/file-upload.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Image])],

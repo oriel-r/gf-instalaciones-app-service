@@ -18,7 +18,6 @@ import { UserQueryOptions } from './dto/users-filter.dto';
 import { PaginatedResponseDto } from 'src/common/entities/paginated-response.dto';
 import { QueryOptionsPipe } from 'src/common/pipes/query-options/query-options.pipe';
 import { Request } from 'express';
-import { Role } from './entities/roles.entity';
 
 @ApiTags('Users')
 @Controller('user')
@@ -30,13 +29,6 @@ export class UserController {
   @Get()
   async findAll() {
     return await this.userService.findAll();
-  }
-
-  @ApiOperation({ summary: 'Obtener todos los roles' })
-  @ApiResponse({ status: 200, description: 'Lista de roles obtenida.', type: [Role] })
-  @Get('getRoles')
-  async findAllRoles() {
-    return await this.userService.findAllRoles();
   }
 
   @ApiOperation({ summary: 'Obtener todos los usuarios activos filtrando segun el rol' })
