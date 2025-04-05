@@ -28,7 +28,9 @@ export class UserService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     @Inject(forwardRef(() => UserRoleService))
-    private readonly userRoleService: UserRoleService
+    private readonly userRoleService: UserRoleService,
+    @InjectRepository(Role)
+    private readonly roleRepository: Repository<Role>,
   ) {}
 
   async createUser(createUserDto: CreateUserDto) {
@@ -85,6 +87,10 @@ export class UserService {
     return users;
   }
 
+  async findAllRoles() {
+    return await this.roleRepository.find();
+  }
+
   async findFilterSort(queryOptions: UserQueryOptions) {
 
     const queryBuilder = this.userRepository.createQueryBuilder('users')
@@ -106,7 +112,6 @@ export class UserService {
 
     return findResult
   }
-
 
   async findByEmail(email: string) {
     return await this.userRepository.findOne({ where: { email } });
