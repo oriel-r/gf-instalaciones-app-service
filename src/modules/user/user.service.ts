@@ -18,6 +18,8 @@ import { Role } from './entities/roles.entity';
 import { RoleEnum } from 'src/common/enums/user-role.enum';
 import { PaginationResult } from 'src/common/interfaces/pagination-result.interface';
 import { UserQueryOptions } from './dto/users-filter.dto';
+import { Order } from '../operations/orders/entities/order.entity';
+import { Installation } from '../operations/installations/entities/installation.entity';
 
 @ApiTags('Users')
 @Injectable()
@@ -90,8 +92,9 @@ export class UserService {
     queryBuilder
     .leftJoinAndSelect('users.userRoles', 'userRole' )
     .leftJoinAndSelect('userRole.role', 'role')
+    .leftJoinAndSelect(Order, 'orders', 'orders.client = userRole.id')
 
-    queryBuilder.andWhere('role.name = :name', {name: queryOptions.role})
+    queryBuilder.where('role.name = :name', {name: queryOptions.role})
 
    
     queryBuilder

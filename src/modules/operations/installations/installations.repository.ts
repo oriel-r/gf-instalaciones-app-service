@@ -23,15 +23,20 @@ export class InstallationsRepository {
     }
 
     async getById(id: string) {
-        return await this.installationsRepository.findOneBy({id})
+        return await this.installationsRepository.findOne({
+            where:{id},
+            relations: ['installers', 'order' , 'order.client', 'coordinator', 'coordinator.user', 'address', 'address.city', 'address.city.province']
+        })
     }
 
     async update(id: string, data: DeepPartial<Installation>) {
-        return await this.installationsRepository.update(id, data)
+        const result = await this.installationsRepository.update(id, data)
+        if(!result.affected) return null
+        return this.getById(id)
     }
 
     async softDelete(id: string) {
-        return await this.installationsRepository.softDelete(id)
+        return await this.installationsRepository.softDelete(id)   
     }   
 
 }
