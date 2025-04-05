@@ -23,8 +23,6 @@ import { UserRoleModule } from './modules/user-role/user-role.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { NotificationsModule } from './modules/notifications/notifications.module';
-import { ServeStaticModule } from '@nestjs/serve-static';
-import { join } from 'path';
 
 
 @Module({
