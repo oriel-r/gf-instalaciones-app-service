@@ -1,48 +1,31 @@
 import { Injectable } from '@nestjs/common';
-import * as ftp from 'basic-ftp';
-import * as fs from 'fs';
-import * as path from 'path';
-import * as dotenv from 'dotenv';
-
-dotenv.config();
+import { ConfigService } from '@nestjs/config';
+import { join, extname, resolve } from 'path';
+import * as fsp from 'fs/promises';
 
 @Injectable()
 export class FileUploadService {
-  private readonly ftpConfig = {
-    host: process.env.SITEGROUND_FTP_HOST,
-    user: process.env.SITEGROUND_FTP_USER,
-    password: process.env.SITEGROUND_FTP_PASS,
-  };
+  private readonly uploadDir: string;
+  private readonly domain: string;
+
+  constructor(private configService: ConfigService) {
+    this.uploadDir = resolve(this.configService.get<string>('UPLOAD_DIR')!);
+    this.domain = this.configService.get<string>('UPLOAD_DOMAIN')!;
+  }
 
   async uploadFile(file: Express.Multer.File): Promise<string> {
-    const client = new ftp.Client();
-    client.ftp.verbose = true; // Para ver logs en la consola
-
-    try {
-      // Conectar al servidor FTP
-      await client.access({
-        host: this.ftpConfig.host,
-        port: 8000,
-        user: this.ftpConfig.user,
-        password: this.ftpConfig.password,
-        secure: false, // Asegúrate de que SiteGround permita conexiones no seguras o cambia a 'true' si usas SFTP
-      });
-
-      // Ruta en el servidor FTP (debe ser public_html/uploads)
-      const remotePath = `/public_html/uploads/${file.originalname}`;
-
-      // Subir el archivo
-      await client.uploadFrom(file.path, remotePath);
-
-      // Cerrar conexión
-      client.close();
-
-      return `https://tu-dominio.com/uploads/${file.originalname}`;
-    } catch (error) {
-      console.error('Error subiendo archivo:', error);
-      client.close();
-      throw new Error('No se pudo subir el archivo');
-    }
+    const fileName = `${Date.now()}-${Math.round(Math.random() * 1e9)}${extname(file.originalname)}`;
+    const destination = join(this.uploadDir, fileName);
+  
+    console.log('📂 Ruta absoluta de destino:', destination);
+    console.log('🧪 ¿Existe buffer?', !!file.buffer, 'Tamaño:', file.buffer?.length);
+  
+    await fsp.mkdir(this.uploadDir, { recursive: true });
+    await fsp.writeFile(destination, file.buffer);
+  
+    console.log('✅ Archivo escrito correctamente');
+  
+    return `${this.domain}/uploads/${fileName}`;
   }
+  
 }
-
