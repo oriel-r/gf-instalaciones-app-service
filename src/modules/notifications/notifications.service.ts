@@ -27,18 +27,32 @@ export class NotificationsService {
 
   @OnEvent(NotifyEvents.INSTALLATION_GENERAL_UPDATE)
   async installationUpdate(data: InstallationGeneralUpdate) {
-    return console.log(NotifyEvents.INSTALLATION_GENERAL_UPDATE, data)
+    const {clientId, coordinatorId, address } = data
+    const {street, number, city} = address
+    try {
+      const client = await this.userRoleService.getByIdWhenRole(clientId, RoleEnum.USER)
+      const coordinator = await this.userRoleService.getByIdWhenRole(coordinatorId, RoleEnum.COORDINATOR)
+      if(!client || !coordinator ) throw new BadRequestException('No se encontro a alguno de los receptores')
+      const newNotification = await this.create({
+        title: "Nuestro instlador a llegado!",
+        message: `La instalación a realizarse en ${street} ${number} de la ciudad de ${city.name} (${city.province.name}) esta en proceso`,
+        receivers: [client, coordinator]
+      })
+      return newNotification
+    } catch (err) {
+      return console.log(err)
+    }
   }
 
   @OnEvent(NotifyEvents.INSTALLATION_POSTPONED)
   async postponedInstallation (data: InstallationPostponedDto) {
-    const {coordinatorId} = data
+    const {coordinatorId, address} = data
     try {
       const coordinator = await this.userRoleService.getByIdWhenRole(coordinatorId, RoleEnum.COORDINATOR)
       if(!coordinator) throw new BadRequestException('Coordinador incorrecto')
       const newNotification = await this.create({
         title: "La instalación se pospuso",
-        message: `Que paso, donde paso, etc`,
+        message: `La instalación a realizarse en ${address.street} ${address.number} de ciudad de ${address.city.name} (${address.city.province.name}) se pospuso`,
         receivers: [coordinator]
       })
       return newNotification

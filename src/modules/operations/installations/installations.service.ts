@@ -20,6 +20,7 @@ import { InstallationGeneralUpdate } from 'src/modules/notifications/dto/install
 import { InstallationPostponedDto } from 'src/modules/notifications/dto/installation-postponed.dto';
 import { Address } from 'src/modules/locations/address/entities/address.entity';
 import { InstallationCancelDto } from 'src/modules/notifications/dto/intallation-cancel.dto';
+import { allowedTransitions } from './helpers/allowed-transitions.const';
 
 @Injectable()
 export class InstallationsService {
@@ -87,6 +88,14 @@ export class InstallationsService {
   async update(id: string, updateInstallationDto: DeepPartial<Installation>) {
     const installation = await this.installationsRepository.getById(id)
     if(!installation) throw new NotFoundException('Instalación no encontrada, id incorrecto o inexistente')
+    
+    const currentStatus = installation.status
+    const newStatus = updateInstallationDto.status
+
+    if (!allowedTransitions[currentStatus]?.includes(newStatus)) {
+    throw new BadRequestException(`Transición de estado no permitida: ${currentStatus} -> ${newStatus}`)
+     }
+    
     try {
   
       const result = await this.installationsRepository.update(id, updateInstallationDto)
@@ -99,12 +108,11 @@ export class InstallationsService {
             this.emitGeneralUpdate(
               result.order.client?.id,
               result.coordinator?.id,
-              result.address,
-              result.status
+              result.address
               )
             break
           case InstallationStatus.POSTPONED:
-            this.emitPostponedUpdate(result.coordinator.id)
+            this.emitPostponedUpdate(result.coordinator.id, result.address)
             break
           case InstallationStatus.CANCEL:
               this.emitCancelledUpdate(result.order.client.id, result.installers)
@@ -138,17 +146,17 @@ export class InstallationsService {
     if(result.affected) return new DeleteResponse('instalación', id)
   }
 
-  private emitGeneralUpdate(clientId: string, coordinatorId: string, address: Address, status: InstallationStatus) {
+  private emitGeneralUpdate(clientId: string, coordinatorId: string, address: Address) {
     this.eventEmitter.emit(
       NotifyEvents.INSTALLATION_GENERAL_UPDATE,
-      new InstallationGeneralUpdate(clientId, coordinatorId, address, status)
+      new InstallationGeneralUpdate(clientId, coordinatorId, address)
     )
   }
   
-  private emitPostponedUpdate(coordinatorId: string) {
+  private emitPostponedUpdate(coordinatorId: string, address: Address) {
     this.eventEmitter.emit(
       NotifyEvents.INSTALLATION_POSTPONED,
-      new InstallationPostponedDto(coordinatorId)
+      new InstallationPostponedDto(coordinatorId, address)
     )
   }
   
