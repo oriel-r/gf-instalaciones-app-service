@@ -4,6 +4,7 @@ import { Installation } from "./entities/installation.entity";
 import { DeepPartial, Repository } from "typeorm";
 import { CreateAdminDto } from "../../admins/dto/create-admin.dto";
 import { CreateInstallationDto } from "./dto/create-installation.dto";
+import { UpdateInstallationDto } from "./dto/update-installation.dto";
 
 @Injectable()
 export class InstallationsRepository {
@@ -29,7 +30,7 @@ export class InstallationsRepository {
         })
     }
 
-    async update(id: string, data: DeepPartial<Installation>) {
+    async update(id: string, data) {
         const result = await this.installationsRepository.update(id, data)
         if(!result.affected) return null
         return this.getById(id)

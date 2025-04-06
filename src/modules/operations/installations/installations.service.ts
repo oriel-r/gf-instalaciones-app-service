@@ -22,6 +22,8 @@ import { FileUploadService } from 'src/services/files/file-upload.service';
 import { allowedTransitions } from './helpers/allowed-transitions.const';
 import { ImagesService } from 'src/modules/images/images.service';
 import { InstallationToReviewDto } from 'src/modules/notifications/dto/installation-to-review.dto';
+import { UpdateInstallationDto } from './dto/update-installation.dto';
+import { StatusChangeDto } from './dto/change-status.dto';
 
 @Injectable()
 export class InstallationsService {
@@ -87,7 +89,55 @@ export class InstallationsService {
       return installation  
     }
 
-  async update(id: string, updateInstallationDto: DeepPartial<Installation>) {
+    async update(id: string, data: UpdateInstallationDto) {
+      // Buscar la instalación por su id
+      const installation = await this.installationsRepository.getById(id);
+      if (!installation) {
+        throw new NotFoundException("No se encontró la instalación");
+      }
+    
+      // Verificar que el estado de la instalación sea PENDING o POSTPONED
+      if (![InstallationStatus.PENDING, InstallationStatus.POSTPONED].includes(installation.status)) {
+        throw new BadRequestException(`No se puede modificar una instalación con estado ${installation.status}`);
+      }
+    
+      let installers: Installer[] = [];
+    
+      if (data.installersIds && data.installersIds.length > 0) {
+        installers = await Promise.all(
+          data.installersIds.map(async installerId => {
+            const installer = await this.installerService.findById(installerId);
+            if (!installer) {
+              throw new NotFoundException(`Instalador con id ${installerId} no encontrado`);
+            }
+            return installer;
+          })
+        );
+      }
+    
+      if (installation.status === InstallationStatus.POSTPONED && data.startDate) {
+        const newStartDate = new Date(data.startDate);
+        const currentStartDate = new Date(installation.startDate);
+        if (newStartDate <= currentStartDate) {
+          throw new BadRequestException("La nueva fecha de inicio debe ser posterior a la fecha actual de la instalación");
+        }
+      }
+    
+      const updateData: Partial<Installation> = {};
+      if (data.startDate) {
+        updateData.startDate = data.startDate;
+      }
+      if (installers.length > 0) {
+        updateData.installers = installers;
+      }
+
+    
+      const updatedInstallation = await this.installationsRepository.update(id, updateData);
+      return updatedInstallation
+    }
+    
+
+  async statusChange(id: string, updateInstallationDto: StatusChangeDto) {
     const installation = await this.installationsRepository.getById(id)
     if(!installation) throw new NotFoundException('Instalación no encontrada, id incorrecto o inexistente')
     
@@ -106,9 +156,7 @@ export class InstallationsService {
       if (result.status !== installation.status && result.order.client && result.coordinator?.id && result.address && result.installers ) {
 
         switch (result.status) {
-          case InstallationStatus.PENDING:
-            this.emitPostponedUpdate(result.coordinator.id, result.address)
-            break
+
           case InstallationStatus.IN_PROCESS:
             this.emitGeneralUpdate(
               result.order.client?.id,
