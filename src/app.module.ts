@@ -22,6 +22,8 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { UserRoleModule } from './modules/user-role/user-role.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { NotificationsModule } from './modules/notifications/notifications.module';
+
 
 @Module({
   imports: [
@@ -34,7 +36,6 @@ import { join } from 'path';
       envFilePath: ['.env.development.local', 'env'],
       load: [dbConfig, sqlitedbConfig, () =>({
         environment: process.env.ENVIRONMENT || "LOCAL",
-
         }),
       ],
     }),
@@ -74,6 +75,7 @@ import { join } from 'path';
     LocationsModule,
     ImagesModule,
     UserRoleModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

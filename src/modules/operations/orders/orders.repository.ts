@@ -68,7 +68,25 @@ export class OrdersRepository {
     }
 
     async getById(id: string) {
-        return await this.ordersRepository.findOneBy({id})
+        return await this.ordersRepository.findOne({
+            where: {id},
+            relations: {
+                client: {
+                    user: true
+                },
+                installations: {
+                    coordinator: {
+                        user: true
+                    },
+                    installers: true,
+                    address: {
+                        city: {
+                            province: true
+                        }
+                    }
+                }
+            }
+        })
     }
 
     async getOneAndFilterInstallations (id: string, query: InstallationQueryOptionsDto) {
@@ -78,7 +96,10 @@ export class OrdersRepository {
         .where({id})
         .leftJoinAndSelect('order.installations', 'installations')
         .leftJoinAndSelect('installations.coordinator', 'coordinator')
+        .leftJoinAndSelect('coordinator.user', 'coordinatorUser')
         .leftJoinAndSelect('installations.installers', 'installers')
+        .leftJoinAndSelect('installers.userRoleDetail', 'userRoleDetail') 
+        .leftJoinAndSelect('userRoleDetail.user', 'installerUser') 
         .leftJoinAndSelect('installations.address', 'address')
         .leftJoinAndSelect('address.city', 'city')
         .leftJoinAndSelect('city.province', 'province')
@@ -98,8 +119,9 @@ export class OrdersRepository {
             queryBuilder.addSelect('installations.updatedAt')
             queryBuilder.addOrderBy('installations.updatedAt', query.updatedAt)
         }
-        const result = await queryBuilder.getOne()
-        return result?.installations
+        
+        const result = (await queryBuilder.getOne())?.installations
+        return result
     }
 
     async getByNumber(orderNumber: string) {
