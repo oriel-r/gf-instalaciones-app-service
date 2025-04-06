@@ -20,6 +20,8 @@ import { Address } from 'src/modules/locations/address/entities/address.entity';
 import { InstallationCancelDto } from 'src/modules/notifications/dto/intallation-cancel.dto';
 import { FileUploadService } from 'src/services/files/file-upload.service';
 import { allowedTransitions } from './helpers/allowed-transitions.const';
+import { ImagesService } from 'src/modules/images/images.service';
+import { InstallationToReviewDto } from 'src/modules/notifications/dto/installation-to-review.dto';
 
 @Injectable()
 export class InstallationsService {
@@ -27,6 +29,7 @@ export class InstallationsService {
     private readonly installationsRepository: InstallationsRepository,
     private readonly addressService: AddressService,
     private readonly fileUploadService: FileUploadService,
+    private readonly imageService: ImagesService,
     private readonly userRoleService: UserRoleService,
     private readonly installerService: InstallerService,
     private eventEmitter: EventEmitter2
@@ -103,6 +106,9 @@ export class InstallationsService {
       if (result.status !== installation.status && result.order.client && result.coordinator?.id && result.address && result.installers ) {
 
         switch (result.status) {
+          case InstallationStatus.PENDING:
+            this.emitPostponedUpdate(result.coordinator.id, result.address)
+            break
           case InstallationStatus.IN_PROCESS:
             this.emitGeneralUpdate(
               result.order.client?.id,
@@ -126,16 +132,35 @@ export class InstallationsService {
     }
   }
 
-  async sendToReview(id: string, data) {
-    const installation = await this.findOne(id)
-    const imagesUrls = await Promise.all(data.map((image) =>
-      this.fileUploadService.uploadFile(image)
-    ))
+  async sendToReview(id: string, files: Express.Multer.File[]) {
+    const installation = await this.installationsRepository.getById(id)
 
-    if(!imagesUrls || !imagesUrls.length ) throw new ServiceUnavailableException('Hubo un problema al subir la imagen')
-    const result = await this.update(installation.id, {images: imagesUrls})
-    this.eventEmitter.emit('installation.sendToReview', id)
-    return await this.findOne(id)
+    if(!installation) throw new NotFoundException('No se encontro la isntalción')
+
+    if(installation.status !== InstallationStatus.IN_PROCESS) {
+      throw new BadRequestException(
+        `Transición de estado no permitida:
+         ${installation.status} -> ${InstallationStatus.TO_REVIEW}`
+      )
+    }
+
+    const imagesUrls: string[] = await Promise.all(
+      files.map(async (file) => {
+        const fileUrl = await this.fileUploadService.uploadFile(file);
+        await this.imageService.saveFile({
+          url: fileUrl,
+          mimetype: file.mimetype,
+        });
+        return fileUrl
+       }),
+    );
+
+    if(!imagesUrls.length ) throw new ServiceUnavailableException('Hubo un problema al subir las imagenes')
+    const result = await this.installationsRepository.update(installation.id, {status: InstallationStatus.TO_REVIEW, images: imagesUrls})
+    if(!result) throw new InternalServerErrorException('No se pudo cambiar el estado')
+    
+    this.emitToReviewUpdate(installation.order.client!.id, installation.coordinator!.id, installation.address)
+    return result
   }
 
   async remove(id: string) {
@@ -166,9 +191,16 @@ export class InstallationsService {
     )
   }
 
+  private emitToReviewUpdate(clientId: string, coordinatorId: string , address: Address) {
+    this.eventEmitter.emit(
+      NotifyEvents.INSTALLATION_TO_REVIEW,
+      new InstallationToReviewDto(clientId, address)
+    )
+  }
+
   private emitCancelledUpdate(clientId: string, installers: any) {
     this.eventEmitter.emit(
-      NotifyEvents.INSTALLATION_APROVE,
+      NotifyEvents.INSTALLATION_CANCELLED,
       new InstallationCancelDto(clientId, installers)
     )
   }
