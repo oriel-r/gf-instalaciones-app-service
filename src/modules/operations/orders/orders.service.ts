@@ -17,6 +17,10 @@ import { RoleEnum } from 'src/common/enums/user-role.enum';
 import { OrderQueryOptionsDto } from './dto/orders-query-options.dto';
 import { PaginationResult } from 'src/common/interfaces/pagination-result.interface';
 import { InstallationQueryOptionsDto } from '../installations/dto/installation-query-options.dto';
+import { NotifyEvents } from 'src/common/enums/notifications-events.enum';
+import { InstallationGeneralUpdate } from 'src/modules/notifications/dto/installation-general-update.dto';
+import { InstallationPostponedDto } from 'src/modules/notifications/dto/installation-postponed.dto';
+import { InstallationApprovedDto } from 'src/modules/notifications/dto/installation-aproved.dto';
 
 @Injectable()
 export class OrdersService {
@@ -58,19 +62,50 @@ export class OrdersService {
     return newInstallations
   }
   
-  async updateInstallationStatus(orderId: string, installationId: string, status: UpdateInstallationStatus) {
+ /* async updateInstallationStatus(orderId: string, installationId: string, status: UpdateInstallationStatus) {
     const order = await this.findOne(orderId)
+    if (!order) throw new NotFoundException('Orden no encontrada')
+
     const installation = order.installations.find((installation) => installation.id === installationId)
     if(!installation) throw new NotFoundException('Instalación no encontrada o id invalido')
     
     const installationWithChanges = await this.installationsService.update(installation.id, status)
 
-    if(installationWithChanges && installationWithChanges.status !== InstallationStatus.FINISHED) return installationWithChanges
+    if(installationWithChanges && order.client && installation.coordinator && installation.installers) {
+      
+    switch (installationWithChanges.status) {
 
-    await this.updateProgress(orderId)
-
+      case InstallationStatus.IN_PROCESS:
+        this.eventEmiiter.emit(NotifyEvents.INSTALLATION_GENERAL_UPDATE, 
+          new InstallationGeneralUpdate(
+            order.client.id,
+            installation.coordinator?.id,
+            installation.address,
+            status.status
+          )
+        )
+          break
+        case InstallationStatus.POSTPONED:
+          this.eventEmiiter.emit(
+            NotifyEvents.INSTALLATION_POSTPONED,
+            new InstallationPostponedDto(
+              installation.coordinator.id
+            )
+          )
+          break
+        default:
+          this.eventEmiiter.emit(
+            NotifyEvents.INSTALLATION_APROVE,
+            new InstallationApprovedDto(
+              order.client.id,
+              installation.installers
+            )
+          )
+          await this.updateProgress(orderId)        
+      }
+    } 
     return installationWithChanges
-    }
+  }*/
 
 
   async installationToReview(orderId: string, installationId: string, data: Express.Multer.File) {
@@ -109,7 +144,8 @@ export class OrdersService {
     if(!order) throw new NotFoundException('No se encontro la orden')
     const installations = await this.ordersRepository.getOneAndFilterInstallations(id, query)
     if(!installations) throw new NotFoundException('No se encontraron instalaciones')
-      return order
+      return installations
+  
   }
 
   async findByOrderNumber(orderNumber: string) {

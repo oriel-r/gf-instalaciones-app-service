@@ -76,7 +76,7 @@ export class OrdersController {
     @Param('installationId') installationId: string , 
     @Body() status: UpdateInstallationStatus
   ) {
-    return this.ordersService.updateInstallationStatus(orderId, installationId, status);
+    return
   }
 
   @Delete(':id')

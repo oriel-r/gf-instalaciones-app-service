@@ -17,10 +17,10 @@ export class QueryOptionsPipe <Dto extends object> implements PipeTransform {
       object['limit'] = 10;
     }
     if (object['createdAt'] === undefined) {
-      object['createdAt'] = Sort.DSC;
+      object['createdAt'] = Sort.DESC;
     }
     if (object['updatedAt'] === undefined) {
-      object['updatedAt'] = Sort.DSC;
+      object['updatedAt'] = Sort.DESC;
     }
    
     const errors =  validateSync(object)
