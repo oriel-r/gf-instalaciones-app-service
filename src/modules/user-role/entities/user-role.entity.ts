@@ -6,7 +6,7 @@ import { v4 as uuid } from 'uuid';
 @Entity({ name: 'user_roles' })
 export class UserRole {
   @PrimaryGeneratedColumn('uuid')
-  id: string = uuid();
+  id: string;
 
   @ManyToOne(() => User, (user) => user.userRoles, { onDelete: 'CASCADE' })
   user: User;

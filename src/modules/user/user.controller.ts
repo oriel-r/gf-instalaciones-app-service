@@ -19,6 +19,7 @@ import { PaginatedResponseDto } from 'src/common/entities/paginated-response.dto
 import { QueryOptionsPipe } from 'src/common/pipes/query-options/query-options.pipe';
 import { Request } from 'express';
 import { Role } from './entities/roles.entity';
+import { UserWithRolesDto } from './dto/user-with-roles.dto';
 
 @ApiTags('Users')
 @Controller('user')
@@ -28,7 +29,7 @@ export class UserController {
   @ApiOperation({ summary: 'Obtener todos los usuarios activos' })
   @ApiResponse({ status: 200, description: 'Lista de usuarios obtenida.', type: [User] })
   @Get()
-  async findAll() {
+  async findAll(): Promise<UserWithRolesDto[]> {
     return await this.userService.findAll();
   }
 

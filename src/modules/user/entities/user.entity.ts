@@ -3,15 +3,19 @@ import {
   DeleteDateColumn,
   Entity,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { v4 as uuid } from 'uuid';
 import { UserRole } from '../../user-role/entities/user-role.entity';
+import { Installer } from 'src/modules/installer/entities/installer.entity';
+import { Coordinator } from 'src/modules/coordinators/entities/coordinator.entity';
+import { Admin } from 'src/modules/admins/entities/admins.entity';
 
 @Entity({ name: 'users' })
 export class User {
   @PrimaryGeneratedColumn('uuid')
-  id: string = uuid();
+  id: string;
 
   @Column({nullable: false})
   fullName: string;
@@ -52,6 +56,15 @@ export class User {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 
-  @OneToMany(() => UserRole, (userRole) => userRole.user,  { cascade: true, eager: true})
+  @OneToOne(() => Installer, installer => installer.user, { cascade: true })
+  installer?: Installer;
+
+  @OneToOne(() => Coordinator, coordinator => coordinator.user, { cascade: true })
+  coordinator?: Coordinator;
+
+  @OneToOne(() => Admin, admin => admin.user, { cascade: true })
+  admin?: Admin;
+
+  @OneToMany(() => UserRole, (userRole) => userRole.user,  { cascade: true })
   userRoles: UserRole[];
 }

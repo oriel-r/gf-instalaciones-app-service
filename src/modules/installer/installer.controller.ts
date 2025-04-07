@@ -46,14 +46,16 @@ export class InstallerController {
   }
 
   @Patch(':id')
-  async updateInstaller ( 
-    @Body() updateInstaller: UpdateInstallerDto , 
-    @Param('id') id: string 
+  async updateInstaller(
+    @Body() updateInstaller: UpdateInstallerDto,
+    @Param('id') id: string,
   ) {
-    return await this.installerService.updateInstaller(updateInstaller, id)
+    return await this.installerService.updateInstaller(updateInstaller, id);
   }
 
-  @ApiOperation({ summary: 'Obtener todos los instaladores, incluyendo los eliminados' })
+  @ApiOperation({
+    summary: 'Obtener todos los instaladores, incluyendo los eliminados',
+  })
   @ApiResponse({
     status: 200,
     description: 'Lista de instaladores, incluyendo los eliminados',
@@ -74,7 +76,7 @@ export class InstallerController {
     return await this.installerService.softDelete(id);
   } */
 
- /*  @ApiOperation({ summary: 'Restaurar un instalador deshabilitado' })
+  /*  @ApiOperation({ summary: 'Restaurar un instalador deshabilitado' })
   @ApiResponse({
     status: 200,
     description: 'El instalador ha sido restaurado correctamente',
@@ -98,4 +100,16 @@ export class InstallerController {
   async findDisabledInstallerById(@Param('id') installerId: string) {
     return await this.installerService.findDisabledInstallerById(installerId);
   } */
+
+  @ApiOperation({ summary: 'Buscar instalador por ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Instalador encontrado.',
+    type: Installer,
+  })
+  @ApiResponse({ status: 404, description: 'Instalador no encontrado.' })
+  @Get(':id')
+  async findById(@Param('id') id: string) {
+    return await this.installerService.findById(id);
+  }
 }

@@ -1,10 +1,10 @@
     import { Column, Entity, JoinColumn, JoinTable, ManyToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
-    import { v4 as uuid } from 'uuid';
     import { TaxCategory } from '../../../common/enums/taxCategory.enum';
     import { ApiProperty } from '@nestjs/swagger';
     import { StatusInstaller } from 'src/common/enums/status-installer';
     import { Installation } from 'src/modules/operations/installations/entities/installation.entity';
 import { UserRole } from 'src/modules/user-role/entities/user-role.entity';
+import { User } from 'src/modules/user/entities/user.entity';
 
     @Entity({ name: 'installers' })
     export class Installer {
@@ -13,7 +13,7 @@ import { UserRole } from 'src/modules/user-role/entities/user-role.entity';
         example: '123e4567-e89b-12d3-a456-426614174000',
       })
       @PrimaryGeneratedColumn('uuid')
-      id: string = uuid();
+      id: string;
 
       @Column({
         type: 'enum',
@@ -55,9 +55,9 @@ import { UserRole } from 'src/modules/user-role/entities/user-role.entity';
       })
       status?: StatusInstaller;
 
-      @OneToOne(() => UserRole, {eager: true})
+      @OneToOne(() => User, user => user.installer)
       @JoinColumn()
-      userRoleDetail: UserRole;
+      user: User;
 
       @ManyToMany(() => Installation, (Installation) => Installation.installers)
       @JoinTable()

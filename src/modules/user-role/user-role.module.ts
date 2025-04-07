@@ -8,9 +8,10 @@ import { Role } from '../user/entities/roles.entity';
 import { UserService } from '../user/user.service';
 import { User } from '../user/entities/user.entity';
 import { AuthModule } from '../auth/auth.module';
+import { Installer } from '../installer/entities/installer.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([UserRole, Role, User]),
+  imports: [TypeOrmModule.forFeature([UserRole, Role, User, Installer]),
    forwardRef(() => UserModule)
   ],
   providers: [UserRoleService],
