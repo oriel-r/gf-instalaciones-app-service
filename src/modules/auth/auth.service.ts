@@ -14,6 +14,7 @@ import { InstallerService } from '../installer/installer.service';
 import { ExtendedInstallerDto } from './dto/signup-installer.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { CreateInstallerDto } from '../installer/dto/create-installer.dto';
+import { RoleEnum } from 'src/common/enums/user-role.enum';
 
 @ApiTags('Auth')
 @Injectable()
@@ -38,50 +39,48 @@ export class AuthService {
 
   async signInUser(credentials: CredentialsUserDto) {
     const user = await this.userService.findByEmail(credentials.emailSignIn);
-
+  
     if (!user) {
       throw new HttpException('Usuario, contraseña incorrecta', 404);
     }
-
+  
     const isPasswordMatching = await compare(
       credentials.passwordSignIn,
       user.password,
     );
-
+  
     if (!isPasswordMatching) {
       throw new HttpException(
         'Credenciales Incorrectas',
         HttpStatus.UNAUTHORIZED,
       );
     }
+  
+    const roles: RoleEnum[] = user.userRoles.map((ur) => ur.role.name as RoleEnum);
 
-    const userPayload = {
-      id: user.id,
-      email: user.email,
-    };
-    const token = this.jwtService.sign(userPayload);
-
-    /* const installerExisting = await this.installerService.findByEmail(
-      user.email,
-    );
-
-    if (installer) {
+    if (roles.includes(RoleEnum.INSTALLER) && user.installer) {
       if (
-        installer.status === 'EN_PROCESO' ||
-        installer.status === 'RECHAZADO'
+        user.installer.status === 'EN_PROCESO' ||
+        user.installer.status === 'RECHAZADO'
       ) {
         throw new HttpException(
           'Necesita ser aprobado',
           HttpStatus.UNAUTHORIZED,
         );
-      } else {
-        return { token, installer };
       }
     }
-
-    return { token, user }; */
+  
+    const userPayload = {
+      id: user.id,
+      email: user.email,
+      roles,
+    };
+  
+    const token = this.jwtService.sign(userPayload);
+  
+    return { token, user };
   }
-
+  
   async signUpInstaller(dto: ExtendedInstallerDto) {
     const { repeatPassword, password, ...rest } = dto;
 

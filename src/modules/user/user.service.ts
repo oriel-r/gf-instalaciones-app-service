@@ -200,7 +200,11 @@ export class UserService {
   }
 
   async findByEmail(email: string) {
-    return await this.userRepository.findOne({ where: { email } });
+    return await this.userRepository.findOne({
+      where: { email },
+      relations: ['userRoles', 'userRoles.role', 'installer', 'coordinator',
+      'admin'],
+    });
   }
 
   async findById(id: string) {
