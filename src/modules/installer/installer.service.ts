@@ -91,9 +91,17 @@ export class InstallerService {
         email: user.email,
         phone: user.phone,
         createdAt: user.createdAt,
-        roles: user.userRoles?.map(ur => ur.role.name) ?? [],
-        userRoles: user.userRoles?.map(ur => ({ role: ur.role })) ?? [],
-      },
+        isSubscribed: user.isSubscribed,
+        disabledAt: user.disabledAt,
+        userRoles:
+        user.userRoles?.map((ur) => ({
+          id: ur.id,
+          role: {
+            id: ur.role.id,
+            name: ur.role.name,
+          },
+        })) ?? [],
+    }
     };
   }
 

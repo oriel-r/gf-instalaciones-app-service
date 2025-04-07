@@ -75,8 +75,12 @@ export class UserService {
 
     const savedUser = await this.userRepository.save(newUser);
 
-    const role = await this.roleRepository.findOneBy({ name: RoleEnum.USER });
-    if (!role) throw new NotFoundException('Rol "Usuario" no encontrado');
+    let role = await this.roleRepository.findOneBy({ name: RoleEnum.USER });
+
+    if (!role) {
+      role = this.roleRepository.create({ name: RoleEnum.USER });
+      role = await this.roleRepository.save(role);
+    }
 
     await this.userRoleService.assignRole(newUser.id, role.id);
 
@@ -92,7 +96,9 @@ export class UserService {
     });
 
     if (!fullUser) {
-      throw new InternalServerErrorException('Error al cargar el usuario completo');
+      throw new InternalServerErrorException(
+        'Error al cargar el usuario completo',
+      );
     }
 
     return this.mapToUserWithRolesDto(fullUser);
@@ -111,11 +117,16 @@ export class UserService {
       phone: user.phone,
       location: user.location,
       createdAt: user.createdAt,
-      roles: user.userRoles?.map((ur) => ur.role.name) ?? [],
-      userRoles: user.userRoles?.map((ur) => ({ role: ur.role })) ?? [],
-      installer: user.installer ?? null,
-      coordinator: user.coordinator ?? null,
-      admin: user.admin ?? null,
+      isSubscribed: user.isSubscribed,
+      disabledAt: user.disabledAt,
+      userRoles:
+        user.userRoles?.map((ur) => ({
+          id: ur.id,
+          role: {
+            id: ur.role.id,
+            name: ur.role.name,
+          },
+        })) ?? [],
     };
   }
 
@@ -151,11 +162,16 @@ export class UserService {
       location: user.location,
       phone: user.phone,
       createdAt: user.createdAt,
-      roles: user.userRoles?.map((ur) => ur.role.name) ?? [],
-      userRoles: user.userRoles?.map((ur) => ({ role: ur.role })) ?? [],
-      installer: user.installer ?? null,
-      coordinator: user.coordinator ?? null,
-      admin: user.admin ?? null,
+      isSubscribed: user.isSubscribed,
+      disabledAt: user.disabledAt,
+      userRoles:
+        user.userRoles?.map((ur) => ({
+          id: ur.id,
+          role: {
+            id: ur.role.id,
+            name: ur.role.name,
+          },
+        })) ?? [],
     }));
   }
 

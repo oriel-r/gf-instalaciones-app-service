@@ -28,7 +28,14 @@ export class InstallerResponseDto {
     coverage?: string;
     phone: string;
     createdAt: Date;
-    roles: string[];
-    userRoles: { role: Role }[];
+    isSubscribed?: boolean;
+    disabledAt?: Date;
+    userRoles: {
+      id: string;
+      role: {
+        id: string;
+        name: string;
+      };
+    }[];
   };
 }

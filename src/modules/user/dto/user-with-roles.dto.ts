@@ -15,12 +15,14 @@ export class UserWithRolesDto {
   coverage?: string;
   phone: string;
   createdAt: Date;
+  isSubscribed?: boolean;
+  disabledAt?: Date;
 
-  roles: string[];
-
-  installer?: Installer | null;
-  coordinator?: Coordinator | null;
-  admin?: Admin | null;
-
-  userRoles: { role: Role }[];
+  userRoles: {
+    id: string;
+    role: {
+      id: string;
+      name: string;
+    };
+  }[];
 }
