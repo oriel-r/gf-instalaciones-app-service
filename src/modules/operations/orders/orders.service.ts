@@ -108,23 +108,7 @@ export class OrdersService {
   }*/
 
 
-  async installationToReview(orderId: string, installationId: string, data: Express.Multer.File) {
-    const order = await this.findOne(orderId)
-    const installation = order.installations.find(installation => installation.id === installationId)
-    
-    if(!installation) throw new NotFoundException('Instalción no encontrada')
-    
-    const result = await this.installationsService.sendToReview(installationId, data)
-
-    // actualizaar instalación con los links
-    /* 
-    if(!result)
-    this.eventEmiter.send('tracking.toReview', order)
-    
-    */
-    // retornar instalacion con links
-    return result
-  }
+ 
 
   async findAll(query: OrderQueryOptionsDto) {
     const orders = await this.ordersRepository.get(query)
