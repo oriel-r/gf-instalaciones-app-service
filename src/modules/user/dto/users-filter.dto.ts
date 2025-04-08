@@ -6,9 +6,7 @@ import { IsEnum } from "@nestjs/class-validator";
 import { RoleEnum } from "src/common/enums/user-role.enum";
 
 export class UserQueryOptions extends BaseQueryOptions {
-
     @IsOptional()
     @IsEnum(RoleEnum)
     role: RoleEnum
-    
 }
