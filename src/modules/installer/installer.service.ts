@@ -33,7 +33,7 @@ export class InstallerService {
 
   async findAll() {
     return await this.installerRepository.find({
-      relations: ['userRoleDetail', 'userRoleDetail.user'],
+      relations: ['coordinator'],
     });
   }
 

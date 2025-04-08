@@ -1,10 +1,11 @@
-    import { Column, Entity, JoinColumn, JoinTable, ManyToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+    import { Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
     import { TaxCategory } from '../../../common/enums/taxCategory.enum';
     import { ApiProperty } from '@nestjs/swagger';
     import { StatusInstaller } from 'src/common/enums/status-installer';
     import { Installation } from 'src/modules/operations/installations/entities/installation.entity';
 import { UserRole } from 'src/modules/user-role/entities/user-role.entity';
 import { User } from 'src/modules/user/entities/user.entity';
+import { Coordinator } from 'src/modules/coordinators/entities/coordinator.entity';
 
     @Entity({ name: 'installers' })
     export class Installer {
@@ -58,6 +59,9 @@ import { User } from 'src/modules/user/entities/user.entity';
       @OneToOne(() => User, user => user.installer)
       @JoinColumn()
       user: User;
+
+      @ManyToOne(() => Coordinator, (coordinator) => coordinator.installers, { nullable: true })
+      coordinator: Coordinator;
 
       @ManyToMany(() => Installation, (Installation) => Installation.installers)
       @JoinTable()
