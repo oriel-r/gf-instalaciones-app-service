@@ -127,6 +127,9 @@ export class UserService {
             name: ur.role.name,
           },
         })) ?? [],
+        installer: user.installer ?? null,
+        coordinator: user.coordinator ?? null,
+        admin: user.admin ?? null,
     };
   }
 
@@ -172,6 +175,9 @@ export class UserService {
             name: ur.role.name,
           },
         })) ?? [],
+        installer: user.installer ?? null,
+        coordinator: user.coordinator ?? null,
+        admin: user.admin ?? null,
     }));
   }
 
@@ -249,9 +255,43 @@ export class UserService {
   }
 
   async findAllWhitDeleted() {
-    return await this.userRepository.find({
+    const users = await this.userRepository.find({
+      relations: [
+        'userRoles',
+        'userRoles.role',
+        'installer',
+        'coordinator',
+        'admin',
+      ],
       withDeleted: true,
     });
+
+    return users.map((user) => ({
+      id: user.id,
+      fullName: user.fullName,
+      email: user.email,
+      birthDate: user.birthDate,
+      idNumber: user.idNumber,
+      country: user.country,
+      address: user.address,
+      coverage: user.coverage,
+      location: user.location,
+      phone: user.phone,
+      createdAt: user.createdAt,
+      isSubscribed: user.isSubscribed,
+      disabledAt: user.disabledAt,
+      userRoles:
+        user.userRoles?.map((ur) => ({
+          id: ur.id,
+          role: {
+            id: ur.role.id,
+            name: ur.role.name,
+          },
+        })) ?? [],
+        installer: user.installer ?? null,
+        coordinator: user.coordinator ?? null,
+        admin: user.admin ?? null,
+    }));
   }
 
   async findDisabledUserById(userId: string): Promise<User | null> {

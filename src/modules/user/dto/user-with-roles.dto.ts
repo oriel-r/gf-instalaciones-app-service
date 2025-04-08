@@ -1,4 +1,3 @@
-import { Role } from '../../user/entities/roles.entity';
 import { Installer } from 'src/modules/installer/entities/installer.entity';
 import { Coordinator } from 'src/modules/coordinators/entities/coordinator.entity';
 import { Admin } from 'src/modules/admins/entities/admins.entity';
@@ -25,4 +24,8 @@ export class UserWithRolesDto {
       name: string;
     };
   }[];
+
+  installer?: Installer | null;
+  coordinator?: Coordinator | null;
+  admin?: Admin | null;
 }

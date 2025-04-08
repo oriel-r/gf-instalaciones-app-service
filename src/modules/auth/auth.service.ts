@@ -38,6 +38,15 @@ export class AuthService {
   }
 
   async signInUser(credentials: CredentialsUserDto) {
+    const userDisabled = await this.userService.userByEmailByDisabled(credentials.emailSignIn);
+
+    if (userDisabled) {
+      throw new HttpException(
+        'Correo electrónico inhabilitado',
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+
     const user = await this.userService.findByEmail(credentials.emailSignIn);
   
     if (!user) {
