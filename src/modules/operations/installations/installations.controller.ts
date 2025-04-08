@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UploadedFiles, UseInterceptors, UsePipes } from '@nestjs/common';
 import { InstallationsService } from './installations.service';
 import { CreateInstallationDto } from './dto/create-installation.dto';
 import { UpdateInstallationDto } from './dto/update-installation.dto';
@@ -6,6 +6,8 @@ import { DeepPartial } from 'typeorm';
 import { Installation } from './entities/installation.entity';
 import { ApiBody, ApiOperation, ApiProperty } from '@nestjs/swagger';
 import { StatusChangeDto } from './dto/change-status.dto';
+import { FilesInterceptor } from '@nestjs/platform-express';
+import { FilesPipe } from 'src/common/pipes/file/files-pipe';
 
 @Controller('installations')
 export class InstallationsController {
@@ -53,9 +55,17 @@ export class InstallationsController {
   @ApiOperation({
     summary: 'Subida de imagenes para revision',
   })
+  @UseInterceptors(FilesInterceptor('files', 10))
+  @UsePipes(
+      new FilesPipe(1000, 10000000, [
+        'image/png',
+        'image/jpeg',
+        'application/pdf',
+      ]),
+    )
   @Post(':id/images')
-  async loadImages(@Param('id') id: string, @Body() updateInstallationDto: DeepPartial<Installation> ) {
-    return await this.installationsService.update(id, updateInstallationDto);
+  async loadImages(@Param('id') id: string, @UploadedFiles() files: Express.Multer.File[]) {
+    return await this.installationsService.sendToReview(id, files);
   }
 
   @Delete(':id')

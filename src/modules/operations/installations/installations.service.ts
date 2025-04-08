@@ -10,7 +10,6 @@ import { UserRoleService } from 'src/modules/user-role/user-role.service';
 import { RoleEnum } from 'src/common/enums/user-role.enum';
 import { Installer } from 'src/modules/installer/entities/installer.entity';
 import { InstallerService } from 'src/modules/installer/installer.service';
-import { UserRole } from 'src/modules/user-role/entities/user-role.entity';
 import { InstallationStatus } from 'src/common/enums/installations-status.enum';
 import { NotifyEvents } from 'src/common/enums/notifications-events.enum';
 import { InstallationApprovedDto } from 'src/modules/notifications/dto/installation-aproved.dto';
@@ -133,7 +132,10 @@ export class InstallationsService {
 
     
       const updatedInstallation = await this.installationsRepository.update(id, updateData);
+      
+      
       return updatedInstallation
+
     }
     
 
