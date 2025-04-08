@@ -4,7 +4,6 @@ import { UserRole } from "../user-role/entities/user-role.entity";
 import { Repository } from "typeorm";
 import { Role } from "../user/entities/roles.entity";
 import { UserService } from "../user/user.service";
-import { OnEvent } from "@nestjs/event-emitter";
 import { RoleEnum } from "src/common/enums/user-role.enum";
 
 @Injectable()
@@ -43,12 +42,12 @@ export class UserRoleService {
     });
   }
 
-  async getByIdWhenRole (id: string, roleName: RoleEnum): Promise<UserRole | null> {
+  async getByIdWhenRole (id: string, roleName: RoleEnum) {
     const role = await this.userRoleRepository.findOne({
       where: {id: id, role:{name: roleName}},
       relations: {role: true}
     });
 
-    return role 
+    return role;
   }
 }

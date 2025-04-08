@@ -37,8 +37,8 @@ async function bootstrap() {
   const usersSeed = app.get(UserSeeds);
   await usersSeed.seed();
   
-  const categoriesSeeder = app.get(BlogCategoriesSeeder)
-  await categoriesSeeder.seed()
+ /*  const categoriesSeeder = app.get(BlogCategoriesSeeder)
+  await categoriesSeeder.seed() */
   
   const templatesSeeder = app.get(BlogTemplatesSeeder)
   await templatesSeeder.seed()

@@ -1,10 +1,12 @@
-import { IsBoolean, IsEnum, IsOptional, IsString } from 'class-validator';
-import { CreateUserDto } from 'src/modules/user/dto/create-user.dto';
+import { IsBoolean, IsEnum, IsOptional, IsString, IsUUID } from 'class-validator';
 import { TaxCategory } from '../../../common/enums/taxCategory.enum';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { StatusInstaller } from 'src/common/enums/status-installer';
 
-export class CreateInstallerDto extends CreateUserDto {
+export class CreateInstallerDto {
+  @IsUUID()
+  userId: string;
+
   @ApiProperty({
       enum: TaxCategory,
       description: 'Categoria fiscal del usuario',

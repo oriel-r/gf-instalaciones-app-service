@@ -13,6 +13,10 @@ import { CreateInstallerDto } from './dto/create-installer.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { UpdateInstallerDto } from './dto/update-installer';
 import { UserRoleService } from '../user-role/user-role.service';
+import { RoleEnum } from 'src/common/enums/user-role.enum';
+import { Role } from '../user/entities/roles.entity';
+import { InstallerResponseDto } from './dto/installer-response.dto';
+import { User } from '../user/entities/user.entity';
 
 @ApiTags('Installer')
 @Injectable()
@@ -23,65 +27,86 @@ export class InstallerService {
     @Inject(forwardRef(() => UserService))
     private readonly userService: UserService,
     private readonly userRoleService: UserRoleService,
+    @InjectRepository(Role)
+    private readonly roleRepository: Repository<Role>,
   ) {}
 
   async findAll() {
     return await this.installerRepository.find({
-      relations: ['userRoleDetail', 'userRoleDetail.user'],
+      relations: ['coordinator'],
     });
   }
 
   async createInstaller(createInstallerDto: CreateInstallerDto) {
-    const {
-      email,
-      idNumber,
-      password,
-      fullName,
-      location,
-      address,
-      country,
-      phone,
-      birthDate,
-      ...installerData
-    } = createInstallerDto;
-  
-    let user = await this.userService.findByEmail(email);
-    if (user) {
-      const existingInstaller = await this.userRoleService.findUserRoleById(user.id);
-  
-      if (existingInstaller && existingInstaller.role.name === 'Instalador') {
-        throw new ConflictException('El email ya está registrado como instalador');
-      }
-    }
-  
-    const existingIdNumber = await this.userService.findByIdNumber(idNumber);
-    if (existingIdNumber) {
-      throw new ConflictException('El documento de identidad ya se encuentra registrado');
-    }
-  
-    user = await this.userService.createUser({
-      email,
-      password,
-      idNumber,
-      fullName,
-      location,
-      address,
-      country,
-      phone,
-      birthDate,
+    const user = await this.userService.findById(createInstallerDto.userId);
+    if (!user) throw new NotFoundException('Usuario no encontrado');
+
+    const existingInstaller = await this.installerRepository.findOne({
+      where: { user: { id: user.id } },
     });
-  
-    const userRole = await this.userRoleService.assignRole(user.id, 'Instalador');
-  
+    if (existingInstaller) {
+      throw new ConflictException('Este usuario ya es instalador');
+    }
+
+    let role = await this.roleRepository.findOneBy({ name: RoleEnum.INSTALLER});
+    if (!role) {
+      role = this.roleRepository.create({ name: RoleEnum.INSTALLER });
+      role = await this.roleRepository.save(role);
+    }
+
+    await this.userRoleService.assignRole(user.id, role.id);
+
     const newInstaller = this.installerRepository.create({
-      ...installerData,
-      userRoleDetail: userRole,
+      user,
+      ...createInstallerDto,
     });
-  
-    await this.installerRepository.save(newInstaller);
-  
-    return newInstaller;
-  }  
+
+     const savedInstaller = await this.installerRepository.save(newInstaller);
+
+     const fullUser = await this.userService.findById(user.id);
+
+    return this.mapToInstallerResponse(savedInstaller, fullUser);
+  }
+
+  private mapToInstallerResponse(installer: Installer, user: User): InstallerResponseDto {
+    return {
+      id: installer.id,
+      taxCondition: installer.taxCondition,
+      queries: installer.queries,
+      hasPersonalAccidentInsurance: installer.hasPersonalAccidentInsurance,
+      canWorkAtHeight: installer.canWorkAtHeight,
+      canTensionFrontAndBackLonas: installer.canTensionFrontAndBackLonas,
+      canInstallCorporealSigns: installer.canInstallCorporealSigns,
+      canInstallFrostedVinyl: installer.canInstallFrostedVinyl,
+      canInstallVinylOnWallsOrGlass: installer.canInstallVinylOnWallsOrGlass,
+      canDoCarWrapping: installer.canDoCarWrapping,
+      hasOwnTransportation: installer.hasOwnTransportation,
+      status: installer.status,
+      user: {
+        id: user.id,
+        fullName: user.fullName,
+        birthDate: user.birthDate,
+        country: user.country,
+        address: user.address,
+        idNumber: user.idNumber,
+        location: user.location,
+        coverage: user.coverage,
+        email: user.email,
+        phone: user.phone,
+        createdAt: user.createdAt,
+        isSubscribed: user.isSubscribed,
+        disabledAt: user.disabledAt,
+        userRoles:
+        user.userRoles?.map((ur) => ({
+          id: ur.id,
+          role: {
+            id: ur.role.id,
+            name: ur.role.name,
+          },
+        })) ?? [],
+    }
+    };
+  }
 
   async updateInstaller(
     updateInstaller: UpdateInstallerDto,
@@ -147,4 +172,15 @@ export class InstallerService {
     if (!installer) throw new NotFoundException('Instalador no encontrado');
     return installer;
   }
+
+  async findByEmail(email: string)  {
+    const installer = await this.installerRepository.findOne({
+      where: { user: { email } },
+      relations: ['user'],
+    });
+  
+    if (!installer) throw new NotFoundException('Instalador no encontrado');
+  
+    return installer;
+  } 
 }
