@@ -20,6 +20,9 @@ import { RoleEnum } from 'src/common/enums/user-role.enum';
 import { PaginationResult } from 'src/common/interfaces/pagination-result.interface';
 import { UserQueryOptions } from './dto/users-filter.dto';
 import { UserWithRolesDto } from './dto/user-with-roles.dto';
+import { Order } from '../operations/orders/entities/order.entity';
+import { Installation } from '../operations/installations/entities/installation.entity';
+
 
 @ApiTags('Users')
 @Injectable()
@@ -189,10 +192,11 @@ export class UserService {
     const queryBuilder = this.userRepository.createQueryBuilder('users');
 
     queryBuilder
-      .leftJoinAndSelect('users.userRoles', 'userRole')
-      .leftJoinAndSelect('userRole.role', 'role');
+    .leftJoinAndSelect('users.userRoles', 'userRole' )
+    .leftJoinAndSelect('userRole.role', 'role')
+    .leftJoinAndSelect(Order, 'orders', 'orders.client = userRole.id')
 
-    queryBuilder.andWhere('role.name = :name', { name: queryOptions.role });
+    queryBuilder.where('role.name = :name', {name: queryOptions.role})
 
     queryBuilder
       .orderBy('users.createdAt', 'DESC')

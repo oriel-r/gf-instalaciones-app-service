@@ -8,6 +8,7 @@ import { FileUploadService } from 'src/services/files/file-upload.service';
 @Module({
   imports: [TypeOrmModule.forFeature([Image])],
   providers: [ImagesService, FileUploadService],
-  controllers: [ImagesController]
+  controllers: [ImagesController],
+  exports: [ImagesService]
 })
 export class ImagesModule {}

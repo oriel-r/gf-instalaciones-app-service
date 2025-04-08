@@ -10,7 +10,20 @@ import { UserRoleService } from 'src/modules/user-role/user-role.service';
 import { RoleEnum } from 'src/common/enums/user-role.enum';
 import { Installer } from 'src/modules/installer/entities/installer.entity';
 import { InstallerService } from 'src/modules/installer/installer.service';
+import { UserRole } from 'src/modules/user-role/entities/user-role.entity';
+import { InstallationStatus } from 'src/common/enums/installations-status.enum';
+import { NotifyEvents } from 'src/common/enums/notifications-events.enum';
+import { InstallationApprovedDto } from 'src/modules/notifications/dto/installation-aproved.dto';
+import { InstallationGeneralUpdate } from 'src/modules/notifications/dto/installation-general-update.dto';
+import { InstallationPostponedDto } from 'src/modules/notifications/dto/installation-postponed.dto';
+import { Address } from 'src/modules/locations/address/entities/address.entity';
+import { InstallationCancelDto } from 'src/modules/notifications/dto/intallation-cancel.dto';
 import { FileUploadService } from 'src/services/files/file-upload.service';
+import { allowedTransitions } from './helpers/allowed-transitions.const';
+import { ImagesService } from 'src/modules/images/images.service';
+import { InstallationToReviewDto } from 'src/modules/notifications/dto/installation-to-review.dto';
+import { UpdateInstallationDto } from './dto/update-installation.dto';
+import { StatusChangeDto } from './dto/change-status.dto';
 
 @Injectable()
 export class InstallationsService {
@@ -18,9 +31,10 @@ export class InstallationsService {
     private readonly installationsRepository: InstallationsRepository,
     private readonly addressService: AddressService,
     private readonly fileUploadService: FileUploadService,
+    private readonly imageService: ImagesService,
     private readonly userRoleService: UserRoleService,
     private readonly installerService: InstallerService,
-    private evenEmitter: EventEmitter2
+    private eventEmitter: EventEmitter2
   ){}
   
   async createFromOrder(createInstallationDto: CreateInstallationDto) {
@@ -70,27 +84,131 @@ export class InstallationsService {
 
   async findOne(id: string) {
     const installation = await this.installationsRepository.getById(id)
+    console.log(installation)
     if(!installation) throw new NotFoundException('Instalación no encontrada, id incorrecto o inexistente')
-      return installation  }
+      return installation  
+    }
 
-  async update(id: string, updateInstallationDto: DeepPartial<Installation>) {
+    async update(id: string, data: UpdateInstallationDto) {
+      // Buscar la instalación por su id
+      const installation = await this.installationsRepository.getById(id);
+      if (!installation) {
+        throw new NotFoundException("No se encontró la instalación");
+      }
+    
+      // Verificar que el estado de la instalación sea PENDING o POSTPONED
+      if (![InstallationStatus.PENDING, InstallationStatus.POSTPONED].includes(installation.status)) {
+        throw new BadRequestException(`No se puede modificar una instalación con estado ${installation.status}`);
+      }
+    
+      let installers: Installer[] = [];
+    
+      if (data.installersIds && data.installersIds.length > 0) {
+        installers = await Promise.all(
+          data.installersIds.map(async installerId => {
+            const installer = await this.installerService.findById(installerId);
+            if (!installer) {
+              throw new NotFoundException(`Instalador con id ${installerId} no encontrado`);
+            }
+            return installer;
+          })
+        );
+      }
+    
+      if (installation.status === InstallationStatus.POSTPONED && data.startDate) {
+        const newStartDate = new Date(data.startDate);
+        const currentStartDate = new Date(installation.startDate);
+        if (newStartDate <= currentStartDate) {
+          throw new BadRequestException("La nueva fecha de inicio debe ser posterior a la fecha actual de la instalación");
+        }
+      }
+    
+      const updateData: Partial<Installation> = {};
+      if (data.startDate) {
+        updateData.startDate = data.startDate;
+      }
+      if (installers.length > 0) {
+        updateData.installers = installers;
+      }
+
+    
+      const updatedInstallation = await this.installationsRepository.update(id, updateData);
+      return updatedInstallation
+    }
+    
+
+  async statusChange(id: string, updateInstallationDto: StatusChangeDto) {
     const installation = await this.installationsRepository.getById(id)
     if(!installation) throw new NotFoundException('Instalación no encontrada, id incorrecto o inexistente')
-    const result = await this.installationsRepository.update(id, updateInstallationDto)
-    if(!result.affected) throw new InternalServerErrorException('No se pudo actualizar el estado de la orden')
-    return await this.installationsRepository.getById(id)
+    
+    const currentStatus = installation.status
+    const newStatus = updateInstallationDto.status
+
+    if (!allowedTransitions[currentStatus]?.includes(newStatus)) {
+    throw new BadRequestException(`Transición de estado no permitida: ${currentStatus} -> ${newStatus}`)
+     }
+    
+    try {
+  
+      const result = await this.installationsRepository.update(id, updateInstallationDto)
+      if(!result) throw new InternalServerErrorException('No se pudo actualizar el estado de la orden')
+      
+      if (result.status !== installation.status && result.order.client && result.coordinator?.id && result.address && result.installers ) {
+
+        switch (result.status) {
+
+          case InstallationStatus.IN_PROCESS:
+            this.emitGeneralUpdate(
+              result.order.client?.id,
+              result.coordinator?.id,
+              result.address
+              )
+            break
+          case InstallationStatus.POSTPONED:
+            this.emitPostponedUpdate(result.coordinator.id, result.address)
+            break
+          case InstallationStatus.CANCEL:
+              this.emitCancelledUpdate(result.order.client.id, result.installers)
+              break
+          default:
+            this.emitApprovedUpdate(result.order.client.id, result.installers, result.address)
+          }
+      return await this.installationsRepository.getById(id)
+    }
+    } catch (err){
+      console.log(err)
+    }
   }
 
-  async sendToReview(id: string, data) {
-    const installation = await this.findOne(id)
-    const imagesUrls = await Promise.all(data.map((image) =>
-      this.fileUploadService.uploadFile(image)
-    ))
+  async sendToReview(id: string, files: Express.Multer.File[]) {
+    const installation = await this.installationsRepository.getById(id)
 
-    if(!imagesUrls || !imagesUrls.length ) throw new ServiceUnavailableException('Hubo un problema al subir la imagen')
-    const result = await this.update(installation.id, {images: imagesUrls})
-    this.evenEmitter.emit('installation.sendToReview', id)
-    return await this.findOne(id)
+    if(!installation) throw new NotFoundException('No se encontro la isntalción')
+
+    if(installation.status !== InstallationStatus.IN_PROCESS) {
+      throw new BadRequestException(
+        `Transición de estado no permitida:
+         ${installation.status} -> ${InstallationStatus.TO_REVIEW}`
+      )
+    }
+
+    const imagesUrls: string[] = await Promise.all(
+      files.map(async (file) => {
+        const fileUrl = await this.fileUploadService.uploadFile(file);
+        await this.imageService.saveFile({
+          url: fileUrl,
+          mimetype: file.mimetype,
+        });
+        return fileUrl
+       }),
+    );
+
+    if(!imagesUrls.length ) throw new ServiceUnavailableException('Hubo un problema al subir las imagenes')
+    const result = await this.installationsRepository.update(installation.id, {status: InstallationStatus.TO_REVIEW, images: imagesUrls})
+    if(!result) throw new InternalServerErrorException('No se pudo cambiar el estado')
+    
+    this.emitToReviewUpdate(installation.order.client!.id, installation.coordinator!.id, installation.address)
+    return result
   }
 
   async remove(id: string) {
@@ -98,5 +216,40 @@ export class InstallationsService {
     if(!installation) throw new NotFoundException('Instalación no encontrada, id incorrecto o inexistente')
     const result = await this.installationsRepository.softDelete(id)
     if(result.affected) return new DeleteResponse('instalación', id)
+  }
+
+  private emitGeneralUpdate(clientId: string, coordinatorId: string, address: Address) {
+    this.eventEmitter.emit(
+      NotifyEvents.INSTALLATION_GENERAL_UPDATE,
+      new InstallationGeneralUpdate(clientId, coordinatorId, address)
+    )
+  }
+  
+  private emitPostponedUpdate(coordinatorId: string, address: Address) {
+    this.eventEmitter.emit(
+      NotifyEvents.INSTALLATION_POSTPONED,
+      new InstallationPostponedDto(coordinatorId, address)
+    )
+  }
+  
+  private emitApprovedUpdate(clientId: string, installers: any, address: Address) {
+    this.eventEmitter.emit(
+      NotifyEvents.INSTALLATION_APROVE,
+      new InstallationApprovedDto(clientId, installers, address)
+    )
+  }
+
+  private emitToReviewUpdate(clientId: string, coordinatorId: string , address: Address) {
+    this.eventEmitter.emit(
+      NotifyEvents.INSTALLATION_TO_REVIEW,
+      new InstallationToReviewDto(clientId, address)
+    )
+  }
+
+  private emitCancelledUpdate(clientId: string, installers: any) {
+    this.eventEmitter.emit(
+      NotifyEvents.INSTALLATION_CANCELLED,
+      new InstallationCancelDto(clientId, installers)
+    )
   }
 }
