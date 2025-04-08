@@ -48,8 +48,11 @@ export class InstallerService {
       throw new ConflictException('Este usuario ya es instalador');
     }
 
-    const role = await this.roleRepository.findOneBy({ name: RoleEnum.INSTALLER});
-    if (!role) throw new NotFoundException('Rol "Instalador" no encontrado');
+    let role = await this.roleRepository.findOneBy({ name: RoleEnum.INSTALLER});
+    if (!role) {
+      role = this.roleRepository.create({ name: RoleEnum.INSTALLER });
+      role = await this.roleRepository.save(role);
+    }
 
     await this.userRoleService.assignRole(user.id, role.id);
 
