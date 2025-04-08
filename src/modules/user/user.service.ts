@@ -134,14 +134,14 @@ export class UserService {
   }
 
   async userByEmailByDisabled(email: string) {
-    const user = await this.userRepository.findOne({
-      where: { email },
-      withDeleted: true,
-    });
-
-    return user;
+    return await this.userRepository
+      .createQueryBuilder('user')
+      .withDeleted()
+      .where('user.email = :email', { email })
+      .andWhere('user.disabledAt IS NOT NULL')
+      .getOne();
   }
-
+  
   async findAll(): Promise<UserWithRolesDto[]> {
     const users = await this.userRepository.find({
       relations: [
