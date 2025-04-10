@@ -127,7 +127,7 @@ export class OrdersService {
     const order = await this.ordersRepository.getById(id)
     if(!order) throw new NotFoundException('No se encontro la orden')
     const installations = await this.ordersRepository.getOneAndFilterInstallations(id, query)
-    if(!installations) throw new NotFoundException('No se encontraron instalaciones')
+    if(!installations) return []
       return installations
   
   }
