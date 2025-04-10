@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ExtendedUserDto } from './dto/signup-user.dto';

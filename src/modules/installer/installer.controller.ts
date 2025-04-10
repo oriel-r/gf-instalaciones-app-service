@@ -20,9 +20,7 @@ import { UpdateInstallerDto } from './dto/update-installer';
 @Controller('installer')
 export class InstallerController {
   constructor(private readonly installerService: InstallerService) {}
-
-  /* @UseGuards(AuthGuard ,RolesGuard)
-  @Roles('Admin') */
+ 
   @ApiOperation({ summary: 'Obtener todos los instaladores' })
   @ApiResponse({
     status: 200,
@@ -53,53 +51,25 @@ export class InstallerController {
     return await this.installerService.updateInstaller(updateInstaller, id);
   }
 
-  @ApiOperation({
-    summary: 'Obtener todos los instaladores, incluyendo los eliminados',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Lista de instaladores, incluyendo los eliminados',
-    type: [Installer],
-  })
-  @Get('/findAllWhitDeleted')
-  async findAllWithDeleted() {
-    return await this.installerService.findAllWithDeleted();
-  }
-
-  /* @ApiOperation({ summary: 'Deshabilitar un instalador' })
+  @ApiOperation({ summary: 'Deshabilitar un instalador' })
   @ApiResponse({
     status: 200,
     description: 'El instalador ha sido deshabilitado correctamente',
   })
-  @Delete('/disabled/:id')
-  async softDelete(@Param('id') id: string) {
-    return await this.installerService.softDelete(id);
-  } */
+  @Delete('disabled/:id')
+  async disable(@Param('id') id: string) {
+    return await this.installerService.disable(id);
+  }
 
-  /*  @ApiOperation({ summary: 'Restaurar un instalador deshabilitado' })
+   @ApiOperation({ summary: 'Restaurar un instalador deshabilitado' })
   @ApiResponse({
     status: 200,
     description: 'El instalador ha sido restaurado correctamente',
   })
-  @Put('/restore/:id')
+  @Put('restore/:id')
   async restore(@Param('id') id: string) {
     return await this.installerService.restore(id);
-  } */
-
-  /* @ApiOperation({ summary: 'Buscar un instalador deshabilitado por ID' })
-  @ApiResponse({
-    status: 200,
-    description: 'Detalles del instalador deshabilitado',
-    type: Installer,
-  })
-  @ApiResponse({
-    status: 404,
-    description: 'Instalador deshabilitado no encontrado',
-  })
-  @Get('/findDisabledById/:id')
-  async findDisabledInstallerById(@Param('id') installerId: string) {
-    return await this.installerService.findDisabledInstallerById(installerId);
-  } */
+  }
 
   @ApiOperation({ summary: 'Buscar instalador por ID' })
   @ApiResponse({

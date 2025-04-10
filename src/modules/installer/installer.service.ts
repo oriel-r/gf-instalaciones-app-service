@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   forwardRef,
   Inject,
@@ -7,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Installer } from './entities/installer.entity';
-import { Repository } from 'typeorm';
+import { IsNull, Not, Repository } from 'typeorm';
 import { UserService } from '../user/user.service';
 import { CreateInstallerDto } from './dto/create-installer.dto';
 import { ApiTags } from '@nestjs/swagger';
@@ -33,7 +34,7 @@ export class InstallerService {
 
   async findAll() {
     return await this.installerRepository.find({
-      relations: ['coordinator'],
+      relations: ['user','coordinator'],
     });
   }
 
@@ -117,58 +118,34 @@ export class InstallerService {
     return await this.installerRepository.save(installer);
   }
 
-  /*  async softDelete(id: string) {
-    const installer = await this.installerRepository.findOne({
-      where: { id },
-      relations: ['user'],
-    });
-
-    if (!installer) {
-      throw new NotFoundException('Instalador no encontrado');
+  async disable(id: string) {
+    const installer = await this.findById(id);
+    if (installer.disabledAt) {
+      throw new BadRequestException('Este instalador ya está deshabilitado');
     }
-
-    if (installer.user) {
-      await this.userService.softDeleteUser(installer.user.id);
-
-      return { message: 'El instalador ha sido deshabilitado correctamente' };
-    }
-  } */
-
-  /*  async restore(id: string) {
-    const installer = await this.findDisabledInstallerById(id);
-    if (installer && installer.user.disabledAt !== null) {
-      await this.installerRepository.restore(id);
-      return { message: 'Se restauro correctamente' };
-    }
-    throw new BadRequestException(
-      'El intalador indicado ya se encuentra activo',
-    );
-  } */
-
-  async findAllWithDeleted() {
-    return await this.installerRepository.find({ withDeleted: true });
+  
+    installer.disabledAt = new Date();
+    await this.installerRepository.save(installer);
+    return { message: 'Instalador desactivado correctamente' };
   }
-
-  /*  async findDisabledInstallerById(
-    installerId: string,
-  ): Promise<Installer | null> {
-    const installer = await this.installerRepository.findOne({
-      where: {
-        id: installerId,
-        user: { disabledAt: Not(IsNull()) },
-      },
-      relations: ['user'],
-      withDeleted: true,
-    });
-
-    if (!installer) {
-      throw new NotFoundException('Instalador desactivado no encontrado');
+  
+  async restore(id: string) {
+    const installer = await this.findById(id);
+    if (!installer.disabledAt) {
+      throw new BadRequestException('Este instalador ya está activo');
     }
-    return installer;
-  } */
+  
+    installer.disabledAt = null;
+    await this.installerRepository.save(installer);
+    return { message: 'Instalador restaurado correctamente' };
+  } 
 
   async findById(id: string) {
-    const installer = await this.installerRepository.findOneBy({ id });
+    const installer = await this.installerRepository.findOne({ 
+      where: {id},
+      relations: ['user']
+    });
+
     if (!installer) throw new NotFoundException('Instalador no encontrado');
     return installer;
   }

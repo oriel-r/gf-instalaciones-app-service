@@ -5,16 +5,24 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserRole } from './entities/user-role.entity';
 import { UserModule } from '../user/user.module';
 import { Role } from '../user/entities/roles.entity';
-import { UserService } from '../user/user.service';
 import { User } from '../user/entities/user.entity';
-import { AuthModule } from '../auth/auth.module';
 import { Installer } from '../installer/entities/installer.entity';
+import { AdminModule } from '../admins/admins.module';
+import { CoordinatorsModule } from '../coordinators/coordinators.module';
+import { AdminService } from '../admins/admins.service';
+import { InstallerModule } from '../installer/installer.module';
+import { Admin } from '../admins/entities/admins.entity';
+import { CoordinatorsService } from '../coordinators/coordinators.service';
+import { Coordinator } from '../coordinators/entities/coordinator.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([UserRole, Role, User, Installer]),
-   forwardRef(() => UserModule)
-  ],
-  providers: [UserRoleService],
+    imports: [TypeOrmModule.forFeature([UserRole, Role, User, Installer, Admin, Coordinator]),
+    forwardRef(() => UserModule),
+    forwardRef(() => AdminModule), 
+    forwardRef(() => InstallerModule), 
+    CoordinatorsModule,
+    ],
+  providers: [UserRoleService, AdminService, CoordinatorsService],
   controllers: [UserRoleController],
   exports: [UserRoleService]
 })

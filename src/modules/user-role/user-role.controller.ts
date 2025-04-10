@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Param } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Delete, HttpCode } from '@nestjs/common';
 import { UserRoleService } from './user-role.service';
 import { AssignRoleDto } from './dto/assign-role.dto';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
@@ -19,5 +19,13 @@ export class UserRoleController {
   @Get(':id')
   async findUserRoleById(@Param('id') id: string) {
     return await this.userRoleService.findUserRoleById(id)
+  }
+
+  @Delete(':userId/:roleId')
+  async removeRole(
+    @Param('userId') userId: string,
+    @Param('roleId') roleId: string,
+  ) {
+    return await this.userRoleService.removeRole(userId, roleId);
   }
 }

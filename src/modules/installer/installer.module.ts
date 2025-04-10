@@ -9,12 +9,21 @@ import { User } from '../user/entities/user.entity';
 import { UserRoleModule } from '../user-role/user-role.module';
 import { UserRoleService } from '../user-role/user-role.service';
 import { UserRole } from '../user-role/entities/user-role.entity';
+import { AdminModule } from '../admins/admins.module';
+import { CoordinatorsModule } from '../coordinators/coordinators.module';
+import { CoordinatorsService } from '../coordinators/coordinators.service';
+import { Coordinator } from '../coordinators/entities/coordinator.entity';
 
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Installer, Role, User, UserRole]), forwardRef(() => UserModule), UserRoleModule],
+  imports: [TypeOrmModule.forFeature([Installer, Role, User, UserRole, Coordinator]), 
+  forwardRef(() => UserModule),
+   UserRoleModule,
+   AdminModule,
+   CoordinatorsModule
+  ],
   controllers: [InstallerController],
-  providers: [InstallerService, UserRoleService],
+  providers: [InstallerService, UserRoleService, CoordinatorsService],
   exports: [InstallerService]
 })
 export class InstallerModule {}
