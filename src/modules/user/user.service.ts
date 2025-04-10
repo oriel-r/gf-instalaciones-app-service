@@ -22,6 +22,7 @@ import { UserQueryOptions } from './dto/users-filter.dto';
 import { UserWithRolesDto } from './dto/user-with-roles.dto';
 import { InstallerService } from '../installer/installer.service';
 import { CoordinatorsService } from '../coordinators/coordinators.service';
+import { Order } from '../operations/orders/entities/order.entity';
 
 @ApiTags('Users')
 @Injectable()
