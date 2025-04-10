@@ -6,28 +6,25 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 
-const ROLES_KEY = 'roles';
-
 @Injectable()
 export class RolesGuard implements CanActivate {
   constructor(private readonly reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    // Obtener los roles requeridos desde los metadatos del controlador
-    const requiredRoles = this.reflector.getAllAndOverride<string[]>(ROLES_KEY, [
+    const requiredRoles = this.reflector.getAllAndOverride<string[]>('roles', [
       context.getHandler(),
       context.getClass(),
     ]);
 
     const request = context.switchToHttp().getRequest();
-    const user = request.user; // Obtener el usuario desde la solicitud
+    const user = request.user;
 
-    if (!user || !user.role) {
+    if (!user || !user.userRoles) {
       throw new UnauthorizedException('No tienes los permisos adecuados.');
     }
 
-    // Verificar si el rol del usuario coincide con los roles requeridos
-    const hasRole = requiredRoles.some((role) => role === user.role.name);
+    const userRoles = user.userRoles.map((ur) => ur.role.name);
+    const hasRole = requiredRoles.some((role) => userRoles.includes(role));
 
     if (!hasRole) {
       throw new UnauthorizedException('No tienes los permisos adecuados.');
@@ -36,4 +33,5 @@ export class RolesGuard implements CanActivate {
     return true;
   }
 }
+
 

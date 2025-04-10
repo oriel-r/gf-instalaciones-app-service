@@ -7,15 +7,19 @@ import { User } from './entities/user.entity';
 import { Role } from './entities/roles.entity';
 import { UserRole } from '../user-role/entities/user-role.entity';
 import { UserRoleModule } from '../user-role/user-role.module';
+import { Coordinator } from '../coordinators/entities/coordinator.entity';
+import { CoordinatorsModule } from '../coordinators/coordinators.module';
+import { CoordinatorsService } from '../coordinators/coordinators.service';
 
 
 @Module({
-  imports:[TypeOrmModule.forFeature([User, Role, UserRole]), 
+  imports:[TypeOrmModule.forFeature([User, Role, UserRole, Coordinator]), 
   forwardRef(() => InstallerModule), 
-  forwardRef(() => UserRoleModule)
+  forwardRef(() => UserRoleModule),
+  CoordinatorsModule
 ],
   controllers: [UserController],
-  providers: [UserService],
+  providers: [UserService, CoordinatorsService],
   exports:[UserService]
 })
 export class UserModule {}

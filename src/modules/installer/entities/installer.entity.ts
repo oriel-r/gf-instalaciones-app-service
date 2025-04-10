@@ -64,7 +64,10 @@ export class Installer {
   })
   status?: StatusInstaller;
 
-  @OneToOne(() => User, (user) => user.installer)
+  @Column({ type: 'timestamp', nullable: true })
+  disabledAt: Date | null;
+
+  @OneToOne(() => User, (user) => user.installer, { nullable: false })
   @JoinColumn()
   user: User;
 
