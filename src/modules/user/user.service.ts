@@ -193,10 +193,11 @@ export class UserService {
     const queryBuilder = this.userRepository.createQueryBuilder('users');
 
     queryBuilder
-      .leftJoinAndSelect('users.userRoles', 'userRole')
-      .leftJoinAndSelect('userRole.role', 'role');
+    .leftJoinAndSelect('users.userRoles', 'userRole' )
+    .leftJoinAndSelect('userRole.role', 'role')
+    .leftJoinAndSelect(Order, 'orders', 'orders.client = userRole.id')
 
-    queryBuilder.andWhere('role.name = :name', { name: queryOptions.role });
+    queryBuilder.where('role.name = :name', {name: queryOptions.role})
 
     queryBuilder
       .orderBy('users.createdAt', 'DESC')

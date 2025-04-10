@@ -8,13 +8,15 @@ import { InstallationsRepository } from './installations.repository';
 import { UserRoleModule } from 'src/modules/user-role/user-role.module';
 import { InstallerModule } from 'src/modules/installer/installer.module';
 import { FileUploadService } from 'src/services/files/file-upload.service';
+import { ImagesModule } from 'src/modules/images/images.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Installation]),
     AddressModule,
     UserRoleModule,
-    InstallerModule
+    InstallerModule,
+    ImagesModule
   ],
   controllers: [InstallationsController],
   providers: [InstallationsService, InstallationsRepository, FileUploadService],
