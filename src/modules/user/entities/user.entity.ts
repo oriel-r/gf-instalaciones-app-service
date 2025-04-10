@@ -50,8 +50,8 @@ export class User {
   @Column({ default: true })
   isSubscribed: boolean;
 
-  @DeleteDateColumn()
-  disabledAt?: Date;
+  @Column({ type: 'timestamp', nullable: true })
+  disabledAt: Date | null;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;

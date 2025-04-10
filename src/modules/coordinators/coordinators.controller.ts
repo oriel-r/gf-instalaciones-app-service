@@ -8,11 +8,6 @@ import { ApiTags } from '@nestjs/swagger';
 export class CoordinatorsController {
   constructor(private readonly coordinatorsService: CoordinatorsService) {}
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.coordinatorsService.findOne(+id);
-  }
-
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateCoordinatorDto: UpdateCoordinatorDto) {
     return this.coordinatorsService.update(+id, updateCoordinatorDto);
@@ -21,5 +16,10 @@ export class CoordinatorsController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.coordinatorsService.remove(+id);
+  }
+
+  @Get(':id')
+  async findById(@Param('id') id: string) {
+    return await this.coordinatorsService.findById(id);
   }
 }

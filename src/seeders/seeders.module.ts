@@ -16,9 +16,11 @@ import { UserRole } from "src/modules/user-role/entities/user-role.entity";
 import { UserRoleModule } from "src/modules/user-role/user-role.module";
 import { LocationsSeeder } from "./locations/locations.seeds";
 import { OrdersSeeder } from "./orders/orders.seeds";
+import { Admin } from "src/modules/admins/entities/admins.entity";
+import { Coordinator } from "src/modules/coordinators/entities/coordinator.entity";
 
 @Module({
-    imports:[TypeOrmModule.forFeature([User,Role, BlogCategory, BlogPostTemplate, BlogPost, Installer, UserRole]),
+    imports:[TypeOrmModule.forFeature([User,Role, BlogCategory, BlogPostTemplate, BlogPost, Installer, UserRole, Admin, Coordinator]),
     UserRoleModule,
     JwtModule,
     BlogModule,

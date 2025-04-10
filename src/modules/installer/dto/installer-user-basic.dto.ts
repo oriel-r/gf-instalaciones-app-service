@@ -1,9 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { AdminBasicDto } from 'src/modules/admins/dto/admin-basic.dto';
-import { CoordinatorBasicDto } from 'src/modules/coordinators/dto/coordinator-basic.dto';
-import { InstallerBasicDto } from 'src/modules/installer/dto/installer-basic.dto';
 
-export class UserWithRolesDto {
+export class InstallerUserBasicDto {
   @ApiProperty()
   id: string;
 
@@ -53,14 +50,4 @@ export class UserWithRolesDto {
       name: string;
     };
   }[];
-
-  @ApiProperty({ type: () => InstallerBasicDto, required: false })
-  installer?: InstallerBasicDto | null;
-
-  @ApiProperty({ type: () => CoordinatorBasicDto, required: false })
-  coordinator?: CoordinatorBasicDto | null;
-
-  @ApiProperty({ type: () => AdminBasicDto, required: false })
-  admin?: AdminBasicDto | null;
 }
-

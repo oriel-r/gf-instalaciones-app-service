@@ -60,21 +60,6 @@ export class UserController {
     return await this.userService.findByEmail(query.email);
   }
 
-  @ApiOperation({ summary: 'Obtener todos los usuarios, incluidos los desactivados' })
-  @ApiResponse({ status: 200, description: 'Lista de usuarios obtenida.', type: [User] })
-  @Get('/findAllWhitDeleted')
-  async findAllWhitDeleted() {
-    return await this.userService.findAllWhitDeleted();
-  }
-
-  @ApiOperation({ summary: 'Buscar usuario desactivado por ID' })
-  @ApiResponse({ status: 200, description: 'Usuario desactivado encontrado.', type: User })
-  @ApiResponse({ status: 404, description: 'Usuario desactivado no encontrado.' })
-  @Get('/findDisabledById/:id')
-  async findDisabledUserById(userId: string) {
-    return await this.userService.findDisabledUserById(userId);
-  }
-
   @ApiOperation({ summary: 'Buscar usuario por ID' })
   @ApiResponse({ status: 200, description: 'Usuario encontrado.', type: User })
   @ApiResponse({ status: 404, description: 'Usuario no encontrado.' })
@@ -111,18 +96,18 @@ export class UserController {
     return await this.userService.removeUser(id);
   }
 
-  @ApiOperation({ summary: 'Desactivar usuario (soft delete)' })
+  @ApiOperation({ summary: 'Desactivar usuario' })
   @ApiResponse({ status: 200, description: 'Usuario desactivado correctamente.' })
-  @Delete('/disabled/:id')
-  async softDeleteUser(@Param('id') id: string) {
-    return await this.userService.softDeleteUser(id);
+  @Delete('disabled/:id')
+  async disableUser(@Param('id') id: string) {
+    return await this.userService.disableUser(id);
   }
 
   @ApiOperation({ summary: 'Restaurar usuario desactivado' })
   @ApiResponse({ status: 200, description: 'Usuario restaurado correctamente.' })
   @ApiResponse({ status: 400, description: 'El usuario ya se encuentra activo.' })
-  @Put('/restore/:id')
+  @Put('restore/:id')
   async restore(@Param('id') id: string) {
-    return await this.userService.restore(id);
+    return await this.userService.restoreUser(id);
   }
 }

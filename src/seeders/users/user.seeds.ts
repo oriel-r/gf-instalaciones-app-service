@@ -6,6 +6,8 @@ import { User } from 'src/modules/user/entities/user.entity';
 import { UserRole } from 'src/modules/user-role/entities/user-role.entity';
 
 import { usersData } from './users.mock';
+import { Admin } from 'src/modules/admins/entities/admins.entity';
+import { Coordinator } from 'src/modules/coordinators/entities/coordinator.entity';
 
 export class UserSeeds {
   async seed(): Promise<void> {
@@ -49,7 +51,7 @@ export class UserSeeds {
 
         if (userRoles === 'Instalador') {
           const installer = manager.create(Installer, {
-            ...user,
+            user,
             taxCondition: userData.taxCondition,
             hasPersonalAccidentInsurance: userData.hasPersonalAccidentInsurance,
             canWorkAtHeight: userData.canWorkAtHeight,
@@ -61,7 +63,14 @@ export class UserSeeds {
             hasOwnTransportation: userData.hasOwnTransportation,
           });
           await manager.save(installer);
+        } else if (userRoles === 'Admin') {
+          const admin = manager.create(Admin, { user });
+          await manager.save(admin);
+        } else if (userRoles === 'Coordinador') {
+          const coordinator = manager.create(Coordinator, { user });
+          await manager.save(coordinator);
         }
+        
       }
 
       console.log('Users and roles seeded successfully');
