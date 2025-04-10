@@ -11,7 +11,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
-import { IsNull, Not, QueryBuilder, Repository } from 'typeorm';
+import { IsNull, Not, Repository } from 'typeorm';
 import { ApiTags } from '@nestjs/swagger';
 import { hash } from 'bcrypt';
 import { UserRoleService } from '../user-role/user-role.service';
@@ -20,6 +20,8 @@ import { RoleEnum } from 'src/common/enums/user-role.enum';
 import { PaginationResult } from 'src/common/interfaces/pagination-result.interface';
 import { UserQueryOptions } from './dto/users-filter.dto';
 import { UserWithRolesDto } from './dto/user-with-roles.dto';
+import { InstallerService } from '../installer/installer.service';
+import { CoordinatorsService } from '../coordinators/coordinators.service';
 
 @ApiTags('Users')
 @Injectable()
@@ -31,6 +33,8 @@ export class UserService {
     private readonly userRoleService: UserRoleService,
     @InjectRepository(Role)
     private readonly roleRepository: Repository<Role>,
+    private readonly installerService: InstallerService,
+    private readonly coordinatorService: CoordinatorsService
   ) {}
 
   async createUser(createUserDto: CreateUserDto): Promise<UserWithRolesDto> {
@@ -240,71 +244,57 @@ export class UserService {
     return { message: 'Usuario eliminado correctamente.' };
   }
 
-  async softDeleteUser(id: string) {
-    await this.userRepository.softDelete(id);
-    return { message: 'Se desactivo correctamente' };
-  }
-
-  async restore(id: string) {
-    const user = await this.findDisabledUserById(id);
-    if (user && user.disabledAt !== null) {
-      await this.userRepository.restore(id);
-      return { message: 'Se restauro correctamente' };
-    }
-    throw new BadRequestException('El usuario indicado ya se encuentra activo');
-  }
-
-  async findAllWhitDeleted() {
-    const users = await this.userRepository.find({
-      relations: [
-        'userRoles',
-        'userRoles.role',
-        'installer',
-        'coordinator',
-        'admin',
-      ],
-      withDeleted: true,
-    });
-
-    return users.map((user) => ({
-      id: user.id,
-      fullName: user.fullName,
-      email: user.email,
-      birthDate: user.birthDate,
-      idNumber: user.idNumber,
-      country: user.country,
-      address: user.address,
-      coverage: user.coverage,
-      location: user.location,
-      phone: user.phone,
-      createdAt: user.createdAt,
-      isSubscribed: user.isSubscribed,
-      disabledAt: user.disabledAt,
-      userRoles:
-        user.userRoles?.map((ur) => ({
-          id: ur.id,
-          role: {
-            id: ur.role.id,
-            name: ur.role.name,
-          },
-        })) ?? [],
-        installer: user.installer ?? null,
-        coordinator: user.coordinator ?? null,
-        admin: user.admin ?? null,
-    }));
-  }
-
-  async findDisabledUserById(userId: string): Promise<User | null> {
+  async disableUser(userId: string) {
     const user = await this.userRepository.findOne({
-      where: { id: userId, disabledAt: Not(IsNull()) },
-      withDeleted: true,
+      where: { id: userId },
+      relations: ['installer', 'coordinator'],
     });
-
+  
     if (!user) {
-      throw new NotFoundException('Usuario desactivado no encontrado');
+      throw new NotFoundException('Usuario no encontrado');
+    }
+  
+    if (user.disabledAt) {
+      throw new BadRequestException('El usuario ya está deshabilitado');
+    }
+  
+    user.disabledAt = new Date();
+    await this.userRepository.save(user);
+  
+    if (user.installer) {
+      await this.installerService.disable(user.installer.id);
+    }
+  
+    if (user.coordinator) {
+      await this.coordinatorService.disable(user.coordinator.id);
     }
 
-    return user;
+    return { message: 'Usuario reactivado correctamente' };
+  }
+  
+  async restoreUser(userId: string): Promise<{ message: string }> {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['installer', 'coordinator'],
+      withDeleted: true,
+    });
+  
+    if (!user || !user.disabledAt) {
+      throw new BadRequestException('El usuario ya está activo');
+    }
+  
+    user.disabledAt = null;
+    await this.userRepository.save(user);
+  
+    if (user.installer?.disabledAt) {
+      await this.installerService.restore(user.installer.id);
+    }
+  
+    if (user.coordinator?.disabledAt) {
+      await this.coordinatorService.restore(user.coordinator.id);
+    }
+  
+    return { message: 'Usuario restaurado correctamente' };
   }
 
   async findByIdNumber(idNumber: string) {

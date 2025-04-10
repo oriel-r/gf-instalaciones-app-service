@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { ConflictException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../user/entities/user.entity';
@@ -20,6 +20,24 @@ export class AdminService {
     @InjectRepository(UserRole)
     private readonly userRoleRepository: Repository<UserRole>,
   ) {}
+
+  async createAdmin(userId: string): Promise<Admin> {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['admin'],
+    });
+
+    if (!user) {
+      throw new NotFoundException('Usuario no encontrado');
+    }
+
+    if (user.admin) {
+      throw new ConflictException('Este usuario ya es administrador');
+    }
+
+    const newAdmin = this.adminRepository.create({ user });
+    return await this.adminRepository.save(newAdmin);
+  }
 
   async findAll() {
     return await this.adminRepository.find();

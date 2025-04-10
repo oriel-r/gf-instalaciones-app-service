@@ -12,9 +12,11 @@ import { Installer } from "../installer/entities/installer.entity";
 import { CoordinatorsModule } from "../coordinators/coordinators.module";
 import { UserRoleModule } from "../user-role/user-role.module";
 import { Role } from "../user/entities/roles.entity";
+import { Coordinator } from "../coordinators/entities/coordinator.entity";
+import { CoordinatorsService } from "../coordinators/coordinators.service";
 
 @Module({
-    imports: [TypeOrmModule.forFeature([User, Installer, Role]),
+    imports: [TypeOrmModule.forFeature([User, Installer, Role, Coordinator]),
     UserModule,
     UserRoleModule,
     InstallerModule,
@@ -24,7 +26,7 @@ import { Role } from "../user/entities/roles.entity";
         secret: process.env.JWT_SECRET,
       }),
 ],
-    providers: [AuthService, UserService, InstallerService],
+    providers: [AuthService, UserService, InstallerService, CoordinatorsService],
     controllers: [AuthController],
 })
 
