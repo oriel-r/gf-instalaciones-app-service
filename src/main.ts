@@ -14,8 +14,10 @@ import { LocationsSeeder } from './seeders/locations/locations.seeds';
 import { OrdersSeeder } from './seeders/orders/orders.seeds';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-
+  const app = await NestFactory.create(AppModule, {
+    logger: ['log', 'error', 'warn', 'debug'],
+  });
+  
   
   app.use(loggerMiddleware)
   
