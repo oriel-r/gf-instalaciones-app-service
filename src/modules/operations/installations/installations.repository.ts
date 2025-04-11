@@ -5,6 +5,7 @@ import { DeepPartial, Repository } from "typeorm";
 import { CreateAdminDto } from "../../admins/dto/create-admin.dto";
 import { CreateInstallationDto } from "./dto/create-installation.dto";
 import { UpdateInstallationDto } from "./dto/update-installation.dto";
+import { StatusChangeDto } from "./dto/change-status.dto";
 
 @Injectable()
 export class InstallationsRepository {
@@ -30,12 +31,19 @@ export class InstallationsRepository {
         })
     }
 
-    async update(id: string, data) {
-        const result = await this.installationsRepository.update(id, data)
-        if(!result.affected) return null
-        return this.getById(id)
-    }
-
+    async update(id: string, data: DeepPartial<Installation>) {
+        if (data.installers) {
+          const installation = await this.getById(id);
+          if (!installation) return null;
+          Object.assign(installation, data);
+          return await this.installationsRepository.save(installation);
+        }
+      
+        const result = await this.installationsRepository.update(id, data);
+        if (!result.affected) return null;
+        return this.getById(id);
+      }
+      
     async softDelete(id: string) {
         return await this.installationsRepository.softDelete(id)   
     }   
