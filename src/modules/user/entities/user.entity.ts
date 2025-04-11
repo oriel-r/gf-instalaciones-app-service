@@ -65,6 +65,6 @@ export class User {
   @OneToOne(() => Admin, admin => admin.user, { cascade: true })
   admin?: Admin;
 
-  @OneToMany(() => UserRole, (userRole) => userRole.user,  { cascade: true })
+  @OneToMany(() => UserRole, (userRole) => userRole.user,  { cascade: true,})
   userRoles: UserRole[];
 }

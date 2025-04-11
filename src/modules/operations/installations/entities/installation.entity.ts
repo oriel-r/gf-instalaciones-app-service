@@ -28,7 +28,7 @@ export class Installation extends BaseEntity {
         title: 'order',
         description: "installation installer"
     })
-    @ManyToMany(() => Installer, (installer) => installer.installations ,{ onDelete: 'SET NULL', nullable: true, eager: true})
+    @ManyToMany(() => Installer, (installer) => installer.installations ,{ onDelete: 'SET NULL', nullable: true, eager: true, cascade: true})
     installers: Installer[] | null;
 
     @ApiProperty({

@@ -23,6 +23,7 @@ import { ImagesService } from 'src/modules/images/images.service';
 import { InstallationToReviewDto } from 'src/modules/notifications/dto/installation-to-review.dto';
 import { UpdateInstallationDto } from './dto/update-installation.dto';
 import { StatusChangeDto } from './dto/change-status.dto';
+import { log } from 'console';
 
 @Injectable()
 export class InstallationsService {
@@ -86,22 +87,20 @@ export class InstallationsService {
     }
 
     async update(id: string, data: UpdateInstallationDto) {
-      // Buscar la instalación por su id
       const installation = await this.installationsRepository.getById(id);
       if (!installation) {
         throw new NotFoundException("No se encontró la instalación");
       }
     
-      // Verificar que el estado de la instalación sea PENDING o POSTPONED
       if (![InstallationStatus.PENDING, InstallationStatus.POSTPONED].includes(installation.status)) {
         throw new BadRequestException(`No se puede modificar una instalación con estado ${installation.status}`);
       }
     
       let installers: Installer[] = [];
-    
+      
       if (data.installersIds && data.installersIds.length > 0) {
         installers = await Promise.all(
-          data.installersIds.map(async installerId => {
+          data.installersIds.map(async (installerId) => {
             const installer = await this.installerService.findById(installerId);
             if (!installer) {
               throw new NotFoundException(`Instalador con id ${installerId} no encontrado`);
@@ -110,7 +109,7 @@ export class InstallationsService {
           })
         );
       }
-    
+      
       if (installation.status === InstallationStatus.POSTPONED && data.startDate) {
         const newStartDate = new Date(data.startDate);
         const currentStartDate = new Date(installation.startDate);
@@ -127,9 +126,7 @@ export class InstallationsService {
         updateData.installers = installers;
       }
 
-    
       const updatedInstallation = await this.installationsRepository.update(id, updateData);
-      
       
       return updatedInstallation
 
