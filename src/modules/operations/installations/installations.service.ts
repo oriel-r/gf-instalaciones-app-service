@@ -54,9 +54,7 @@ export class InstallationsService {
         if(!coordinator) throw new BadRequestException('Coordinador no encontrado')
         
         if(!installers.length) throw new BadRequestException('No se encontraron los instaladores')
-
         const installationAddress = await this.addressService.create(address);
-  
         return await this.installationsRepository.create({
           ...otherData,
           installers: installers,
@@ -83,7 +81,6 @@ export class InstallationsService {
 
   async findOne(id: string) {
     const installation = await this.installationsRepository.getById(id)
-    console.log(installation)
     if(!installation) throw new NotFoundException('Instalación no encontrada, id incorrecto o inexistente')
       return installation  
     }
