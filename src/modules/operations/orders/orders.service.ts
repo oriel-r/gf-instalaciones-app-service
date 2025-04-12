@@ -59,55 +59,7 @@ export class OrdersService {
     await this.update(order.id, {installationsFinished: fraction})
 
     return newInstallations
-  }
-  
- /* async updateInstallationStatus(orderId: string, installationId: string, status: UpdateInstallationStatus) {
-    const order = await this.findOne(orderId)
-    if (!order) throw new NotFoundException('Orden no encontrada')
-
-    const installation = order.installations.find((installation) => installation.id === installationId)
-    if(!installation) throw new NotFoundException('Instalación no encontrada o id invalido')
-    
-    const installationWithChanges = await this.installationsService.update(installation.id, status)
-
-    if(installationWithChanges && order.client && installation.coordinator && installation.installers) {
-      
-    switch (installationWithChanges.status) {
-
-      case InstallationStatus.IN_PROCESS:
-        this.eventEmiiter.emit(NotifyEvents.INSTALLATION_GENERAL_UPDATE, 
-          new InstallationGeneralUpdate(
-            order.client.id,
-            installation.coordinator?.id,
-            installation.address,
-            status.status
-          )
-        )
-          break
-        case InstallationStatus.POSTPONED:
-          this.eventEmiiter.emit(
-            NotifyEvents.INSTALLATION_POSTPONED,
-            new InstallationPostponedDto(
-              installation.coordinator.id
-            )
-          )
-          break
-        default:
-          this.eventEmiiter.emit(
-            NotifyEvents.INSTALLATION_APROVE,
-            new InstallationApprovedDto(
-              order.client.id,
-              installation.installers
-            )
-          )
-          await this.updateProgress(orderId)        
-      }
-    } 
-    return installationWithChanges
-  }*/
-
-
- 
+  } 
 
   async findAll(query: OrderQueryOptionsDto) {
     const orders = await this.ordersRepository.get(query)
@@ -122,13 +74,11 @@ export class OrdersService {
       return order
   }
 
-  async findOneAndFilter(id: string, query: InstallationQueryOptionsDto) {
+  async getInstallationsFromId (id: string, query: InstallationQueryOptionsDto) {
     const order = await this.ordersRepository.getById(id)
     if(!order) throw new NotFoundException('No se encontro la orden')
-    const installations = await this.ordersRepository.getOneAndFilterInstallations(id, query)
-    if(!installations) return []
+    const installations = await this.installationsService.filterFromOrder(id, query)
       return installations
-  
   }
 
   async findByOrderNumber(orderNumber: string) {

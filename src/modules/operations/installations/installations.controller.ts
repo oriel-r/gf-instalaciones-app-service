@@ -1,10 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UploadedFiles, UseInterceptors, UsePipes } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UploadedFiles, UseInterceptors, UsePipes, HttpStatus, HttpCode } from '@nestjs/common';
 import { InstallationsService } from './installations.service';
 import { CreateInstallationDto } from './dto/create-installation.dto';
 import { UpdateInstallationDto } from './dto/update-installation.dto';
 import { DeepPartial } from 'typeorm';
 import { Installation } from './entities/installation.entity';
-import { ApiBody, ApiOperation, ApiProperty } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiProperty, ApiResponse } from '@nestjs/swagger';
 import { StatusChangeDto } from './dto/change-status.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { FilesPipe } from 'src/common/pipes/file/files-pipe';
@@ -26,8 +26,14 @@ export class InstallationsController {
   @ApiOperation({
     summary: 'Cambiar instaladores y otra data',
     description: `Se puede editar instaladores o la fecha de inicio 
-                  solo si la instalación esta pendiente o pospuesta`
+                  solo si la instalación esta pendiente o pospuesta`,
   })
+  @ApiResponse({
+    status: HttpStatus.OK, type: Installation,
+  })
+  @HttpCode(HttpStatus.OK)
+  @HttpCode(HttpStatus.NOT_FOUND)
+  @HttpCode(HttpStatus.INTERNAL_SERVER_ERROR)
   @Patch(':id')
   async update(@Param('id') id: string, @Body() data: UpdateInstallationDto ) {
     return await this.installationsService.update(id, data);
@@ -47,6 +53,8 @@ export class InstallationsController {
                   y este maneja por si solo el cambio de estado
                  `
   })
+  @HttpCode(HttpStatus.OK)
+  @HttpCode(HttpStatus.BAD_REQUEST)
   @Patch(':id/status')
   async changeStatus(@Param('id') id: string, @Body() data: StatusChangeDto ) {
     return await this.installationsService.statusChange(id, data);

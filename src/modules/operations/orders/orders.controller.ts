@@ -51,13 +51,13 @@ export class OrdersController {
         
     const result: PaginationResult<GetOrderResponseDto>= await this.ordersService.findAll(query);
     
-    return new PaginatedResponseDto<GetOrderResponseDto>(result, baseUrl  ,query.page,query.limit)
+    return new PaginatedResponseDto<GetOrderResponseDto>(result  ,query.page, query.limit, baseUrl)
   
   }
 
   @Get(':id/installations')
-  async findOne(@Param('id') id: string, @Query() query: InstallationQueryOptionsDto) {
-    return this.ordersService.findOneAndFilter(id,query);
+  async findOne(@Param('id') id: string, @Query(new QueryOptionsPipe(InstallationQueryOptionsDto)) query: InstallationQueryOptionsDto) {
+    return this.ordersService.getInstallationsFromId(id, query);
   }
 
   @Get(':id')

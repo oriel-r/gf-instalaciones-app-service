@@ -49,7 +49,11 @@ export const createInstallationMocks = (orderTitle: string, count: number) => {
       // Algunos ítems cuentan con una fecha de fin, otros quedan sin definir
       endDate: i % 2 === 0 ? new Date(`2025-${monthStr}-${dayEndStr}`) : undefined,
       status: statuses[i % statuses.length],
-      images: [`http://example.com/${orderTitle.replace(/ /g, '').toLowerCase()}-${i + 1}.jpg`],
+      images: [
+        `https://res.cloudinary.com/ddhx1kogg/image/upload/e_improve,w_300,h_600,c_thumb,g_auto/v1744480630/ChatGPT_Image_Apr_12_2025_02_48_52_PM_byl784.png`,
+        'https://res.cloudinary.com/ddhx1kogg/image/upload/e_improve,w_300,h_600,c_thumb,g_auto/v1744480630/ChatGPT_Image_Apr_12_2025_02_47_31_PM_o0tn0c.png',
+        'https://res.cloudinary.com/ddhx1kogg/image/upload/v1744480630/ChatGPT_Image_Apr_12_2025_02_50_27_PM_za0cvm.png'
+      ],
     };
   });
 };
