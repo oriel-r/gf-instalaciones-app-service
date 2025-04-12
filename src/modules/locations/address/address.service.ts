@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateAddressDto } from './dto/create-address.dto';
 import { UpdateAddressDto } from './dto/update-address.dto';
 import { AddressRepository } from './address.repository';
@@ -8,6 +8,8 @@ import { DeepPartial } from 'typeorm';
 import { Address } from './entities/address.entity';
 import { DeleteResponse } from 'src/common/entities/delete.response.dto';
 import { AddressResponseDto } from './dto/address-response.dto';
+import { City } from '../city/entities/city.entity';
+import { Province } from '../province/entities/province.entity';
 
 @Injectable()
 export class AddressService {
@@ -37,10 +39,37 @@ export class AddressService {
       return Address
   }
 
-  async update(id: string, data: DeepPartial<Address>) {
-    const Address = await this.addressesRepository.getById(id)
-    if(!Address) throw new NotFoundException('No se enconro la dirección o el id es invalido')
-      return await this.addressesRepository.update(id, data)
+  async update(id: string, data: DeepPartial<CreateAddressDto>) {
+    const address = await this.addressesRepository.getById(id);
+    if (!address) {
+      throw new NotFoundException('No se encontró la dirección o el ID es inválido');
+    }
+  
+    const { city, province, ...otherFields } = data;
+    let updatedCity = address.city;
+  
+    if (city || province) {
+      const provinceToUse = province
+        ? await this.provincesService.findOneByName(province)
+        : address.city.province;
+  
+      if (!provinceToUse) {
+        throw new NotFoundException('Provincia no encontrada');
+      }
+
+      const cityNameToUse = city ?? address.city.name;
+  
+      updatedCity = await this.citiesService.findOrCreate(cityNameToUse, provinceToUse);
+    }
+  
+    const updatedData: DeepPartial<Address> = {
+      ...otherFields,
+      city: updatedCity,
+    };
+  
+    const result = await this.addressesRepository.update(id, updatedData);
+    if(!result.affected) throw new InternalServerErrorException('Error desconcodio al itnetnar actulizar la dirección')
+      return await this.addressesRepository.getById(id)
   }
 
   async remove(id: string) {

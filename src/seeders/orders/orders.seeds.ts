@@ -90,6 +90,8 @@ export class OrdersSeeder {
           const randomIndex = Math.floor(Math.random() * allAddresses.length);
           const randomAddress = allAddresses[randomIndex];
           
+          const isFinished = installationStatus === InstallationStatus.FINISHED;
+          
           return manager.create(Installation, {
             ...installationData,
             status: installationStatus,
@@ -98,6 +100,8 @@ export class OrdersSeeder {
             address: randomAddress,
             coordinator: null,
             installers: null,
+            notes: isFinished ? installationData.notes : undefined,
+            images: isFinished ? installationData.images : [],
           });
         });
       });

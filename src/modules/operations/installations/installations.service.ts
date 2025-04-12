@@ -26,6 +26,7 @@ import { StatusChangeDto } from './dto/change-status.dto';
 import { log } from 'console';
 import { InstallationQueryOptionsDto } from './dto/installation-query-options.dto';
 import { PaginatedResponseDto } from 'src/common/entities/paginated-response.dto';
+import { UserRole } from 'src/modules/user-role/entities/user-role.entity';
 
 @Injectable()
 export class InstallationsService {
@@ -105,7 +106,9 @@ export class InstallationsService {
       }
     
       let installers: Installer[] = [];
-      
+      let newCoordinator: UserRole | null = null
+      let newAddress: Address | null = null
+
       if (data.installersIds && data.installersIds.length > 0) {
         installers = await Promise.all(
           data.installersIds.map(async (installerId) => {
@@ -125,6 +128,14 @@ export class InstallationsService {
           throw new BadRequestException("La nueva fecha de inicio debe ser posterior a la fecha actual de la instalación");
         }
       }
+
+      if(data.coordinatorId) {
+        newCoordinator = await this.userRoleService.getByIdWhenRole(data.coordinatorId, RoleEnum.COORDINATOR)
+      }
+
+      if(data.addressId && data.addressData) {
+        newAddress = await this.addressService.update(data.addressId, data.addressData )
+      }
     
       const updateData: Partial<Installation> = {};
       if (data.startDate) {
@@ -132,6 +143,12 @@ export class InstallationsService {
       }
       if (installers.length > 0) {
         updateData.installers = installers;
+      }
+      if(newAddress) {
+        updateData.address = newAddress
+      }
+      if(newCoordinator) {
+        updateData.coordinator = newCoordinator
       }
 
       const updatedInstallation = await this.installationsRepository.update(id, updateData);
