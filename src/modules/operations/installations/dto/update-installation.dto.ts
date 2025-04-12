@@ -1,9 +1,7 @@
-import { OmitType, PartialType } from '@nestjs/mapped-types';
-import { CreateInstallationDto } from './create-installation.dto';
-import { InstallationDataRequesDto } from '../../orders/dto/installation-data.request.dto';
-import { Coordinator } from 'src/modules/coordinators/entities/coordinator.entity';
-import { IsArray, IsOptional, ValidateNested } from 'class-validator';
+import { IsArray, IsOptional, IsUUID, ValidateNested } from 'class-validator';
 import { IsISO8601 } from '@nestjs/class-validator';
+import { DeepPartial } from 'typeorm';
+import { CreateAddressDto } from 'src/modules/locations/address/dto/create-address.dto';
 
 export class UpdateInstallationDto {
 
@@ -14,4 +12,15 @@ export class UpdateInstallationDto {
     @IsOptional()
     @IsArray()
     installersIds: string[]
+
+    @IsUUID()
+    @IsOptional()
+    coordinatorId?: string
+
+    @IsUUID()
+    @IsOptional()
+    addressId?: string
+
+    @IsOptional()
+    addressData?: DeepPartial<CreateAddressDto>
 }

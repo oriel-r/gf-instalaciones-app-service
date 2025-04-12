@@ -49,7 +49,7 @@ export class UserController {
     
     const result = await this.userService.findFilterSort(query);
 
-    return new PaginatedResponseDto<User>(result, baseUrl  ,query.page,query.limit)
+    return new PaginatedResponseDto<User>(result, query.page, query.limit,baseUrl)
   }
  
   @ApiOperation({ summary: 'Buscar usuario por email' })

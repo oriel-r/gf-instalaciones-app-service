@@ -72,7 +72,7 @@ export class AddressController {
   @HttpCode(HttpStatus.OK)
   @HttpCode(HttpStatus.NOT_FOUND)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAddressDto: DeepPartial<Address>) {
+  update(@Param('id') id: string, @Body() updateAddressDto: DeepPartial<CreateAddressDto>) {
     return this.AddressService.update(id, updateAddressDto);
   }
 
