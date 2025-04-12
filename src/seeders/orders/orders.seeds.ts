@@ -12,13 +12,13 @@ export class OrdersSeeder {
     }
 
     await appDataSource.transaction(async (manager) => {
-      // 1. Se recuperan todas las direcciones existentes (se supone que ya fueron sembradas)
+      // 1. Recuperar todas las direcciones existentes (se supone que ya fueron sembradas)
       const allAddresses = await manager.find(Address, { relations: ['city'] });
       if (allAddresses.length === 0) {
         throw new Error("No se encontraron direcciones en la base de datos");
       }
       
-      // 2. Se crean las órdenes utilizando los mocks
+      // 2. Crear las órdenes utilizando los mocks
       const orders = ordersMock.map((orderData) =>
         manager.create(Order, { 
           ...orderData, 
@@ -31,60 +31,62 @@ export class OrdersSeeder {
       const savedOrders = await manager.save(orders);
       console.log('Orders created:', savedOrders.length);
       
-      // 3. Para cada orden se generan entre 1 y 4 instalaciones
-      //    Y se determina aleatoriamente si la orden está completada, parcialmente completada o sin iniciar.
+      // 3. Para cada orden se generan entre 1 y 10 instalaciones y se determina su estado
       const installationsToInsert = savedOrders.flatMap((order) => {
-        const count = Math.floor(Math.random() * 10) + 1; // entre 1 y 4 instalaciones
+        // Se genera un número aleatorio entre 1 y 10 instalaciones
+        const count = Math.floor(Math.random() * 10) + 1;
         const installationMocks = createInstallationMocks(order.title, count);
         
         // Se decide el estado de la orden de forma aleatoria:
-        // - < 0.33: completa (todas las instalaciones terminadas)
-        // - 0.33 a 0.66: parcialmente completada (algunas terminadas)
-        // - >= 0.66: sin iniciar
+        // - < 0.33: Orden completada (todas las instalaciones terminadas)
+        // - 0.33 a 0.66: Orden parcialmente completada (algunas terminadas)
+        // - >= 0.66: Orden sin iniciar
         const orderState = Math.random();
         let completedCount = 0;
         if (orderState < 0.33) {
-          // Orden completada
+          // Orden completada: todas las instalaciones terminadas
           order.completed = true;
           order.progress = 100.00;
-          order.installationsFinished = `${count}/${count}`;
-          order.endDate = new Date();
           completedCount = count;
         } else if (orderState < 0.66) {
-          // Orden parcialmente completada
+          // Orden parcialmente completada: asegurar que haya al menos 1 terminada y menor al total.
           if (count > 1) {
-            completedCount = Math.floor(Math.random() * (count - 1)) + 1; // al menos 1, pero menor al total
+            completedCount = Math.floor(Math.random() * (count - 1)) + 1;
           } else {
             completedCount = 0;
           }
           order.completed = false;
           order.progress = Number(((completedCount / count) * 100).toFixed(2));
-          order.installationsFinished = `${completedCount}/${count}`;
-          order.endDate = completedCount > 0 ? new Date() : null;
         } else {
           // Orden sin iniciar
           order.completed = false;
           order.progress = 0.00;
-          order.installationsFinished = `0/${count}`;
-          order.endDate = null;
+          completedCount = 0;
         }
+        // Actualizar el campo installationsFinished con el conteo correcto
+        order.installationsFinished = `${completedCount}/${count}`;
+        order.endDate = (order.completed || completedCount > 0) ? new Date() : null;
         
-        // Generación de las instalaciones para cada orden
+        // Generar instalaciones para la orden
         return installationMocks.map((installationData, idx) => {
-          let installationStatus = installationData.status;
+          let installationStatus: InstallationStatus;
           let installationEndDate = installationData.endDate;
           
           if (order.completed) {
-            // Para órdenes completadas, se fuerzan todas a FINISHED
+            // Para órdenes completadas: todas las instalaciones terminadas
             installationStatus = InstallationStatus.FINISHED;
             installationEndDate = installationData.endDate || new Date();
           } else if (!order.completed && completedCount > 0 && idx < completedCount) {
-            // Para órdenes parciales, los primeros "completedCount" se marcan como FINISHED
+            // Para órdenes parcialmente completadas: las primeras "completedCount" se marcan como terminadas
             installationStatus = InstallationStatus.FINISHED;
             installationEndDate = installationData.endDate || new Date();
+          } else {
+            // El resto se marcan como pendientes
+            installationStatus = InstallationStatus.PENDING;
+            installationEndDate = undefined;
           }
           
-          // Se selecciona una dirección aleatoria para la instalación
+          // Seleccionar una dirección aleatoria de entre todas disponibles
           const randomIndex = Math.floor(Math.random() * allAddresses.length);
           const randomAddress = allAddresses[randomIndex];
           
@@ -103,7 +105,7 @@ export class OrdersSeeder {
       const savedInstallations = await manager.save(installationsToInsert);
       console.log('Installations created:', savedInstallations.length);
       
-      // 4. Se guardan nuevamente las órdenes para actualizar su información
+      // 4. Guardar nuevamente las órdenes para actualizar la información final
       await manager.save(savedOrders);
     });
   }
