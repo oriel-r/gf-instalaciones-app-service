@@ -24,6 +24,8 @@ import { InstallationToReviewDto } from 'src/modules/notifications/dto/installat
 import { UpdateInstallationDto } from './dto/update-installation.dto';
 import { StatusChangeDto } from './dto/change-status.dto';
 import { log } from 'console';
+import { InstallationQueryOptionsDto } from './dto/installation-query-options.dto';
+import { PaginatedResponseDto } from 'src/common/entities/paginated-response.dto';
 
 @Injectable()
 export class InstallationsService {
@@ -74,10 +76,16 @@ export class InstallationsService {
     return {newData: data}
   }
 
-  async findAll() {
-    const installations = await this.installationsRepository.get()
-    if(!installations.length) throw new NotFoundException('No se encontraron isntalaciones')
-      return installations
+  async findAll(rolesIds?: string[], query?: InstallationQueryOptionsDto) {
+      
+    const result = await this.installationsRepository.get()
+      return result
+
+  }
+
+  async filterFromOrder(orderId: string, query: InstallationQueryOptionsDto) {
+      const result = await this.installationsRepository.getAllByOrder(orderId, query)
+      return new PaginatedResponseDto(result, query.page, query.limit)
   }
 
   async findOne(id: string) {
