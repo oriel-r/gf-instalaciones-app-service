@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, UploadedFiles, UseIn
 import { InstallationsService } from './installations.service';
 import { UpdateInstallationDto } from './dto/update-installation.dto';
 import { Installation } from './entities/installation.entity';
-import { ApiBody, ApiOperation, ApiProperty, ApiResponse } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiProperty, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { StatusChangeDto } from './dto/change-status.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { FilesPipe } from 'src/common/pipes/file/files-pipe';
@@ -13,13 +13,39 @@ import { InstallationQueryOptionsDto } from './dto/installation-query-options.dt
 export class InstallationsController {
   constructor(private readonly installationsService: InstallationsService) {}
 
+  @ApiOperation({
+    summary: 'taerse todas las intalaciones',
+    description: 'no hay que pasarle nada'
+  })
+  @ApiResponse({
+    status: HttpStatus.OK, type: [Installation]
+  })
+  @HttpCode(HttpStatus.OK)
+  @HttpCode(HttpStatus.BAD_REQUEST)
   @Get()
-  findAll(@Query(new QueryOptionsPipe(InstallationQueryOptionsDto)) query: InstallationQueryOptionsDto) {
-    return this.installationsService.findAll(query, undefined);
+  async getAll() {
+    return await this.installationsService.getAll()
+  }
+
+  @ApiOperation({
+    summary: 'Traer y filtrar instalaciones',
+    description: 'este si acepta querys y devuelve resultados paginados'
+  })
+  @ApiQuery({
+    type: InstallationQueryOptionsDto
+  })
+  @ApiResponse({
+    status: HttpStatus.OK, type: [Installation]
+  })
+  @HttpCode(HttpStatus.OK)
+  @HttpCode(HttpStatus.BAD_REQUEST)
+  @Get('filter')
+  async findAll(@Query(new QueryOptionsPipe(InstallationQueryOptionsDto)) query: InstallationQueryOptionsDto) {
+    return await this.installationsService.findAll(query, undefined);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  async findOne(@Param('id') id: string) {
     return this.installationsService.findOne(id);
   }
 
@@ -64,12 +90,6 @@ export class InstallationsController {
     summary: 'Subida de imagenes para revision',
   })
   @UseInterceptors(FilesInterceptor('files', 10))
-  //@UsePipes(
-  //    new FilesPipe(1000, 10000000, [
- //       'image/png',
- //       'image/jpeg',
- //     ]),
- //   )
   @Post(':id/images')
   async loadImages(
     @Param('id') id: string, 
