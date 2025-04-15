@@ -14,9 +14,6 @@ export class FilesPipe implements PipeTransform {
 
 
   transform(files: Express.Multer.File[], metadata: ArgumentMetadata) {
-    console.log(files)
-    console.log('Is Array' + !Array.isArray(files))
-    console.log(files.length)
     if (!Array.isArray(files) || files.length === 0) {
       throw new BadRequestException('Debe subir al menos un archivo.');
     }
