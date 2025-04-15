@@ -177,7 +177,6 @@ export class InstallationsService {
     try {
   
       const result = await this.installationsRepository.update(id, updateInstallationDto)
-      console.log(result)
       if(!result) throw new InternalServerErrorException('No se pudo actualizar el estado de la orden')
       
         if (result.status !== installation.status) {
