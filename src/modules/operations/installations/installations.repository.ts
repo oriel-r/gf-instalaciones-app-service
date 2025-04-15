@@ -86,8 +86,8 @@ export class InstallationsRepository {
         .skip((query.page - 1) * query.limit)
         .take(query.limit);
         
-        return await queryBuilder.getManyAndCount()
-
+        const result = await queryBuilder.getManyAndCount()
+        return result
     }
 
     async getById(id: string) {

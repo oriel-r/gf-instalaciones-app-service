@@ -27,6 +27,7 @@ import { log } from 'console';
 import { InstallationQueryOptionsDto } from './dto/installation-query-options.dto';
 import { PaginatedResponseDto } from 'src/common/entities/paginated-response.dto';
 import { UserRole } from 'src/modules/user-role/entities/user-role.entity';
+import { PaginationResult } from 'src/common/interfaces/pagination-result.interface';
 
 @Injectable()
 export class InstallationsService {
@@ -80,13 +81,17 @@ export class InstallationsService {
   async findAll( query: InstallationQueryOptionsDto, coordinatorId?: string, installerId?: string) {
       
     const result = await this.installationsRepository.getAllByOrder(query, undefined, coordinatorId, installerId)
-      return result
+     return new PaginatedResponseDto<Installation>(result, query.page, query.limit)
 
   }
 
+  async getAll() {
+    return await this,this.installationsRepository.get()
+  }
+
   async filterFromOrder(orderId: string, query: InstallationQueryOptionsDto) {
-      const result = await this.installationsRepository.getAllByOrder(query, orderId)
-      return new PaginatedResponseDto(result, query.page, query.limit)
+      const result: PaginationResult<Installation> = await this.installationsRepository.getAllByOrder(query, orderId)
+      return new PaginatedResponseDto<Installation>(result, query.page, query.limit)
   }
 
   async findOne(id: string) {
