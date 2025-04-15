@@ -11,7 +11,7 @@ import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { ImagesService } from './images.service';
 import { FilesPipe } from 'src/common/pipes/file/files-pipe';
 import { FilePipe } from 'src/common/pipes/file/file.pipe';
-import { FileUploadService } from 'src/services/files/file-upload.service';
+import { FileUploadService } from 'src/services/file-upload/file-upload.service';
 
 @Controller('images')
 export class ImagesController {

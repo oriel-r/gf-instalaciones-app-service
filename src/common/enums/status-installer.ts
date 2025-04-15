@@ -1,5 +1,5 @@
 export enum StatusInstaller {
-    InProcess = 'EN_PROCESO',
+    InProcess = 'EN PROCESO',
     Approved = 'APROBADO',
     Refused = 'RECHAZADO'
 }

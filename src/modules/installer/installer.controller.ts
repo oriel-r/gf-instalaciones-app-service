@@ -6,15 +6,15 @@ import {
   Param,
   Patch,
   Post,
-  Put,
-  Query,
-  UseGuards,
+  Put
 } from '@nestjs/common';
 import { InstallerService } from './installer.service';
 import { CreateInstallerDto } from './dto/create-installer.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Installer } from './entities/installer.entity';
 import { UpdateInstallerDto } from './dto/update-installer';
+import { StatusInstaller } from 'src/common/enums/status-installer';
+import { StatusInstallerDto } from './dto/status-update-installer.dto';
 
 @ApiTags('Installer')
 @Controller('installer')
@@ -61,7 +61,7 @@ export class InstallerController {
     return await this.installerService.disable(id);
   }
 
-   @ApiOperation({ summary: 'Restaurar un instalador deshabilitado' })
+  @ApiOperation({ summary: 'Restaurar un instalador deshabilitado' })
   @ApiResponse({
     status: 200,
     description: 'El instalador ha sido restaurado correctamente',
@@ -81,5 +81,23 @@ export class InstallerController {
   @Get(':id')
   async findById(@Param('id') id: string) {
     return await this.installerService.findById(id);
+  }
+
+  @ApiOperation({ summary: 'Eliminar un instalador' })
+  @ApiResponse({
+    status: 200,
+    description: 'El instalador ha sido eliminado correctamente',
+  })
+  @Delete(':id')
+  async delete(@Param('id') id: string) {
+    return await this.installerService.delete(id);
+  }
+
+  @Patch(':id/status')
+  async updateStatus(
+    @Body() dto: StatusInstallerDto,
+    @Param('id') installerId: string, 
+  ) {
+    return await this.installerService.updateStatus(installerId, dto.status);
   }
 }

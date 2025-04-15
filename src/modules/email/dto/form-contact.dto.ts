@@ -1,9 +1,9 @@
 import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
-export class formContactDto {
+export class FormContactDto {
   /* title: 'Remitente'
-    description: 'Dirección del usuario'
-    example: 'user1@example.com' */
+  description: 'Dirección del usuario'
+  example: 'user1@example.com' */
   @IsString()
   @IsEmail()
   @IsNotEmpty()

@@ -18,6 +18,7 @@ import { RoleEnum } from 'src/common/enums/user-role.enum';
 import { Role } from '../user/entities/roles.entity';
 import { InstallerResponseDto } from './dto/installer-response.dto';
 import { User } from '../user/entities/user.entity';
+import { StatusInstaller } from 'src/common/enums/status-installer';
 
 @ApiTags('Installer')
 @Injectable()
@@ -33,9 +34,13 @@ export class InstallerService {
   ) {}
 
   async findAll() {
-    return await this.installerRepository.find({
+    const installers = await this.installerRepository.find({
       relations: ['user','coordinator'],
     });
+    
+    if (!installers) throw new NotFoundException('Usuarios no encontrados');
+
+    return installers;
   }
 
   async createInstaller(createInstallerDto: CreateInstallerDto) {
@@ -113,9 +118,17 @@ export class InstallerService {
     updateInstaller: UpdateInstallerDto,
     installerId: string,
   ) {
+    delete updateInstaller.status;
     const installer = await this.findById(installerId);
     Object.assign(installer, updateInstaller);
     return await this.installerRepository.save(installer);
+  }
+
+  async updateStatus(installerId: string, status: StatusInstaller) {
+    const installer = await this.findById(installerId);
+    installer.status = status;
+    await this.installerRepository.save(installer);
+    return {message: 'Estado actualizado correctamente'}
   }
 
   async disable(id: string) {
@@ -160,4 +173,10 @@ export class InstallerService {
   
     return installer;
   } 
+
+  async delete(id: string) {
+    const installer = await this.findById(id);
+    await this.installerRepository.remove(installer);
+    return { message: 'Instalador eliminado correctamente.' };
+  }
 }

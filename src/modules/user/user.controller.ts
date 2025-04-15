@@ -26,7 +26,7 @@ import { UserWithRolesDto } from './dto/user-with-roles.dto';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @ApiOperation({ summary: 'Obtener todos los usuarios activos' })
+  @ApiOperation({ summary: 'Obtener todos los usuarios' })
   @ApiResponse({ status: 200, description: 'Lista de usuarios obtenida.', type: [User] })
   @Get()
   async findAll(): Promise<UserWithRolesDto[]> {

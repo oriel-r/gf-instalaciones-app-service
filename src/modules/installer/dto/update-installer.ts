@@ -1,7 +1,8 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { CreateInstallerDto } from './create-installer.dto';
-import { StatusInstaller } from 'src/common/enums/status-installer';
+import { Exclude } from 'class-transformer';
 
 export class UpdateInstallerDto extends PartialType(CreateInstallerDto) {
-    status?: StatusInstaller;
+    @Exclude()
+    status: never;
 }

@@ -68,5 +68,5 @@ export class CoordinatorsService {
     });
     if (!coordinator) throw new NotFoundException('Coordinador no encontrado');
     return coordinator;
-    }
+  }
 }
