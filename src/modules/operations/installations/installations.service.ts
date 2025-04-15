@@ -77,15 +77,15 @@ export class InstallationsService {
     return {newData: data}
   }
 
-  async findAll(rolesIds?: string[], query?: InstallationQueryOptionsDto) {
+  async findAll( query: InstallationQueryOptionsDto, coordinatorId?: string, installerId?: string) {
       
-    const result = await this.installationsRepository.get()
+    const result = await this.installationsRepository.getAllByOrder(query, undefined, coordinatorId, installerId)
       return result
 
   }
 
   async filterFromOrder(orderId: string, query: InstallationQueryOptionsDto) {
-      const result = await this.installationsRepository.getAllByOrder(orderId, query)
+      const result = await this.installationsRepository.getAllByOrder(query, orderId)
       return new PaginatedResponseDto(result, query.page, query.limit)
   }
 
@@ -172,30 +172,39 @@ export class InstallationsService {
     try {
   
       const result = await this.installationsRepository.update(id, updateInstallationDto)
+      console.log(result)
       if(!result) throw new InternalServerErrorException('No se pudo actualizar el estado de la orden')
       
-      if (result.status !== installation.status && result.order.client && result.coordinator?.id && result.address && result.installers ) {
-
-        switch (result.status) {
-
-          case InstallationStatus.IN_PROCESS:
-            this.emitGeneralUpdate(
-              result.order.client?.id,
-              result.coordinator?.id,
-              result.address
-              )
-            break
-          case InstallationStatus.POSTPONED:
-            this.emitPostponedUpdate(result.coordinator.id, result.address)
-            break
-          case InstallationStatus.CANCEL:
-              this.emitCancelledUpdate(result.order.client.id, result.installers)
-              break
-          default:
-            this.emitApprovedUpdate(result.order.client.id, result.installers, result.address)
+        if (result.status !== installation.status) {
+          switch (result.status) {
+            case InstallationStatus.IN_PROCESS:
+              if(result.order?.client && result.coordinator?.id && result.address) {
+                this.emitGeneralUpdate(
+                  result.order.client.id,
+                  result.coordinator.id,
+                  result.address
+                );
+              }
+              break;
+            case InstallationStatus.POSTPONED:
+              if(result.coordinator?.id && result.address) {
+                this.emitPostponedUpdate(result.coordinator.id, result.address);
+              }
+              break;
+            case InstallationStatus.CANCEL:
+              if(result.order?.client && result.installers) {
+                this.emitCancelledUpdate(result.order.client.id, result.installers);
+              }
+              break;
+            default:
+              if(result.order?.client && result.installers && result.address) {
+                this.emitApprovedUpdate(result.order.client.id, result.installers, result.address);
+              }
           }
-      return await this.installationsRepository.getById(id)
-    }
+          const newInstallation = await this.installationsRepository.getById(id);
+          return newInstallation;
+        }
+        return result;
     } catch (err){
       console.log(err)
     }
@@ -225,10 +234,12 @@ export class InstallationsService {
     );
 
     if(!imagesUrls.length ) throw new ServiceUnavailableException('Hubo un problema al subir las imagenes')
-    const result = await this.installationsRepository.update(installation.id, {status: InstallationStatus.TO_REVIEW, images: imagesUrls})
+    const result = await this.installationsRepository.update(id, {status: InstallationStatus.TO_REVIEW, images: imagesUrls})
     if(!result) throw new InternalServerErrorException('No se pudo cambiar el estado')
     
-    this.emitToReviewUpdate(installation.order.client!.id, installation.coordinator!.id, installation.address)
+    if(installation.order.client?.id && installation.coordinator?.id) {
+      this.emitToReviewUpdate(installation.order.client.id, installation.coordinator.id, installation.address)
+    }
     return result
   }
 

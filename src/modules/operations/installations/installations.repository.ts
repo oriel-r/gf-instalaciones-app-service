@@ -31,18 +31,40 @@ export class InstallationsRepository {
         return await this.installationsRepository.find()
     }
 
-    async getAllByOrder(id: string, query: InstallationQueryOptionsDto) {
+    async getAllByOrder(query: InstallationQueryOptionsDto, orderId?: string, coordinatorId?: string, installerId?: string) {
         const queryBuilder = this.installationsRepository.
         createQueryBuilder('installations')
-        .innerJoin('installations.order', 'order', 'order.id = :orderId', {orderId: id})
-        .leftJoinAndSelect('installations.coordinator', 'coordinator')
-        .leftJoinAndSelect('coordinator.user', 'coordinatorUser')
-        .leftJoinAndSelect('installations.installers', 'installers')
-        .leftJoinAndSelect('installers.user', 'installerUser') 
         .leftJoinAndSelect('installations.address', 'address')
         .leftJoinAndSelect('address.city', 'city')
-        .leftJoinAndSelect('city.province', 'province')
+        .leftJoinAndSelect('city.province', 'province');
+    
+        if (orderId) {
+            queryBuilder.innerJoin('installations.order', 'order', 'order.id = :orderId', { orderId });
+        } else {
+            
+            queryBuilder
+            .leftJoinAndSelect('installations.coordinator', 'coordinator')
+            .leftJoinAndSelect('coordinator.user', 'coordinatorUser')
+            .leftJoinAndSelect('installations.installers', 'installers')
+            .leftJoinAndSelect('installers.user', 'installerUser');
+        
+            if (coordinatorId || installerId) {
+            const conditions: string[] = [];
+            const params: any = {};
+        
+            if (coordinatorId) {
+                conditions.push('coordinator.id = :coordinatorId');
+                params.coordinatorId = coordinatorId;
+            }
+            if (installerId) {
+                conditions.push('installers.id = :installerId');
+                params.installerId = installerId;
+            }
 
+            queryBuilder.andWhere(conditions.join(' OR '), params);
+            }
+        }
+        
         Object.entries(this.filterConditions).forEach(([key, condition]) => {
             if (query[key]) {
               queryBuilder.andWhere(condition, { [key]: query[key] });
@@ -82,10 +104,10 @@ export class InstallationsRepository {
           Object.assign(installation, data);
           return await this.installationsRepository.save(installation);
         }
-      
+        
         const result = await this.installationsRepository.update(id, data);
         if (!result.affected) return null;
-        return this.getById(id);
+        return await this.getById(id);
       }
       
     async softDelete(id: string) {
