@@ -1,21 +1,21 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UploadedFiles, UseInterceptors, UsePipes, HttpStatus, HttpCode } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UploadedFiles, UseInterceptors, UsePipes, HttpStatus, HttpCode, Query } from '@nestjs/common';
 import { InstallationsService } from './installations.service';
-import { CreateInstallationDto } from './dto/create-installation.dto';
 import { UpdateInstallationDto } from './dto/update-installation.dto';
-import { DeepPartial } from 'typeorm';
 import { Installation } from './entities/installation.entity';
 import { ApiBody, ApiOperation, ApiProperty, ApiResponse } from '@nestjs/swagger';
 import { StatusChangeDto } from './dto/change-status.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { FilesPipe } from 'src/common/pipes/file/files-pipe';
+import { QueryOptionsPipe } from 'src/common/pipes/query-options/query-options.pipe';
+import { InstallationQueryOptionsDto } from './dto/installation-query-options.dto';
 
 @Controller('installations')
 export class InstallationsController {
   constructor(private readonly installationsService: InstallationsService) {}
 
   @Get()
-  findAll() {
-    return this.installationsService.findAll();
+  findAll(@Query(new QueryOptionsPipe(InstallationQueryOptionsDto)) query: InstallationQueryOptionsDto) {
+    return this.installationsService.findAll(query, undefined);
   }
 
   @Get(':id')
@@ -64,15 +64,16 @@ export class InstallationsController {
     summary: 'Subida de imagenes para revision',
   })
   @UseInterceptors(FilesInterceptor('files', 10))
-  @UsePipes(
-      new FilesPipe(1000, 10000000, [
-        'image/png',
-        'image/jpeg',
-        'application/pdf',
-      ]),
-    )
+  //@UsePipes(
+  //    new FilesPipe(1000, 10000000, [
+ //       'image/png',
+ //       'image/jpeg',
+ //     ]),
+ //   )
   @Post(':id/images')
-  async loadImages(@Param('id') id: string, @UploadedFiles() files: Express.Multer.File[]) {
+  async loadImages(
+    @Param('id') id: string, 
+    @UploadedFiles( new FilesPipe(1000, 10000000, ['image/png','image/jpeg',])) files: Express.Multer.File[]) {
     return await this.installationsService.sendToReview(id, files);
   }
 
