@@ -40,7 +40,7 @@ export class InstallationsRepository {
     
         if (orderId) {
             queryBuilder.innerJoin('installations.order', 'order', 'order.id = :orderId', { orderId });
-        } else {
+        }
             
             queryBuilder
             .leftJoinAndSelect('installations.coordinator', 'coordinator')
@@ -48,22 +48,22 @@ export class InstallationsRepository {
             .leftJoinAndSelect('installations.installers', 'installers')
             .leftJoinAndSelect('installers.user', 'installerUser');
         
-            if (coordinatorId || installerId) {
-            const conditions: string[] = [];
-            const params: any = {};
+        if (coordinatorId || installerId) {
+        const conditions: string[] = [];
+        const params: any = {};
         
-            if (coordinatorId) {
-                conditions.push('coordinator.id = :coordinatorId');
-                params.coordinatorId = coordinatorId;
-            }
-            if (installerId) {
-                conditions.push('installers.id = :installerId');
-                params.installerId = installerId;
-            }
+        if (coordinatorId) {
+            conditions.push('coordinator.id = :coordinatorId');
+              params.coordinatorId = coordinatorId;
+        }
+        if (installerId) {
+            conditions.push('installers.id = :installerId');
+            params.installerId = installerId;
+        }
 
             queryBuilder.andWhere(conditions.join(' OR '), params);
-            }
         }
+        
         
         Object.entries(this.filterConditions).forEach(([key, condition]) => {
             if (query[key]) {
