@@ -89,7 +89,12 @@ export class OrdersService {
 
   async update(id: string, updateOrderDto: DeepPartial<Order>) {
     const order = await this.findOne(id)
-    if(order) 
+    if(!order) throw new NotFoundException('No se encontro la orden')
+    if(updateOrderDto.completed && order.progress !== 100.00) {
+      throw new BadRequestException(
+        `No se puede marcar la orden ${order.orderNumber} como completada, quedan instalciones a Finalizar`
+      )
+    }
       return this.ordersRepository.update(id, updateOrderDto)
   }
 
