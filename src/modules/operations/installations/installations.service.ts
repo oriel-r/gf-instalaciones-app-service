@@ -28,6 +28,8 @@ import { InstallationQueryOptionsDto } from './dto/installation-query-options.dt
 import { PaginatedResponseDto } from 'src/common/entities/paginated-response.dto';
 import { UserRole } from 'src/modules/user-role/entities/user-role.entity';
 import { PaginationResult } from 'src/common/interfaces/pagination-result.interface';
+import { TemporalUploadService } from 'src/services/temporal-file-upload/temporal-file-upload.service';
+
 
 @Injectable()
 export class InstallationsService {
@@ -38,7 +40,8 @@ export class InstallationsService {
     private readonly imageService: ImagesService,
     private readonly userRoleService: UserRoleService,
     private readonly installerService: InstallerService,
-    private eventEmitter: EventEmitter2
+    private eventEmitter: EventEmitter2,
+    private readonly temporalUploadService: TemporalUploadService
   ){}
   
   async createFromOrder(createInstallationDto: CreateInstallationDto) {
@@ -229,7 +232,7 @@ export class InstallationsService {
 
     const imagesUrls: string[] = await Promise.all(
       files.map(async (file) => {
-        const fileUrl = await this.fileUploadService.uploadFile(file);
+        const fileUrl = await this.temporalUploadService.uploadFile(file.buffer);
         await this.imageService.saveFile({
           url: fileUrl,
           mimetype: file.mimetype,
