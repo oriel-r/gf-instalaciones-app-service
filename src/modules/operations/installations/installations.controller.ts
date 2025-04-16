@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UploadedFiles, UseInterceptors, UsePipes, HttpStatus, HttpCode, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UploadedFiles, UseInterceptors, UsePipes, HttpStatus, HttpCode, Query, Req } from '@nestjs/common';
 import { InstallationsService } from './installations.service';
 import { UpdateInstallationDto } from './dto/update-installation.dto';
 import { Installation } from './entities/installation.entity';
@@ -8,6 +8,7 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { FilesPipe } from 'src/common/pipes/file/files-pipe';
 import { QueryOptionsPipe } from 'src/common/pipes/query-options/query-options.pipe';
 import { InstallationQueryOptionsDto } from './dto/installation-query-options.dto';
+import { Request } from 'express';
 
 @Controller('installations')
 export class InstallationsController {
@@ -40,7 +41,11 @@ export class InstallationsController {
   @HttpCode(HttpStatus.OK)
   @HttpCode(HttpStatus.BAD_REQUEST)
   @Get('filter')
-  async findAll(@Query(new QueryOptionsPipe(InstallationQueryOptionsDto)) query: InstallationQueryOptionsDto) {
+  async findAll(
+    @Query(new QueryOptionsPipe(InstallationQueryOptionsDto)) query: InstallationQueryOptionsDto,
+    @Req() req: Request
+  ) {
+     const baseUrl = `${req.protocol}://${req.host}${req.path}` + "?" + `${new URLSearchParams(Object.entries(query).map(([k, v]) => [k, String(v)])).toString()}`
     return await this.installationsService.findAll(query, undefined);
   }
 
