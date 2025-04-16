@@ -9,6 +9,7 @@ import { UserRoleModule } from 'src/modules/user-role/user-role.module';
 import { InstallerModule } from 'src/modules/installer/installer.module';
 import { FileUploadService } from 'src/services/files/file-upload.service';
 import { ImagesModule } from 'src/modules/images/images.module';
+import { TemporalUploadService } from 'src/services/temporal-file-upload/temporal-file-upload.service';
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import { ImagesModule } from 'src/modules/images/images.module';
     ImagesModule
   ],
   controllers: [InstallationsController],
-  providers: [InstallationsService, InstallationsRepository, FileUploadService],
+  providers: [InstallationsService, InstallationsRepository, FileUploadService, TemporalUploadService],
   exports: [InstallationsService, InstallationsRepository]
 })
 export class InstallationsModule {}
