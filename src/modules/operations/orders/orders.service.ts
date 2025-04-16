@@ -11,7 +11,7 @@ import { InstallationStatus } from 'src/common/enums/installations-status.enum';
 import { calculateProgress } from 'src/common/helpers/calculate-progress';
 import { UpdateInstallationStatus } from './dto/update-installation-status.dto';
 import { GetOrderResponseDto } from './dto/get-order-response.dto';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { UserRoleService } from 'src/modules/user-role/user-role.service';
 import { RoleEnum } from 'src/common/enums/user-role.enum';
 import { OrderQueryOptionsDto } from './dto/orders-query-options.dto';
@@ -89,7 +89,8 @@ export class OrdersService {
 
   async update(id: string, updateOrderDto: DeepPartial<Order>) {
     const order = await this.findOne(id)
-    if(order) return this.ordersRepository.update(id, updateOrderDto)
+    if(order) 
+      return this.ordersRepository.update(id, updateOrderDto)
   }
 
   async remove(id: string) {
@@ -102,11 +103,14 @@ export class OrdersService {
       return new DeleteResponse('orden', id) 
   }
 
-  private async updateProgress(id: string) {
-    const installations = (await this.findOne(id)).installations
+  @OnEvent(NotifyEvents.INSTALLATION_APROVE)
+  async updateProgress({ orderId }: InstallationApprovedDto) {
+    console.log(orderId)
+    const installations = (await this.findOne(orderId)).installations
+    console.log(installations)
     const progress = calculateProgress(installations)
     const installationsFinished = calculateProgressFraction(installations)
 
-    return await this.update(id, {progress, installationsFinished})
+    return await this.update(orderId, {progress, installationsFinished})
   }
 }
