@@ -201,8 +201,9 @@ export class InstallationsService {
               }
               break;
             default:
-              if(result.order?.client && result.installers && result.address) {
-                this.emitApprovedUpdate(result.order.client.id, result.installers, result.address);
+              if(result.order && result.order.client && result.installers && result.address) {
+                console.log(result.order.id)
+                this.emitApprovedUpdate(result.order.client.id, result.installers, result.address, result.order.id);
               }
           }
           const newInstallation = await this.installationsRepository.getById(id);
@@ -268,10 +269,10 @@ export class InstallationsService {
     )
   }
   
-  private emitApprovedUpdate(clientId: string, installers: any, address: Address) {
+  private emitApprovedUpdate(clientId: string, installers: any, address: Address, orderId: string) {
     this.eventEmitter.emit(
       NotifyEvents.INSTALLATION_APROVE,
-      new InstallationApprovedDto(clientId, installers, address)
+      new InstallationApprovedDto(clientId, installers, address, orderId)
     )
   }
 
