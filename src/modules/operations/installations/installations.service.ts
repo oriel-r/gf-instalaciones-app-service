@@ -144,6 +144,7 @@ export class InstallationsService {
       if(data.addressId && data.addressData) {
         newAddress = await this.addressService.update(data.addressId, data.addressData )
       }
+
     
       const updateData: Partial<Installation> = {};
       if (data.startDate) {
@@ -178,8 +179,15 @@ export class InstallationsService {
      }
     
     try {
+
+      let result: Installation | null
+
+      if(updateInstallationDto.status === InstallationStatus.CANCEL || updateInstallationDto.status === InstallationStatus.FINISHED) {
+        let today = new Date().toISOString()
+        result = await this.installationsRepository.update(id, {endDate: today})
+      }
   
-      const result = await this.installationsRepository.update(id, updateInstallationDto)
+      result = await this.installationsRepository.update(id, updateInstallationDto)
       if(!result) throw new InternalServerErrorException('No se pudo actualizar el estado de la orden')
       
         if (result.status !== installation.status) {
