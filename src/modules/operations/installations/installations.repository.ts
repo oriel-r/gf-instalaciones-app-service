@@ -28,7 +28,9 @@ export class InstallationsRepository {
     }
 
     async get() {
-        return await this.installationsRepository.find()
+        return await this.installationsRepository.find({
+            relations: ['installers', 'installers.user', 'coordinator', 'coordinator.user', 'address', 'address.city', 'address.city.province', ]
+        })
     }
 
     async getAllByOrder(query: InstallationQueryOptionsDto, orderId?: string, coordinatorId?: string, installerId?: string) {
