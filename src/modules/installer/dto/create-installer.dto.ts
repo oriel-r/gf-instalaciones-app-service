@@ -4,6 +4,10 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { StatusInstaller } from 'src/common/enums/status-installer';
 
 export class CreateInstallerDto {
+  @ApiProperty({
+    description: 'Identificación única del usuario',
+    example: '54nj32kn54325432knjknk7l654',
+  })
   @IsUUID()
   userId: string;
 

@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Delete, Put } from '@nestjs/common';
+import { Controller, Get, Param, Delete } from '@nestjs/common';
 import { AdminService } from './admins.service';
 import { ApiTags } from '@nestjs/swagger';
 
@@ -12,7 +12,7 @@ export class AdminController {
     return await this.adminService.findAll();
   }
 
-  @Get('findById/:id')
+  @Get('byId/:id')
   findOne(@Param('id') id: string) {
     return this.adminService.findOne(id);
   }

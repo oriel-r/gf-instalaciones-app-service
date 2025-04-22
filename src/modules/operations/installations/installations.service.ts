@@ -17,7 +17,6 @@ import { InstallationGeneralUpdate } from 'src/modules/notifications/dto/install
 import { InstallationPostponedDto } from 'src/modules/notifications/dto/installation-postponed.dto';
 import { Address } from 'src/modules/locations/address/entities/address.entity';
 import { InstallationCancelDto } from 'src/modules/notifications/dto/intallation-cancel.dto';
-import { FileUploadService } from 'src/services/files/file-upload.service';
 import { allowedTransitions } from './helpers/allowed-transitions.const';
 import { ImagesService } from 'src/modules/images/images.service';
 import { InstallationToReviewDto } from 'src/modules/notifications/dto/installation-to-review.dto';

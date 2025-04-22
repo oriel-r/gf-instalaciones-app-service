@@ -10,7 +10,6 @@ export class SendEmailDto {
   /*   title: 'Remitente';
   description: 'Dirección de correo electrónico del remitente del mensaje';
   example: 'notificaciones@gf-instalaciones.com'; */
-
   @IsString()
   @IsEmail()
   @IsOptional()

@@ -1,9 +1,17 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  forwardRef,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { UpdateCoordinatorDto } from './dto/update-coordinator.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Coordinator } from './entities/coordinator.entity';
-import { Repository } from 'typeorm';
+import { Admin, QueryRunner, Repository } from 'typeorm';
+import { UserService } from '../user/user.service';
 import { User } from '../user/entities/user.entity';
 
 @ApiTags('Coordinators')
@@ -12,44 +20,43 @@ export class CoordinatorsService {
   constructor(
     @InjectRepository(Coordinator)
     private readonly coordinatorRepository: Repository<Coordinator>,
-    @InjectRepository(User)
-        private readonly userRepository: Repository<User>,
+    @Inject(forwardRef(() => UserService))
+    private readonly userService: UserService,
   ) {}
 
-  async createCoordinator(userId: string): Promise<Coordinator> {
-      const user = await this.userRepository.findOne({
-        where: { id: userId },
-        relations: ['admin'],
-      });
-  
-      if (!user) {
-        throw new NotFoundException('Usuario no encontrado');
-      }
-  
-      if (user.coordinator) {
-        throw new ConflictException('Este usuario ya es administrador');
-      }
-  
-      const newCoordinator = this.coordinatorRepository.create({ user });
-      return await this.coordinatorRepository.save(newCoordinator);
+  async createCoordinatorTransactional(
+    userId: string,
+    queryRunner: QueryRunner,
+  ): Promise<Coordinator> {
+    console.log('🧪 createCoordinatorTransactional > userId:', userId);
+    const user = await queryRunner.manager.findOne(User, {
+      where: { id: userId },
+      relations: ['coordinator'],
+    });
+
+    if (!user) {
+      console.error('❌ Usuario no encontrado para userId:', userId);
+      throw new NotFoundException('Usuario no encontrado');
     }
 
-  async disable(id: string): Promise<void> {
-    const coordinator = await this.findById(id);
-    if (coordinator.disabledAt) {
-      throw new BadRequestException('Este coordinador ya está deshabilitado');
-    }
-  
-    coordinator.disabledAt = new Date();
-    await this.coordinatorRepository.save(coordinator);
+    if (user.coordinator) throw new ConflictException('Ya es coordinador');
+
+    const newCoordinator = queryRunner.manager.create(Coordinator, { user });
+    const cordinator = await queryRunner.manager.save(
+      Coordinator,
+      newCoordinator,
+    );
+
+    console.log('✅ Coordinador creado:', cordinator);
+    return cordinator;
   }
-  
+
   async restore(id: string): Promise<void> {
     const coordinator = await this.findById(id);
     if (!coordinator.disabledAt) {
       throw new BadRequestException('Este coordinador ya está activo');
     }
-  
+
     coordinator.disabledAt = null;
     await this.coordinatorRepository.save(coordinator);
   }
@@ -58,15 +65,33 @@ export class CoordinatorsService {
     return `This action updates a #${id} coordinator`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} coordinator`;
+  async delete(userId: string) {
+    const coordinator = await this.coordinatorRepository.findOne({
+      where: { user: { id: userId } },
+    });
+
+    if (!coordinator) {
+      throw new NotFoundException('Coordinador no encontrado');
+    }
+
+    await this.coordinatorRepository.remove(coordinator);
+    return { message: 'Coordinador eliminado correctamente.' };
   }
 
   async findById(id: string) {
     const coordinator = await this.coordinatorRepository.findOne({
       where: { id },
+      relations: ['user'],
     });
-    if (!coordinator) throw new NotFoundException('Coordinador no encontrado');
-    return coordinator;
+    if (!coordinator) {
+      throw new NotFoundException('Coordinador no encontrado');
     }
+    return coordinator;
+  }
+
+  async getAll() {
+    return await this.coordinatorRepository.find({
+      relations: ['user'],
+    });
+  }
 }

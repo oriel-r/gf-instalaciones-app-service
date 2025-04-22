@@ -14,13 +14,16 @@ import { UserRoleModule } from "../user-role/user-role.module";
 import { Role } from "../user/entities/roles.entity";
 import { Coordinator } from "../coordinators/entities/coordinator.entity";
 import { CoordinatorsService } from "../coordinators/coordinators.service";
+import { AdminModule } from "../admins/admins.module";
+import { UserRole } from "../user-role/entities/user-role.entity";
 
 @Module({
-    imports: [TypeOrmModule.forFeature([User, Installer, Role, Coordinator]),
+    imports: [TypeOrmModule.forFeature([User, Installer, Role, Coordinator, UserRole]),
     UserModule,
     UserRoleModule,
     InstallerModule,
     CoordinatorsModule,
+    AdminModule,
     JwtModule.register({
         signOptions: { expiresIn: '1h' },
         secret: process.env.JWT_SECRET,

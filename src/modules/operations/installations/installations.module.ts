@@ -7,7 +7,6 @@ import { AddressModule } from 'src/modules/locations/address/address.module';
 import { InstallationsRepository } from './installations.repository';
 import { UserRoleModule } from 'src/modules/user-role/user-role.module';
 import { InstallerModule } from 'src/modules/installer/installer.module';
-import { FileUploadService } from 'src/services/files/file-upload.service';
 import { ImagesModule } from 'src/modules/images/images.module';
 import { TemporalUploadService } from 'src/services/temporal-file-upload/temporal-file-upload.service';
 

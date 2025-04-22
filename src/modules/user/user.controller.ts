@@ -8,6 +8,7 @@ import {
   Put,
   Query,
   Req,
+  ParseEnumPipe,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -20,13 +21,14 @@ import { QueryOptionsPipe } from 'src/common/pipes/query-options/query-options.p
 import { Request } from 'express';
 import { Role } from './entities/roles.entity';
 import { UserWithRolesDto } from './dto/user-with-roles.dto';
+import { RoleEnum } from 'src/common/enums/user-role.enum';
 
 @ApiTags('Users')
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @ApiOperation({ summary: 'Obtener todos los usuarios activos' })
+  @ApiOperation({ summary: 'Obtener todos los usuarios' })
   @ApiResponse({ status: 200, description: 'Lista de usuarios obtenida.', type: [User] })
   @Get()
   async findAll(): Promise<UserWithRolesDto[]> {
@@ -63,7 +65,7 @@ export class UserController {
   @ApiOperation({ summary: 'Buscar usuario por ID' })
   @ApiResponse({ status: 200, description: 'Usuario encontrado.', type: User })
   @ApiResponse({ status: 404, description: 'Usuario no encontrado.' })
-  @Get(':id')
+  @Get('byId/:id')
   async findById(@Param('id') id: string) {
     return await this.userService.findById(id);
   }
@@ -77,7 +79,7 @@ export class UserController {
     status: 404,
     description: 'Usuario no encontrado.',
   })
-  @Patch(':id')
+  @Patch('update/:id')
   async updateUser(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return await this.userService.updateUser(id, updateUserDto);
   }
@@ -91,9 +93,17 @@ export class UserController {
     status: 404,
     description: 'Usuario no encontrado.',
   })
-  @Delete(':id')
-    async removeUser(@Param('id') id: string) {
-    return await this.userService.removeUser(id);
+  @Delete('deleted/:id')
+    async deleteUser(@Param('id') userId: string) {
+    return await this.userService.deleteUser(userId);
+  }
+
+  @Delete(':userId/:roleName')
+  async deleteUserByRole(
+    @Param('userId') userId: string,
+    @Param('roleName' ,new ParseEnumPipe(RoleEnum)) roleName: RoleEnum,
+  ) {
+    return await this.userService.deleteUserByRole(userId, roleName);
   }
 
   @ApiOperation({ summary: 'Desactivar usuario' })

@@ -1,11 +1,12 @@
 import { MailerService } from "@nestjs-modules/mailer";
 import { Injectable } from "@nestjs/common";
 import { SendEmailDto } from "./dto/send-email.dto";
-import { formContactDto } from "./dto/form-contact.dto";
 import { InjectRepository } from "@nestjs/typeorm";
 import { ContactMessage } from "./entities/contact-message.entity";
 import { Repository } from "typeorm";
 import { ApiTags } from "@nestjs/swagger";
+import { FormContactDto } from "./dto/form-contact.dto";
+import { ConfigService } from "@nestjs/config";
 
 @ApiTags('Email')
 @Injectable()
@@ -13,7 +14,8 @@ export class EmailService{
     constructor(
         private mailerService: MailerService,
         @InjectRepository(ContactMessage)
-        private contactMessageRepository: Repository<ContactMessage>
+        private contactMessageRepository: Repository<ContactMessage>,
+        private readonly configService: ConfigService, 
     ) {}
     
     async sendEmail(sendEmailDto: SendEmailDto): Promise<string> {
@@ -27,26 +29,36 @@ export class EmailService{
         return 'Correo electrónico enviado exitosamente.';
     }
 
-    async formContact(formContactDto: formContactDto) {
+    async formContact(formContactDto: FormContactDto) {
         const { surname, from, subject, message } = formContactDto;
+      
         await this.mailerService.sendMail({
-          from: from,
-          to: 'GF Instalaciones <codigototaldevs@gmail.com>',
-          subject: subject,
-          html: message,
+          to: 'GF Instalaciones <lautarogandodev@gmail.com>',
+          from: this.configService.get<string>('EMAIL_FROM'),
+          replyTo: from,
+          subject: `[Formulario contacto] ${subject}`,
+          html: `
+            <p><strong>Nombre:</strong> ${surname}</p>
+            <p><strong>Email:</strong> ${from}</p>
+            <p><strong>Mensaje:</strong></p>
+            <p>${message}</p>
+          `,
         });
-
-        const email = from;
-        const name = subject;
-
+      
         const contactMessage = this.contactMessageRepository.create({
-            surname,
-            email,
-            name,
-            message,
-          });
-          await this.contactMessageRepository.save(contactMessage);
+          surname,
+          email: from,
+          name: subject,
+          message,
+        });
+      
+        await this.contactMessageRepository.save(contactMessage);
+      
+        return `Mensaje enviado con éxito, ${surname}`;
+      }
+      
 
-        return  `Mensaje enviado con éxito , ${ContactMessage}`        
+    async getAllInfoContact() {
+        return await this.contactMessageRepository.find()
     }
 }
