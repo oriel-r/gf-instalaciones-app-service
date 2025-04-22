@@ -11,7 +11,7 @@ import { InstallationStatus } from 'src/common/enums/installations-status.enum';
 import { calculateProgress } from 'src/common/helpers/calculate-progress';
 import { UpdateInstallationStatus } from './dto/update-installation-status.dto';
 import { GetOrderResponseDto } from './dto/get-order-response.dto';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { UserRoleService } from 'src/modules/user-role/user-role.service';
 import { RoleEnum } from 'src/common/enums/user-role.enum';
 import { OrderQueryOptionsDto } from './dto/orders-query-options.dto';
@@ -56,59 +56,10 @@ export class OrdersService {
     const newInstallations = await this.installationsService.createFromOrder({order, installations})
     if(!newInstallations) throw new InternalServerErrorException('No se crearon las instalaciónes')
     const fraction = calculateProgressFraction((await this.findOne(id)).installations)
-    
     await this.update(order.id, {installationsFinished: fraction})
 
     return newInstallations
-  }
-  
- /* async updateInstallationStatus(orderId: string, installationId: string, status: UpdateInstallationStatus) {
-    const order = await this.findOne(orderId)
-    if (!order) throw new NotFoundException('Orden no encontrada')
-
-    const installation = order.installations.find((installation) => installation.id === installationId)
-    if(!installation) throw new NotFoundException('Instalación no encontrada o id invalido')
-    
-    const installationWithChanges = await this.installationsService.update(installation.id, status)
-
-    if(installationWithChanges && order.client && installation.coordinator && installation.installers) {
-      
-    switch (installationWithChanges.status) {
-
-      case InstallationStatus.IN_PROCESS:
-        this.eventEmiiter.emit(NotifyEvents.INSTALLATION_GENERAL_UPDATE, 
-          new InstallationGeneralUpdate(
-            order.client.id,
-            installation.coordinator?.id,
-            installation.address,
-            status.status
-          )
-        )
-          break
-        case InstallationStatus.POSTPONED:
-          this.eventEmiiter.emit(
-            NotifyEvents.INSTALLATION_POSTPONED,
-            new InstallationPostponedDto(
-              installation.coordinator.id
-            )
-          )
-          break
-        default:
-          this.eventEmiiter.emit(
-            NotifyEvents.INSTALLATION_APROVE,
-            new InstallationApprovedDto(
-              order.client.id,
-              installation.installers
-            )
-          )
-          await this.updateProgress(orderId)        
-      }
-    } 
-    return installationWithChanges
-  }*/
-
-
- 
+  } 
 
   async findAll(query: OrderQueryOptionsDto) {
     const orders = await this.ordersRepository.get(query)
@@ -123,13 +74,11 @@ export class OrdersService {
       return order
   }
 
-  async findOneAndFilter(id: string, query: InstallationQueryOptionsDto) {
+  async getInstallationsFromId (id: string, query: InstallationQueryOptionsDto) {
     const order = await this.ordersRepository.getById(id)
     if(!order) throw new NotFoundException('No se encontro la orden')
-    const installations = await this.ordersRepository.getOneAndFilterInstallations(id, query)
-    if(!installations) throw new NotFoundException('No se encontraron instalaciones')
+    const installations = await this.installationsService.filterFromOrder(id, query)
       return installations
-  
   }
 
   async findByOrderNumber(orderNumber: string) {
@@ -140,7 +89,13 @@ export class OrdersService {
 
   async update(id: string, updateOrderDto: DeepPartial<Order>) {
     const order = await this.findOne(id)
-    if(order) return this.ordersRepository.update(id, updateOrderDto)
+    if(!order) throw new NotFoundException('No se encontro la orden')
+    if(updateOrderDto.completed && order.progress < 100) {
+      throw new BadRequestException(
+        `No se puede marcar la orden ${order.orderNumber} como completada, quedan instalciones a Finalizar`
+      )
+    }
+      return this.ordersRepository.update(id, updateOrderDto)
   }
 
   async remove(id: string) {
@@ -153,11 +108,14 @@ export class OrdersService {
       return new DeleteResponse('orden', id) 
   }
 
-  private async updateProgress(id: string) {
-    const installations = (await this.findOne(id)).installations
+  @OnEvent(NotifyEvents.INSTALLATION_APROVE)
+  async updateProgress({ orderId }: InstallationApprovedDto) {
+    console.log(orderId)
+    const installations = (await this.findOne(orderId)).installations
+    console.log(installations)
     const progress = calculateProgress(installations)
     const installationsFinished = calculateProgressFraction(installations)
 
-    return await this.update(id, {progress, installationsFinished})
+    return await this.update(orderId, {progress, installationsFinished})
   }
 }

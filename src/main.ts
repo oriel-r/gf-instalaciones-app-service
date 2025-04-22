@@ -14,12 +14,16 @@ import { LocationsSeeder } from './seeders/locations/locations.seeds';
 import { OrdersSeeder } from './seeders/orders/orders.seeds';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-
+  const app = await NestFactory.create(AppModule, {
+    logger: ['log', 'error', 'warn', 'debug'],
+  });
+  
   
   app.use(loggerMiddleware)
   
-  app.enableCors()
+  app.enableCors({
+    origin: '*'
+  })
   
   app.useGlobalPipes(
     new ValidationPipe({
@@ -37,8 +41,8 @@ async function bootstrap() {
   /* const usersSeed = app.get(UserSeeds);
   await usersSeed.seed(); */
   
- /*  const categoriesSeeder = app.get(BlogCategoriesSeeder)
-  await categoriesSeeder.seed() */
+  /* const categoriesSeeder = app.get(BlogCategoriesSeeder)
+  await categoriesSeeder.seed()  */
   
   /* const templatesSeeder = app.get(BlogTemplatesSeeder)
   await templatesSeeder.seed()

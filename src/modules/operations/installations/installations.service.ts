@@ -10,7 +10,6 @@ import { UserRoleService } from 'src/modules/user-role/user-role.service';
 import { RoleEnum } from 'src/common/enums/user-role.enum';
 import { Installer } from 'src/modules/installer/entities/installer.entity';
 import { InstallerService } from 'src/modules/installer/installer.service';
-import { UserRole } from 'src/modules/user-role/entities/user-role.entity';
 import { InstallationStatus } from 'src/common/enums/installations-status.enum';
 import { NotifyEvents } from 'src/common/enums/notifications-events.enum';
 import { InstallationApprovedDto } from 'src/modules/notifications/dto/installation-aproved.dto';
@@ -23,7 +22,13 @@ import { ImagesService } from 'src/modules/images/images.service';
 import { InstallationToReviewDto } from 'src/modules/notifications/dto/installation-to-review.dto';
 import { UpdateInstallationDto } from './dto/update-installation.dto';
 import { StatusChangeDto } from './dto/change-status.dto';
-import { FileUploadService } from 'src/services/file-upload/file-upload.service';
+import { log } from 'console';
+import { InstallationQueryOptionsDto } from './dto/installation-query-options.dto';
+import { PaginatedResponseDto } from 'src/common/entities/paginated-response.dto';
+import { UserRole } from 'src/modules/user-role/entities/user-role.entity';
+import { PaginationResult } from 'src/common/interfaces/pagination-result.interface';
+import { TemporalUploadService } from 'src/services/temporal-file-upload/temporal-file-upload.service';
+
 
 @Injectable()
 export class InstallationsService {
@@ -34,7 +39,8 @@ export class InstallationsService {
     private readonly imageService: ImagesService,
     private readonly userRoleService: UserRoleService,
     private readonly installerService: InstallerService,
-    private eventEmitter: EventEmitter2
+    private eventEmitter: EventEmitter2,
+    private readonly temporalUploadService: TemporalUploadService
   ){}
   
   async createFromOrder(createInstallationDto: CreateInstallationDto) {
@@ -55,9 +61,7 @@ export class InstallationsService {
         if(!coordinator) throw new BadRequestException('Coordinador no encontrado')
         
         if(!installers.length) throw new BadRequestException('No se encontraron los instaladores')
-
         const installationAddress = await this.addressService.create(address);
-  
         return await this.installationsRepository.create({
           ...otherData,
           installers: installers,
@@ -76,36 +80,45 @@ export class InstallationsService {
     return {newData: data}
   }
 
-  async findAll() {
-    const installations = await this.installationsRepository.get()
-    if(!installations.length) throw new NotFoundException('No se encontraron isntalaciones')
-      return installations
+  async findAll( query: InstallationQueryOptionsDto, coordinatorId?: string, installerId?: string) {
+      
+    const result = await this.installationsRepository.getAllByOrder(query, undefined, coordinatorId, installerId)
+     return new PaginatedResponseDto<Installation>(result, query.page, query.limit)
+
+  }
+
+  async getAll() {
+    return await this,this.installationsRepository.get()
+  }
+
+  async filterFromOrder(orderId: string, query: InstallationQueryOptionsDto) {
+      const result: PaginationResult<Installation> = await this.installationsRepository.getAllByOrder(query, orderId)
+      return new PaginatedResponseDto<Installation>(result, query.page, query.limit)
   }
 
   async findOne(id: string) {
     const installation = await this.installationsRepository.getById(id)
-    console.log(installation)
     if(!installation) throw new NotFoundException('Instalación no encontrada, id incorrecto o inexistente')
       return installation  
     }
 
     async update(id: string, data: UpdateInstallationDto) {
-      // Buscar la instalación por su id
       const installation = await this.installationsRepository.getById(id);
       if (!installation) {
         throw new NotFoundException("No se encontró la instalación");
       }
     
-      // Verificar que el estado de la instalación sea PENDING o POSTPONED
       if (![InstallationStatus.PENDING, InstallationStatus.POSTPONED].includes(installation.status)) {
         throw new BadRequestException(`No se puede modificar una instalación con estado ${installation.status}`);
       }
     
       let installers: Installer[] = [];
-    
+      let newCoordinator: UserRole | null = null
+      let newAddress: Address | null = null
+
       if (data.installersIds && data.installersIds.length > 0) {
         installers = await Promise.all(
-          data.installersIds.map(async installerId => {
+          data.installersIds.map(async (installerId) => {
             const installer = await this.installerService.findById(installerId);
             if (!installer) {
               throw new NotFoundException(`Instalador con id ${installerId} no encontrado`);
@@ -114,7 +127,7 @@ export class InstallationsService {
           })
         );
       }
-    
+      
       if (installation.status === InstallationStatus.POSTPONED && data.startDate) {
         const newStartDate = new Date(data.startDate);
         const currentStartDate = new Date(installation.startDate);
@@ -122,6 +135,15 @@ export class InstallationsService {
           throw new BadRequestException("La nueva fecha de inicio debe ser posterior a la fecha actual de la instalación");
         }
       }
+
+      if(data.coordinatorId) {
+        newCoordinator = await this.userRoleService.getByIdWhenRole(data.coordinatorId, RoleEnum.COORDINATOR)
+      }
+
+      if(data.addressId && data.addressData) {
+        newAddress = await this.addressService.update(data.addressId, data.addressData )
+      }
+
     
       const updateData: Partial<Installation> = {};
       if (data.startDate) {
@@ -130,10 +152,17 @@ export class InstallationsService {
       if (installers.length > 0) {
         updateData.installers = installers;
       }
+      if(newAddress) {
+        updateData.address = newAddress
+      }
+      if(newCoordinator) {
+        updateData.coordinator = newCoordinator
+      }
 
-    
       const updatedInstallation = await this.installationsRepository.update(id, updateData);
+      
       return updatedInstallation
+
     }
     
 
@@ -149,32 +178,48 @@ export class InstallationsService {
      }
     
     try {
+
+      let result: Installation | null
+
+      if(updateInstallationDto.status === InstallationStatus.CANCEL || updateInstallationDto.status === InstallationStatus.FINISHED) {
+        let today = new Date().toISOString()
+        result = await this.installationsRepository.update(id, {endDate: today})
+      }
   
-      const result = await this.installationsRepository.update(id, updateInstallationDto)
+      result = await this.installationsRepository.update(id, updateInstallationDto)
       if(!result) throw new InternalServerErrorException('No se pudo actualizar el estado de la orden')
       
-      if (result.status !== installation.status && result.order.client && result.coordinator?.id && result.address && result.installers ) {
-
-        switch (result.status) {
-
-          case InstallationStatus.IN_PROCESS:
-            this.emitGeneralUpdate(
-              result.order.client?.id,
-              result.coordinator?.id,
-              result.address
-              )
-            break
-          case InstallationStatus.POSTPONED:
-            this.emitPostponedUpdate(result.coordinator.id, result.address)
-            break
-          case InstallationStatus.CANCEL:
-              this.emitCancelledUpdate(result.order.client.id, result.installers)
-              break
-          default:
-            this.emitApprovedUpdate(result.order.client.id, result.installers, result.address)
+        if (result.status !== installation.status) {
+          switch (result.status) {
+            case InstallationStatus.IN_PROCESS:
+              if(result.order?.client && result.coordinator?.id && result.address) {
+                this.emitGeneralUpdate(
+                  result.order.client.id,
+                  result.coordinator.id,
+                  result.address
+                );
+              }
+              break;
+            case InstallationStatus.POSTPONED:
+              if(result.coordinator?.id && result.address) {
+                this.emitPostponedUpdate(result.coordinator.id, result.address);
+              }
+              break;
+            case InstallationStatus.CANCEL:
+              if(result.order?.client && result.installers) {
+                this.emitCancelledUpdate(result.order.client.id, result.installers);
+              }
+              break;
+            default:
+              if(result.order && result.order.client && result.installers && result.address) {
+                console.log(result.order.id)
+                this.emitApprovedUpdate(result.order.client.id, result.installers, result.address, result.order.id);
+              }
           }
-      return await this.installationsRepository.getById(id)
-    }
+          const newInstallation = await this.installationsRepository.getById(id);
+          return newInstallation;
+        }
+        return result;
     } catch (err){
       console.log(err)
     }
@@ -194,7 +239,7 @@ export class InstallationsService {
 
     const imagesUrls: string[] = await Promise.all(
       files.map(async (file) => {
-        const fileUrl = await this.fileUploadService.uploadFile(file);
+        const fileUrl = await this.temporalUploadService.uploadFile(file.buffer);
         await this.imageService.saveFile({
           url: fileUrl,
           mimetype: file.mimetype,
@@ -204,10 +249,12 @@ export class InstallationsService {
     );
 
     if(!imagesUrls.length ) throw new ServiceUnavailableException('Hubo un problema al subir las imagenes')
-    const result = await this.installationsRepository.update(installation.id, {status: InstallationStatus.TO_REVIEW, images: imagesUrls})
+    const result = await this.installationsRepository.update(id, {status: InstallationStatus.TO_REVIEW, images: imagesUrls})
     if(!result) throw new InternalServerErrorException('No se pudo cambiar el estado')
     
-    this.emitToReviewUpdate(installation.order.client!.id, installation.coordinator!.id, installation.address)
+    if(installation.order.client?.id && installation.coordinator?.id) {
+      this.emitToReviewUpdate(installation.order.client.id, installation.coordinator.id, installation.address)
+    }
     return result
   }
 
@@ -232,10 +279,10 @@ export class InstallationsService {
     )
   }
   
-  private emitApprovedUpdate(clientId: string, installers: any, address: Address) {
+  private emitApprovedUpdate(clientId: string, installers: any, address: Address, orderId: string) {
     this.eventEmitter.emit(
       NotifyEvents.INSTALLATION_APROVE,
-      new InstallationApprovedDto(clientId, installers, address)
+      new InstallationApprovedDto(clientId, installers, address, orderId)
     )
   }
 

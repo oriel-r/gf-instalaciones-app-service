@@ -8,7 +8,7 @@ import { InstallationsRepository } from './installations.repository';
 import { UserRoleModule } from 'src/modules/user-role/user-role.module';
 import { InstallerModule } from 'src/modules/installer/installer.module';
 import { ImagesModule } from 'src/modules/images/images.module';
-import { FileUploadService } from 'src/services/file-upload/file-upload.service';
+import { TemporalUploadService } from 'src/services/temporal-file-upload/temporal-file-upload.service';
 
 @Module({
   imports: [
@@ -19,7 +19,7 @@ import { FileUploadService } from 'src/services/file-upload/file-upload.service'
     ImagesModule
   ],
   controllers: [InstallationsController],
-  providers: [InstallationsService, InstallationsRepository, FileUploadService],
+  providers: [InstallationsService, InstallationsRepository, FileUploadService, TemporalUploadService],
   exports: [InstallationsService, InstallationsRepository]
 })
 export class InstallationsModule {}

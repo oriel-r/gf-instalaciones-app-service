@@ -155,15 +155,15 @@ export class UserService {
   }
   
   async findAll(): Promise<UserWithRolesDto[]> {
-    const users = await this.userRepository.find({
-      relations: [
-        'userRoles',
-        'userRoles.role',
-        'installer',
-        'coordinator',
-        'admin',
-      ],
-    });
+    const users = await this.userRepository
+    .createQueryBuilder('user')
+    .leftJoinAndSelect('user.userRoles', 'userRole')
+    .leftJoinAndSelect('userRole.role', 'role')
+    .leftJoinAndSelect('user.installer', 'installer')
+    .leftJoinAndSelect('user.coordinator', 'coordinator')
+    .leftJoinAndSelect('user.admin', 'admin')
+    .orderBy('role.name', 'DESC')
+    .getMany();
 
     return users.map((user) => ({
       id: user.id,

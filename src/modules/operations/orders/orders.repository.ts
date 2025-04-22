@@ -14,12 +14,6 @@ export class OrdersRepository {
         @InjectRepository(Order) private readonly ordersRepository: Repository<Order>
     ) {}
 
-    private readonly filterConditions = {
-        province: 'province.name = :province',
-        city: 'city.name = :city',
-        status: 'installations.status = :status'
-      };
-
     async create(data: Partial<Order>) {
         return await this.ordersRepository.save(
             await this.ordersRepository.create(data)
@@ -98,17 +92,12 @@ export class OrdersRepository {
         .leftJoinAndSelect('installations.coordinator', 'coordinator')
         .leftJoinAndSelect('coordinator.user', 'coordinatorUser')
         .leftJoinAndSelect('installations.installers', 'installers')
-        .leftJoinAndSelect('installers.userRoleDetail', 'userRoleDetail') 
-        .leftJoinAndSelect('userRoleDetail.user', 'installerUser') 
+        .leftJoinAndSelect('installers.user', 'installerUser') 
         .leftJoinAndSelect('installations.address', 'address')
         .leftJoinAndSelect('address.city', 'city')
         .leftJoinAndSelect('city.province', 'province')
 
-        Object.entries(this.filterConditions).forEach(([key, condition]) => {
-            if (query[key]) {
-              queryBuilder.andWhere(condition, { [key]: query[key] });
-            }
-          });
+    
         
           if(query.createdAt) {
             queryBuilder.addSelect('installations.createdAt')
