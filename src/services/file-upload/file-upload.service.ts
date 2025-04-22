@@ -26,6 +26,5 @@ export class FileUploadService {
     console.log('✅ Archivo escrito correctamente');
   
     return `${this.domain}/uploads/${fileName}`;
-  }
-  
+  } 
 }

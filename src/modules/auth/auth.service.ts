@@ -69,7 +69,7 @@ export class AuthService {
 
     if (roles.includes(RoleEnum.INSTALLER) && user.installer) {
       if (
-        user.installer.status === 'EN_PROCESO' ||
+        user.installer.status === 'EN PROCESO' ||
         user.installer.status === 'RECHAZADO'
       ) {
         throw new HttpException(

@@ -8,14 +8,14 @@ import { ApiTags } from '@nestjs/swagger';
 export class CoordinatorsController {
   constructor(private readonly coordinatorsService: CoordinatorsService) {}
 
+  @Get()
+  async getAll() {
+    return await this.coordinatorsService.getAll()
+  }
+
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateCoordinatorDto: UpdateCoordinatorDto) {
     return this.coordinatorsService.update(+id, updateCoordinatorDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.coordinatorsService.remove(+id);
   }
 
   @Get(':id')

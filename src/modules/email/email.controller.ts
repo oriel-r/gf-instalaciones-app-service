@@ -1,7 +1,7 @@
-import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, InternalServerErrorException, Post } from '@nestjs/common';
 import { EmailService } from './email.service';
 import { SendEmailDto } from './dto/send-email.dto';
-import { formContactDto } from './dto/form-contact.dto';
+import { FormContactDto} from './dto/form-contact.dto';
 import { ApiTags } from '@nestjs/swagger';
 
 @ApiTags('Email')
@@ -22,12 +22,17 @@ export class EmailController {
 
   @Post('formContact')
   @HttpCode(HttpStatus.CREATED)
-  async formContact(@Body() formContactDto: formContactDto) {
+  async formContact(@Body() formContactDto: FormContactDto) {
     try {
       const { surname, from, subject, message } = formContactDto;
       return this.emailService.formContact({ surname, from, subject, message });
     } catch (error) {
-      throw new Error(`Error enviando el formulario: ${error.message}`);
+      throw new InternalServerErrorException(`Error enviando el formulario: ${error.message}`);
     }
+  }
+
+  @Get()
+  async getAllInfoContact() {
+    return await this.emailService.getAllInfoContact()
   }
 }

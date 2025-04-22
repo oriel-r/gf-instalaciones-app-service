@@ -2,6 +2,8 @@ import {
   BadRequestException,
   ConflictException,
   forwardRef,
+  HttpException,
+  HttpStatus,
   Inject,
   Injectable,
   InternalServerErrorException,
@@ -23,6 +25,8 @@ import { UserWithRolesDto } from './dto/user-with-roles.dto';
 import { InstallerService } from '../installer/installer.service';
 import { CoordinatorsService } from '../coordinators/coordinators.service';
 import { Order } from '../operations/orders/entities/order.entity';
+import { AdminService } from '../admins/admins.service';
+import { UserRole } from '../user-role/entities/user-role.entity';
 
 @ApiTags('Users')
 @Injectable()
@@ -30,12 +34,15 @@ export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(UserRole)
+    private readonly userRoleRepository: Repository<UserRole>,
     @Inject(forwardRef(() => UserRoleService))
     private readonly userRoleService: UserRoleService,
     @InjectRepository(Role)
     private readonly roleRepository: Repository<Role>,
     private readonly installerService: InstallerService,
-    private readonly coordinatorService: CoordinatorsService
+    private readonly coordinatorService: CoordinatorsService,
+    private readonly adminService: AdminService
   ) {}
 
   async createUser(createUserDto: CreateUserDto): Promise<UserWithRolesDto> {
@@ -222,7 +229,7 @@ export class UserService {
   async findById(id: string) {
     const user = await this.userRepository.findOne({
       where: { id },
-      relations: ['userRoles', 'userRoles.role'],
+      relations: ['userRoles', 'userRoles.role', 'coordinator','admin', 'installer' ],
     });
     if (!user) throw new NotFoundException('Usuario no encontrado');
     return user;
@@ -240,12 +247,67 @@ export class UserService {
     return await this.userRepository.save(user);
   }
 
-  async removeUser(id: string) {
-    const user = await this.findById(id);
-    await this.userRepository.remove(user);
-    return { message: 'Usuario eliminado correctamente.' };
-  }
+  async deleteUserByRole(userId: string, roleName: RoleEnum): Promise<void> {
+    const userRole = await this.userRoleService.getByUserIdAndRole(
+      userId,
+      roleName,
+    );
 
+    if (!userRole) {
+      throw new HttpException(
+        `Relación usuario-rol no encontrada para "${roleName}"`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    const deleteMap: Record<RoleEnum, (userId: string) => Promise<void>> = {
+      Admin: this.adminService.deleteAdmin.bind(this.adminService),
+      Coordinador: this.coordinatorService.delete.bind(this.coordinatorService),
+      Instalador: this.installerService.delete.bind(this.installerService),
+      Usuario: async () => {},
+      Cliente: async () => {},
+    };
+
+    const deleteFn = deleteMap[roleName];
+    if (deleteFn) {
+      await deleteFn(userId);
+    }
+
+    await this.userRoleRepository.delete(userRole.id);
+  }  
+
+  async deleteUser(userId: string): Promise<{ message: string }> {
+    const user = await this.findById(userId);
+  
+    const roles = await this.userRoleService.findRolesById(userId);
+  
+    const deleteMap: Record<RoleEnum, (userId: string) => Promise<void>> = {
+      [RoleEnum.COORDINATOR]: this.coordinatorService.delete.bind(this.coordinatorService),
+      [RoleEnum.ADMIN]: this.adminService.deleteAdmin.bind(this.adminService),
+      [RoleEnum.INSTALLER]: this.installerService.delete.bind(this.installerService),
+      [RoleEnum.USER]: async () => {},
+      [RoleEnum.CUSTOMER]: async () => {},
+    };
+  
+    for (const role of roles) {
+      const roleName = role.role.name as RoleEnum;
+      const deleteFn = deleteMap[roleName];
+  
+      if (deleteFn) {
+        await deleteFn(userId);
+      }
+  
+      await this.userRoleRepository.delete({
+        user: { id: userId },
+        role: { id: role.role.id },
+      });
+    }
+  
+    await this.userRepository.remove(user);
+  
+    return { message: 'Usuario y sus roles eliminados correctamente' };
+  }  
+  
   async disableUser(userId: string) {
     const user = await this.userRepository.findOne({
       where: { id: userId },
@@ -268,7 +330,7 @@ export class UserService {
     }
   
     if (user.coordinator) {
-      await this.coordinatorService.disable(user.coordinator.id);
+      await this.coordinatorService.delete(user.coordinator.id);
     }
 
     return { message: 'Usuario reactivado correctamente' };

@@ -7,12 +7,13 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserRole } from '../user-role/entities/user-role.entity';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { Role } from '../user/entities/roles.entity';
 import { UserService } from '../user/user.service';
 import { RoleEnum } from 'src/common/enums/user-role.enum';
 import { AdminService } from '../admins/admins.service';
 import { CoordinatorsService } from '../coordinators/coordinators.service';
+import { User } from '../user/entities/user.entity';
 
 @Injectable()
 export class UserRoleService {
@@ -25,43 +26,56 @@ export class UserRoleService {
     private readonly userService: UserService,
     private readonly adminService: AdminService,
     private readonly coordinatorService: CoordinatorsService,
+    private readonly dataSource: DataSource,
   ) {}
 
   async assignRole(userId: string, roleId: string): Promise<UserRole> {
-    const user = await this.userService.findById(userId);
-    if (!user) {
-      throw new NotFoundException('Usuario no encontrado');
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const user = await queryRunner.manager.findOne(User, { where: { id: userId } });
+      if (!user) throw new NotFoundException('Usuario no encontrado');
+
+      const role = await queryRunner.manager.findOne(Role, { where: { id: roleId } });
+      if (!role) throw new NotFoundException('Rol no encontrado');
+
+      const existingRole = await queryRunner.manager.findOne(UserRole, {
+        where: { user: { id: userId }, role: { id: roleId } },
+      });
+      if (existingRole) throw new ConflictException('El usuario ya tiene este rol asignado');
+
+      const userRole = queryRunner.manager.create(UserRole, { user, role });
+      const savedRole = await queryRunner.manager.save(userRole);
+
+      if (role.name === RoleEnum.COORDINATOR) {
+        await this.coordinatorService.createCoordinatorTransactional(user.id, queryRunner);
+      }
+
+      if (role.name === RoleEnum.ADMIN) {
+        await this.adminService.createAdminTransactional(user.id, queryRunner);
+      }
+
+      await queryRunner.commitTransaction();
+      return savedRole;
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      throw err;
+    } finally {
+      await queryRunner.release();
     }
-
-    const role = await this.roleRepository.findOne({ where: { id: roleId } });
-    if (!role) {
-      throw new NotFoundException('Rol no encontrado');
-    }
-
-    const existingRole = await this.userRoleRepository.findOne({
-      where: { user: { id: userId }, role: { id: roleId } },
-    });
-
-    if (existingRole) {
-      throw new ConflictException('El usuario ya tiene este rol asignado');
-    }
-
-    const userRole = this.userRoleRepository.create({ user, role });
-    const savedRole = await this.userRoleRepository.save(userRole);
-
-    if (role.name === 'Coordinador' && !user.coordinator) {
-      await this.coordinatorService.createCoordinator(user.id);
-    }
-
-    if (role.name === 'Admin' && !user.admin) {
-      await this.adminService.createAdmin(user.id);
-    }
-
-    return savedRole;
   }
 
   async findUserRoleById(userId: string) {
     return await this.userRoleRepository.findOne({
+      where: { user: { id: userId } },
+      relations: ['role'],
+    });
+  }
+  
+  async findRolesById(userId: string) {
+    return await this.userRoleRepository.find({
       where: { user: { id: userId } },
       relations: ['role'],
     });
@@ -76,6 +90,16 @@ export class UserRoleService {
     return role;
   }
 
+  async getByUserIdAndRole(userId: string, roleName: RoleEnum) {
+    return this.userRoleRepository.findOne({
+      where: {
+        user: { id: userId },
+        role: { name: roleName },
+      },
+      relations: ['user', 'role'],
+    });
+  }
+  
   async removeRole(
     userId: string,
     roleId: string,
