@@ -2,7 +2,6 @@ import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Installation } from "./entities/installation.entity";
 import { DeepPartial, Repository } from "typeorm";
-import { CreateAdminDto } from "../../admins/dto/create-admin.dto";
 import { CreateInstallationDto } from "./dto/create-installation.dto";
 import { UpdateInstallationDto } from "./dto/update-installation.dto";
 

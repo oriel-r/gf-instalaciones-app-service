@@ -174,8 +174,15 @@ export class InstallerService {
     return installer;
   } 
 
-  async delete(id: string) {
-    const installer = await this.findById(id);
+  async delete(userId: string) {
+    const installer = await this.installerRepository.findOne({
+      where: { user: { id: userId } }
+    });
+
+    if (!installer) {
+      throw new NotFoundException('Instalador no encontrado');
+    }
+
     await this.installerRepository.remove(installer);
     return { message: 'Instalador eliminado correctamente.' };
   }

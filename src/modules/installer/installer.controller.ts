@@ -43,6 +43,11 @@ export class InstallerController {
     return await this.installerService.createInstaller(installerDto);
   }
 
+  @ApiOperation({ summary: 'Actualizar datos del instalador' })
+  @ApiResponse({
+    status: 200,
+    description: 'Actualización exitosa',
+  })
   @Patch(':id')
   async updateInstaller(
     @Body() updateInstaller: UpdateInstallerDto,
@@ -93,6 +98,11 @@ export class InstallerController {
     return await this.installerService.delete(id);
   }
 
+  @ApiOperation({ summary: 'Cambiar el estado del instalador' })
+  @ApiResponse({
+    status: 200,
+    description: 'El estado del instalador ha sifo actualizado correctamente',
+  })
   @Patch(':id/status')
   async updateStatus(
     @Body() dto: StatusInstallerDto,

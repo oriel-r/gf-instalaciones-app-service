@@ -20,9 +20,9 @@ import { Coordinator } from '../coordinators/entities/coordinator.entity';
     forwardRef(() => UserModule),
     forwardRef(() => AdminModule), 
     forwardRef(() => InstallerModule), 
-    CoordinatorsModule,
+    forwardRef(() => CoordinatorsModule),
     ],
-  providers: [UserRoleService, AdminService, CoordinatorsService],
+  providers: [UserRoleService],
   controllers: [UserRoleController],
   exports: [UserRoleService]
 })

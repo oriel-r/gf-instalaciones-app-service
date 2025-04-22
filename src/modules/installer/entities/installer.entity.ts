@@ -9,7 +9,6 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { TaxCategory } from '../../../common/enums/taxCategory.enum';
-import { ApiProperty } from '@nestjs/swagger';
 import { StatusInstaller } from 'src/common/enums/status-installer';
 import { Installation } from 'src/modules/operations/installations/entities/installation.entity';
 import { User } from 'src/modules/user/entities/user.entity';
@@ -17,10 +16,6 @@ import { Coordinator } from 'src/modules/coordinators/entities/coordinator.entit
 
 @Entity({ name: 'installers' })
 export class Installer {
-  @ApiProperty({
-    description: 'ID único del instalador.',
-    example: '123e4567-e89b-12d3-a456-426614174000',
-  })
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
