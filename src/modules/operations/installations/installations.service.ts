@@ -22,7 +22,6 @@ import { ImagesService } from 'src/modules/images/images.service';
 import { InstallationToReviewDto } from 'src/modules/notifications/dto/installation-to-review.dto';
 import { UpdateInstallationDto } from './dto/update-installation.dto';
 import { StatusChangeDto } from './dto/change-status.dto';
-import { log } from 'console';
 import { InstallationQueryOptionsDto } from './dto/installation-query-options.dto';
 import { PaginatedResponseDto } from 'src/common/entities/paginated-response.dto';
 import { UserRole } from 'src/modules/user-role/entities/user-role.entity';
@@ -35,7 +34,6 @@ export class InstallationsService {
   constructor(
     private readonly installationsRepository: InstallationsRepository,
     private readonly addressService: AddressService,
-    private readonly fileUploadService: FileUploadService,
     private readonly imageService: ImagesService,
     private readonly userRoleService: UserRoleService,
     private readonly installerService: InstallerService,

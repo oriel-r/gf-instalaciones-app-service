@@ -1,6 +1,5 @@
 import { InstallationStatus } from 'src/common/enums/installations-status.enum';
 
-// Ahora se definen más órdenes
 export const ordersMock = [
   { orderNumber: 'ORD-001', title: 'Instalación residencial', description: 'Instalación de sistemas de seguridad en viviendas particulares.' },
   { orderNumber: 'ORD-002', title: 'Instalación corporativa', description: 'Instalación de señalización y sistemas en oficinas corporativas.' },
@@ -33,26 +32,38 @@ export const createInstallationMocks = (orderTitle: string, count: number) => {
   ];
 
   return Array.from({ length: count }, (_, i) => {
-    // Genera una fecha aleatoria entre mayo (5) y agosto (8) del 2025
-    const randomMonth = Math.floor(Math.random() * (8 - 5 + 1)) + 5; // 5 a 8
-    const randomDay = Math.floor(Math.random() * 28) + 1; // días de 1 a 28
-    const monthStr = randomMonth.toString().padStart(2, '0');
-    const dayStr = randomDay.toString().padStart(2, '0');
+    // Fecha aleatoria entre mayo (05) y agosto (08) de 2025
+    const randomMonth = Math.floor(Math.random() * (8 - 5 + 1)) + 5; // 5..8
+    const randomDay = Math.floor(Math.random() * 28) + 1;           // 1..28
+    const monthStr = String(randomMonth).padStart(2, '0');
+    const dayStr   = String(randomDay).padStart(2, '0');
 
-    // Para algunas instalaciones (en índices pares) se asigna una fecha de fin 3 días después (sin sobrepasar el 28)
-    const dayEnd = randomDay + 3 > 28 ? 28 : randomDay + 3;
-    const dayEndStr = dayEnd.toString().padStart(2, '0');
+    // Hora aleatoria entre 08:00 y 18:45 en múltiplos de 15 minutos
+    const hour      = Math.floor(Math.random() * 11) + 8; // 8..18
+    const minuteArr = [0, 15, 30, 45];
+    const minute    = minuteArr[Math.floor(Math.random() * minuteArr.length)];
+    const hourStr   = String(hour).padStart(2, '0');
+    const minStr    = String(minute).padStart(2, '0');
+
+    // Componer el ISO 8601 con offset -03:00
+    const startIso = `2025-${monthStr}-${dayStr}T${hourStr}:${minStr}:00-03:00`;
+
+    // Para algunos índices pares, asignar endDate 3 días después al mismo horario
+    const dayEnd    = Math.min(randomDay + 3, 28);
+    const dayEndStr = String(dayEnd).padStart(2, '0');
+    const endIso    = (i % 2 === 0)
+      ? `2025-${monthStr}-${dayEndStr}T${hourStr}:${minStr}:00-03:00`
+      : undefined;
 
     return {
-      startDate: `2025-${monthStr}-${dayStr}`,
-      notes: `Instalación ${i + 1} para ${orderTitle}`,
-      // Algunos ítems cuentan con una fecha de fin, otros quedan sin definir
-      endDate: i % 2 === 0 ? new Date(`2025-${monthStr}-${dayEndStr}`) : undefined,
-      status: statuses[i % statuses.length],
+      startDate: startIso,
+      notes:     `Instalación ${i + 1} para ${orderTitle}`,
+      endDate:   endIso ? new Date(endIso) : undefined,
+      status:    statuses[i % statuses.length],
       images: [
-        `https://res.cloudinary.com/ddhx1kogg/image/upload/e_improve,w_300,h_600,c_thumb,g_auto/v1744480630/ChatGPT_Image_Apr_12_2025_02_48_52_PM_byl784.png`,
-        'https://res.cloudinary.com/ddhx1kogg/image/upload/e_improve,w_300,h_600,c_thumb,g_auto/v1744480630/ChatGPT_Image_Apr_12_2025_02_47_31_PM_o0tn0c.png',
-        'https://res.cloudinary.com/ddhx1kogg/image/upload/v1744480630/ChatGPT_Image_Apr_12_2025_02_50_27_PM_za0cvm.png'
+        `https://res.cloudinary.com/ddhx1kogg/image/upload/v.../img1.png`,
+        `https://res.cloudinary.com/ddhx1kogg/image/upload/v.../img2.png`,
+        `https://res.cloudinary.com/ddhx1kogg/image/upload/v.../img3.png`,
       ],
     };
   });
