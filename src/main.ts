@@ -38,7 +38,7 @@ async function bootstrap() {
   
   app.useGlobalInterceptors(new DateFormatInterceptor());
   
- const usersSeed = app.get(UserSeeds);
+ /* const usersSeed = app.get(UserSeeds);
   await usersSeed.seed(); 
   
   const categoriesSeeder = app.get(BlogCategoriesSeeder)
@@ -54,7 +54,7 @@ async function bootstrap() {
   await locationSeeder.seed()
 
   const ordersSeeder = app.get(OrdersSeeder)
-  await ordersSeeder.seed() 
+  await ordersSeeder.seed()  */
 
   const documentation = () => SwaggerModule.createDocument(app, swaggerConfig)
   SwaggerModule.setup('docs', app, documentation)
