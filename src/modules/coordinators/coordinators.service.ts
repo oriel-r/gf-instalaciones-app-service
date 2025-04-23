@@ -28,14 +28,12 @@ export class CoordinatorsService {
     userId: string,
     queryRunner: QueryRunner,
   ): Promise<Coordinator> {
-    console.log('🧪 createCoordinatorTransactional > userId:', userId);
     const user = await queryRunner.manager.findOne(User, {
       where: { id: userId },
       relations: ['coordinator'],
     });
 
     if (!user) {
-      console.error('❌ Usuario no encontrado para userId:', userId);
       throw new NotFoundException('Usuario no encontrado');
     }
 
@@ -47,7 +45,6 @@ export class CoordinatorsService {
       newCoordinator,
     );
 
-    console.log('✅ Coordinador creado:', cordinator);
     return cordinator;
   }
 
