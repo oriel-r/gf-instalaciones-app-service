@@ -19,7 +19,7 @@ import { TemporalUploadService } from 'src/services/temporal-file-upload/tempora
     ImagesModule
   ],
   controllers: [InstallationsController],
-  providers: [InstallationsService, InstallationsRepository, FileUploadService, TemporalUploadService],
+  providers: [InstallationsService, InstallationsRepository, TemporalUploadService],
   exports: [InstallationsService, InstallationsRepository]
 })
 export class InstallationsModule {}

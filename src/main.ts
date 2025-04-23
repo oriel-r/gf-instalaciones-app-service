@@ -38,13 +38,13 @@ async function bootstrap() {
   
   app.useGlobalInterceptors(new DateFormatInterceptor());
   
-  /* const usersSeed = app.get(UserSeeds);
-  await usersSeed.seed(); */
+   const usersSeed = app.get(UserSeeds);
+  await usersSeed.seed(); 
   
-  /* const categoriesSeeder = app.get(BlogCategoriesSeeder)
-  await categoriesSeeder.seed()  */
+   const categoriesSeeder = app.get(BlogCategoriesSeeder)
+  await categoriesSeeder.seed()  
   
-  /* const templatesSeeder = app.get(BlogTemplatesSeeder)
+   const templatesSeeder = app.get(BlogTemplatesSeeder)
   await templatesSeeder.seed()
   
   const postsSeeder = app.get(BlogPostsSeeder)
@@ -54,7 +54,7 @@ async function bootstrap() {
   await locationSeeder.seed()
 
   const ordersSeeder = app.get(OrdersSeeder)
-  await ordersSeeder.seed() */
+  await ordersSeeder.seed() 
 
   const documentation = () => SwaggerModule.createDocument(app, swaggerConfig)
   SwaggerModule.setup('docs', app, documentation)
