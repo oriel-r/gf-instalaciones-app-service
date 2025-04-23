@@ -35,7 +35,6 @@ export class InstallationsService {
   constructor(
     private readonly installationsRepository: InstallationsRepository,
     private readonly addressService: AddressService,
-    private readonly fileUploadService: FileUploadService,
     private readonly imageService: ImagesService,
     private readonly userRoleService: UserRoleService,
     private readonly installerService: InstallerService,

@@ -65,6 +65,7 @@ export class InstallerService {
     const newInstaller = this.installerRepository.create({
       user,
       ...createInstallerDto,
+      status: createInstallerDto.status ?? StatusInstaller.InProcess,
     });
 
      const savedInstaller = await this.installerRepository.save(newInstaller);
