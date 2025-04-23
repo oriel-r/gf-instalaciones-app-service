@@ -90,11 +90,11 @@ export class UserRoleService {
     return role;
   }
 
-  async getByUserIdAndRole(userId: string, roleName: RoleEnum) {
-    return this.userRoleRepository.findOne({
+  async getByUserIdAndRole(userId: string, roleId: string) {
+    return await this.userRoleRepository.findOne({
       where: {
         user: { id: userId },
-        role: { name: roleName },
+        role: { id: roleId },
       },
       relations: ['user', 'role'],
     });
@@ -104,19 +104,14 @@ export class UserRoleService {
     userId: string,
     roleId: string,
   ): Promise<{ message: string }> {
-    const existingRole = await this.userRoleRepository.findOne({
-      where: {
-        user: { id: userId },
-        role: { id: roleId },
-      },
-      relations: ['user', 'role'],
-    });
+    const existingRole = await this.getByUserIdAndRole(userId, roleId)
 
     if (!existingRole) {
       throw new NotFoundException('Este rol no está asignado al usuario');
     }
 
     await this.userRoleRepository.remove(existingRole);
+    await this.userService.deleteUserByRole(userId, roleId);
 
     return { message: 'Rol removido del usuario correctamente' };
   }

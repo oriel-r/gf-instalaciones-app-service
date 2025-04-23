@@ -247,19 +247,12 @@ export class UserService {
     return await this.userRepository.save(user);
   }
 
-  async deleteUserByRole(userId: string, roleName: RoleEnum): Promise<void> {
-    const userRole = await this.userRoleService.getByUserIdAndRole(
-      userId,
-      roleName,
-    );
-
-    if (!userRole) {
-      throw new HttpException(
-        `Relación usuario-rol no encontrada para "${roleName}"`,
-        HttpStatus.NOT_FOUND,
-      );
+  async deleteUserByRole(userId: string, roleId: string): Promise<{ message: string }> {
+    const role = await this.roleRepository.findOne({ where: { id: roleId } });
+    if (!role) {
+      throw new NotFoundException('Rol no encontrado');
     }
-
+  
     const deleteMap: Record<RoleEnum, (userId: string) => Promise<void>> = {
       Admin: this.adminService.deleteAdmin.bind(this.adminService),
       Coordinador: this.coordinatorService.delete.bind(this.coordinatorService),
@@ -267,14 +260,15 @@ export class UserService {
       Usuario: async () => {},
       Cliente: async () => {},
     };
-
-    const deleteFn = deleteMap[roleName];
+  
+    const deleteFn = deleteMap[role.name as RoleEnum];
     if (deleteFn) {
       await deleteFn(userId);
     }
-
-    await this.userRoleRepository.delete(userRole.id);
-  }  
+  
+    return { message: 'Rol eliminado correctamente' };
+  }
+   
 
   async deleteUser(userId: string): Promise<{ message: string }> {
     const user = await this.findById(userId);
@@ -333,7 +327,7 @@ export class UserService {
       await this.coordinatorService.delete(user.coordinator.id);
     }
 
-    return { message: 'Usuario reactivado correctamente' };
+    return { message: 'Usuario desactivado correctamente' };
   }
   
   async restoreUser(userId: string): Promise<{ message: string }> {

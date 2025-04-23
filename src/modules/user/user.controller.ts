@@ -98,14 +98,6 @@ export class UserController {
     return await this.userService.deleteUser(userId);
   }
 
-  @Delete(':userId/:roleName')
-  async deleteUserByRole(
-    @Param('userId') userId: string,
-    @Param('roleName' ,new ParseEnumPipe(RoleEnum)) roleName: RoleEnum,
-  ) {
-    return await this.userService.deleteUserByRole(userId, roleName);
-  }
-
   @ApiOperation({ summary: 'Desactivar usuario' })
   @ApiResponse({ status: 200, description: 'Usuario desactivado correctamente.' })
   @Delete('disabled/:id')
