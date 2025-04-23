@@ -21,6 +21,8 @@ import { NotifyEvents } from 'src/common/enums/notifications-events.enum';
 import { InstallationGeneralUpdate } from 'src/modules/notifications/dto/installation-general-update.dto';
 import { InstallationPostponedDto } from 'src/modules/notifications/dto/installation-postponed.dto';
 import { InstallationApprovedDto } from 'src/modules/notifications/dto/installation-aproved.dto';
+import { OrderEvent } from 'src/common/enums/orders-event.enum';
+import { RecalculateProgressDto } from './dto/recalculate-progress.dto';
 
 @Injectable()
 export class OrdersService {
@@ -108,11 +110,9 @@ export class OrdersService {
       return new DeleteResponse('orden', id) 
   }
 
-  @OnEvent(NotifyEvents.INSTALLATION_APROVE)
-  async updateProgress({ orderId }: InstallationApprovedDto) {
-    console.log(orderId)
+  @OnEvent(OrderEvent.RECALCULATE)
+  async updateProgress({ orderId }: RecalculateProgressDto) {
     const installations = (await this.findOne(orderId)).installations
-    console.log(installations)
     const progress = calculateProgress(installations)
     const installationsFinished = calculateProgressFraction(installations)
 

@@ -27,6 +27,8 @@ import { PaginatedResponseDto } from 'src/common/entities/paginated-response.dto
 import { UserRole } from 'src/modules/user-role/entities/user-role.entity';
 import { PaginationResult } from 'src/common/interfaces/pagination-result.interface';
 import { TemporalUploadService } from 'src/services/temporal-file-upload/temporal-file-upload.service';
+import { OrderEvent } from 'src/common/enums/orders-event.enum';
+import { RecalculateProgressDto } from '../orders/dto/recalculate-progress.dto';
 
 
 @Injectable()
@@ -206,12 +208,13 @@ export class InstallationsService {
             case InstallationStatus.CANCEL:
               if(result.order?.client && result.installers) {
                 this.emitCancelledUpdate(result.order.client.id, result.installers);
+                this.emitRecalculateOrderProgress({orderId: result.order.id})
               }
               break;
             default:
               if(result.order && result.order.client && result.installers && result.address) {
-                console.log(result.order.id)
                 this.emitApprovedUpdate(result.order.client.id, result.installers, result.address, result.order.id);
+                this.emitRecalculateOrderProgress({orderId: result.order.id})
               }
           }
           const newInstallation = await this.installationsRepository.getById(id);
@@ -260,7 +263,9 @@ export class InstallationsService {
     const installation = await this.installationsRepository.getById(id)
     if(!installation) throw new NotFoundException('Instalación no encontrada, id incorrecto o inexistente')
     const result = await this.installationsRepository.softDelete(id)
-    if(result.affected) return new DeleteResponse('instalación', id)
+    if(!result.affected) throw new InternalServerErrorException('No se pudo eliminar la isntlación')
+    if(installation.order.id) this.emitRecalculateOrderProgress({orderId: installation.order.id})
+      return new DeleteResponse('instalación', id)
   }
 
   private emitGeneralUpdate(clientId: string, coordinatorId: string, address: Address) {
@@ -296,5 +301,9 @@ export class InstallationsService {
       NotifyEvents.INSTALLATION_CANCELLED,
       new InstallationCancelDto(clientId, installers)
     )
+  }
+
+  private emitRecalculateOrderProgress(data: RecalculateProgressDto) {
+    this.eventEmitter.emit(OrderEvent.RECALCULATE,data)
   }
 }
