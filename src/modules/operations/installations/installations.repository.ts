@@ -20,10 +20,10 @@ export class InstallationsRepository {
       };
 
     async create(data: DeepPartial<Installation>) {
-        return await this.installationsRepository.save(
+        const installation = await this.installationsRepository.save(
             await this.installationsRepository.create(data)
         )
-
+        return this.getById(installation.id)
     }
 
     async get() {
