@@ -1,7 +1,5 @@
-import { IsInt } from "@nestjs/class-validator";
 import { Type } from "class-transformer";
-import { IsNumber, IsOptional, IsString } from "class-validator";
-import { SortDirection } from "typeorm";
+import { IsOptional, IsString, IsInt } from "class-validator";
 import { Sort } from "../enums/sort.dto";
 
 export class BaseQueryOptions {

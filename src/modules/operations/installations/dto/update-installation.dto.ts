@@ -1,5 +1,5 @@
 import { IsArray, IsOptional, IsUUID, ValidateNested } from 'class-validator';
-import { IsISO8601 } from '@nestjs/class-validator';
+import { IsISO8601 } from 'class-validator';
 import { DeepPartial } from 'typeorm';
 import { CreateAddressDto } from 'src/modules/locations/address/dto/create-address.dto';
 

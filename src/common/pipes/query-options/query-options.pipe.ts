@@ -1,5 +1,5 @@
-import { validate, validateSync } from '@nestjs/class-validator';
-import { ArgumentMetadata, BadRequestException, HttpException, HttpStatus, Injectable, PipeTransform } from '@nestjs/common';
+import { validateSync } from 'class-validator';
+import { ArgumentMetadata, HttpException, HttpStatus, Injectable, PipeTransform } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { Sort } from 'src/common/enums/sort.dto';
 

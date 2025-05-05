@@ -1,4 +1,4 @@
-import { IsEnum, IsISO8601 } from "@nestjs/class-validator";
+import { IsEnum, IsISO8601 } from "class-validator";
 import { ApiOperation, ApiProperty } from "@nestjs/swagger";
 import { IsNotEmpty, IsOptional, IsString } from "class-validator";
 import { BaseDto } from "src/common/entities/base.dto";

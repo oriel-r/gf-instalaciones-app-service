@@ -3,7 +3,7 @@ import { CreateAddressDto } from "src/modules/locations/address/dto/create-addre
 import { IsArray, IsInstance, IsNotEmpty, IsOptional, IsString, IsUppercase, isUUID, IsUUID } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsISO8601, ValidateNested } from "@nestjs/class-validator";
+import { IsISO8601, ValidateNested } from "class-validator";
 import { Installer } from "src/modules/installer/entities/installer.entity";
 import { Coordinator } from "src/modules/coordinators/entities/coordinator.entity";
 import { UserRole } from "src/modules/user-role/entities/user-role.entity";

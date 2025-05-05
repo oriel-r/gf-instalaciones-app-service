@@ -4,7 +4,7 @@ import { Installation } from "src/modules/operations/installations/entities/inst
 import { CreateInstallationDto } from "src/modules/operations/installations/dto/create-installation.dto";
 import { ApiProperty } from "@nestjs/swagger";
 import { IsArray, IsBoolean, IsNotEmpty, IsOptional, IsString } from "class-validator";
-import { IsInstance, ValidateNested } from "@nestjs/class-validator";
+import { IsInstance, ValidateNested } from "class-validator";
 import { Type } from "class-transformer";
 
 export class UpdateOrderDto extends BaseDto {
