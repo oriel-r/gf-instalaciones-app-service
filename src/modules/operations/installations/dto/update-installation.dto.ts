@@ -2,12 +2,14 @@ import { IsArray, IsOptional, IsUUID, ValidateNested } from 'class-validator';
 import { IsISO8601 } from 'class-validator';
 import { DeepPartial } from 'typeorm';
 import { CreateAddressDto } from 'src/modules/locations/address/dto/create-address.dto';
+import { Transform } from 'class-transformer';
 
 export class UpdateInstallationDto {
 
     @IsOptional()
     @IsISO8601()
-    startDate: string
+    @Transform(({ value }) => new Date(value))
+    startDate: Date
 
     @IsOptional()
     @IsArray()

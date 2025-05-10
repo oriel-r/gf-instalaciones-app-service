@@ -3,6 +3,7 @@ import { ApiOperation, ApiProperty } from "@nestjs/swagger";
 import { IsNotEmpty, IsOptional, IsString } from "class-validator";
 import { BaseDto } from "src/common/entities/base.dto";
 import { InstallationStatus } from "src/common/enums/installations-status.enum";
+import { Transform } from "class-transformer";
 
 export class UpdateInstallationStatus extends BaseDto {
 
@@ -12,7 +13,8 @@ export class UpdateInstallationStatus extends BaseDto {
     })
     @IsOptional()
     @IsISO8601()
-    startDate: string
+    @Transform(({ value }) => new Date(value))
+    startDate: Date
 
     @ApiProperty({
         title: 'status',
