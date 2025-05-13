@@ -2,6 +2,8 @@ import { appDataSource } from 'src/config/data-source';
 import { Order } from 'src/modules/operations/orders/entities/order.entity';
 import { Installation } from 'src/modules/operations/installations/entities/installation.entity';
 import { Address } from 'src/modules/locations/address/entities/address.entity';
+import { UserRole } from 'src/modules/user-role/entities/user-role.entity';
+import { Installer } from 'src/modules/installer/entities/installer.entity';
 import { ordersMock, createInstallationMocks } from './orders.mock';
 import { InstallationStatus } from 'src/common/enums/installations-status.enum';
 
@@ -12,104 +14,106 @@ export class OrdersSeeder {
     }
 
     await appDataSource.transaction(async (manager) => {
-      // 1. Recuperar todas las direcciones existentes (se supone que ya fueron sembradas)
+      // 1. Cargar direcciones
       const allAddresses = await manager.find(Address, { relations: ['city'] });
-      if (allAddresses.length === 0) {
+      if (!allAddresses.length) {
         throw new Error("No se encontraron direcciones en la base de datos");
       }
-      
-      // 2. Crear las órdenes utilizando los mocks
-      const orders = ordersMock.map((orderData) =>
-        manager.create(Order, { 
-          ...orderData, 
-          progress: 0.00, 
-          installationsFinished: `0/0`, 
+
+      // 2. Cargar UserRole y Installer para asignaciones
+      const allRoles = await manager.find(UserRole, { relations: ['role', 'user'] });
+      const clients   = allRoles.filter(ur => ur.role.name === 'Usuario');
+      const coordinators = allRoles.filter(ur => ur.role.name === 'Coordinador');
+      const installersList = await manager.find(Installer, { relations: ['user'] });
+
+      if (!clients.length || !coordinators.length || !installersList.length) {
+        throw new Error("Faltan usuarios, coordinadores o instaladores sembrados");
+      }
+
+      // 3. Crear órdenes y asignar client
+      const orders = ordersMock.map(data => {
+        const randomClient = clients[Math.floor(Math.random() * clients.length)];
+        return manager.create(Order, {
+          ...data,
+          client: randomClient,
+          progress: 0.00,
+          installationsFinished: '0/0',
           completed: false,
           endDate: null,
-        })
-      );
+        });
+      });
       const savedOrders = await manager.save(orders);
       console.log('Orders created:', savedOrders.length);
-      
-      // 3. Para cada orden se generan entre 1 y 10 instalaciones y se determina su estado
-      const installationsToInsert = savedOrders.flatMap((order) => {
-        // Se genera un número aleatorio entre 1 y 10 instalaciones
+
+      // 4. Para cada orden, generar instalaciones y asignar coordinator + installers
+      const installationsToInsert = savedOrders.flatMap(order => {
         const count = Math.floor(Math.random() * 10) + 1;
-        const installationMocks = createInstallationMocks(order.title, count);
-        
-        // Se decide el estado de la orden de forma aleatoria:
-        // - < 0.33: Orden completada (todas las instalaciones terminadas)
-        // - 0.33 a 0.66: Orden parcialmente completada (algunas terminadas)
-        // - >= 0.66: Orden sin iniciar
-        const orderState = Math.random();
+        const mocks = createInstallationMocks(order.title, count);
+
+        // Determinar cuántas instalaciones estarán finalizadas
+        const stateRnd = Math.random();
         let completedCount = 0;
-        if (orderState < 0.33) {
-          // Orden completada: todas las instalaciones terminadas
+        let isOrderCompleted = false;
+        if (stateRnd < 0.33) {
+          isOrderCompleted = true;
+          completedCount = count;
           order.completed = true;
           order.progress = 100.00;
-          completedCount = count;
-        } else if (orderState < 0.66) {
-          // Orden parcialmente completada: asegurar que haya al menos 1 terminada y menor al total.
-          if (count > 1) {
-            completedCount = Math.floor(Math.random() * (count - 1)) + 1;
-          } else {
-            completedCount = 0;
-          }
+        } else if (stateRnd < 0.66) {
+          completedCount = count > 1
+            ? Math.floor(Math.random() * (count - 1)) + 1
+            : 0;
           order.completed = false;
           order.progress = Number(((completedCount / count) * 100).toFixed(2));
         } else {
-          // Orden sin iniciar
           order.completed = false;
           order.progress = 0.00;
           completedCount = 0;
         }
-        // Actualizar el campo installationsFinished con el conteo correcto
         order.installationsFinished = `${completedCount}/${count}`;
-        order.endDate = (order.completed || completedCount > 0) ? new Date() : null;
-        
-        // Generar instalaciones para la orden
-        return installationMocks.map((installationData, idx) => {
-          let installationStatus: InstallationStatus;
-          let installationEndDate = installationData.endDate;
-          
-          if (order.completed) {
-            // Para órdenes completadas: todas las instalaciones terminadas
-            installationStatus = InstallationStatus.FINISHED;
-            installationEndDate = installationData.endDate || new Date();
-          } else if (!order.completed && completedCount > 0 && idx < completedCount) {
-            // Para órdenes parcialmente completadas: las primeras "completedCount" se marcan como terminadas
-            installationStatus = InstallationStatus.FINISHED;
-            installationEndDate = installationData.endDate || new Date();
+        order.endDate = (isOrderCompleted || completedCount > 0) ? new Date() : null;
+
+        return mocks.map((mock, idx) => {
+          // Estado y endDate coherentes
+          let status = mock.status;
+          let endDate: Date | undefined = mock.endDate;
+          if (isOrderCompleted || idx < completedCount) {
+            status = InstallationStatus.FINISHED;
+            endDate = mock.endDate ?? new Date();
           } else {
-            // El resto se marcan como pendientes
-            installationStatus = InstallationStatus.PENDING;
-            installationEndDate = undefined;
+            status = InstallationStatus.PENDING;
+            endDate = undefined;
           }
-          
-          // Seleccionar una dirección aleatoria de entre todas disponibles
-          const randomIndex = Math.floor(Math.random() * allAddresses.length);
-          const randomAddress = allAddresses[randomIndex];
-          
-          const isFinished = installationStatus === InstallationStatus.FINISHED;
-          
+
+          // Asignar random address
+          const address = allAddresses[Math.floor(Math.random() * allAddresses.length)];
+
+          // Asignar random coordinator
+          const coordinator = coordinators[Math.floor(Math.random() * coordinators.length)];
+
+          // Asignar entre 1 y 3 instaladores aleatorios
+          const shuffled = installersList.sort(() => 0.5 - Math.random());
+          const installers = shuffled.slice(0, Math.floor(Math.random() * 3) + 1);
+
           return manager.create(Installation, {
-            ...installationData,
-            status: installationStatus,
-            endDate: installationEndDate,
+            ...mock,
+            status,
+            startDate: mock.startDate,
+            endDate,
+            notes: mock.notes,
+            images: mock.images,
             order,
-            address: randomAddress,
-            coordinator: null,
-            installers: null,
-            notes: isFinished ? installationData.notes : undefined,
-            images: isFinished ? installationData.images : [],
+            address,
+            coordinator,
+            installers,
           });
         });
       });
-      
+
       const savedInstallations = await manager.save(installationsToInsert);
       console.log('Installations created:', savedInstallations.length);
-      
-      // 4. Guardar nuevamente las órdenes para actualizar la información final
+
+      // 5. Actualizar órdenes con client, progress, etc.
       await manager.save(savedOrders);
     });
   }
