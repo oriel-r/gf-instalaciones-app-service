@@ -1,4 +1,4 @@
-import { IsArray, IsBoolean, IsNotEmpty, IsString, IsUUID, ValidateNested } from "@nestjs/class-validator";
+import { IsArray, IsBoolean, IsNotEmpty, IsString, IsUUID, ValidateNested } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 import { BlogPostStatus } from "src/common";
 import { BaseDto } from "src/common/entities/base.dto";

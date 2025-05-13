@@ -147,7 +147,7 @@ export class InstallationsService {
     
       const updateData: Partial<Installation> = {};
       if (data.startDate) {
-        updateData.startDate = data.startDate;
+        updateData.startDate = new Date(data.startDate);
       }
       if (installers.length > 0) {
         updateData.installers = installers;
@@ -166,65 +166,63 @@ export class InstallationsService {
     }
     
 
-  async statusChange(id: string, updateInstallationDto: StatusChangeDto) {
-    const installation = await this.installationsRepository.getById(id)
-    if(!installation) throw new NotFoundException('Instalación no encontrada, id incorrecto o inexistente')
-    
-    const currentStatus = installation.status
-    const newStatus = updateInstallationDto.status
+    async statusChange(id: string, dto: StatusChangeDto) {
+    const installation = await this.installationsRepository.getById(id);
+    if (!installation) throw new NotFoundException('Instalación no encontrada, id incorrecto o inexistente');
 
-    if (!allowedTransitions[currentStatus]?.includes(newStatus)) {
-    throw new BadRequestException(`Transición de estado no permitida: ${currentStatus} -> ${newStatus}`)
-     }
-    
-    try {
-
-      let result: Installation | null
-
-      if(updateInstallationDto.status === InstallationStatus.CANCEL || updateInstallationDto.status === InstallationStatus.FINISHED) {
-        let today = new Date().toISOString()
-        result = await this.installationsRepository.update(id, {endDate: today})
-      }
-  
-      result = await this.installationsRepository.update(id, updateInstallationDto)
-      if(!result) throw new InternalServerErrorException('No se pudo actualizar el estado de la orden')
-      
-        if (result.status !== installation.status) {
-          switch (result.status) {
-            case InstallationStatus.IN_PROCESS:
-              if(result.order?.client && result.coordinator?.id && result.address) {
-                this.emitGeneralUpdate(
-                  result.order.client.id,
-                  result.coordinator.id,
-                  result.address
-                );
-              }
-              break;
-            case InstallationStatus.POSTPONED:
-              if(result.coordinator?.id && result.address) {
-                this.emitPostponedUpdate(result.coordinator.id, result.address);
-              }
-              break;
-            case InstallationStatus.CANCEL:
-              if(result.order?.client && result.installers) {
-                this.emitCancelledUpdate(result.order.client.id, result.installers);
-                this.emitRecalculateOrderProgress({orderId: result.order.id})
-              }
-              break;
-            default:
-              if(result.order && result.order.client && result.installers && result.address) {
-                this.emitApprovedUpdate(result.order.client.id, result.installers, result.address, result.order.id);
-                this.emitRecalculateOrderProgress({orderId: result.order.id})
-              }
-          }
-          const newInstallation = await this.installationsRepository.getById(id);
-          return newInstallation;
-        }
-        return result;
-    } catch (err){
-      console.log(err)
+    if (!allowedTransitions[installation.status]?.includes(dto.status)) {
+      throw new BadRequestException(`Transición de estado no permitida: ${installation.status} -> ${dto.status}`);
     }
-  }
+
+    const updateData: Partial<Installation> = { ...dto };
+    const now = new Date();
+
+    if (dto.status === InstallationStatus.IN_PROCESS) {
+      updateData.startedAt = now;
+    }
+
+    if ([InstallationStatus.CANCEL, InstallationStatus.FINISHED].includes(dto.status)) {
+      updateData.endDate = now;
+    }
+
+    const result = await this.installationsRepository.update(id, updateData);
+    if (!result) throw new InternalServerErrorException('No se pudo actualizar el estado de la instalación');
+
+    if (result.status !== installation.status) {
+      switch (result.status) {
+        case InstallationStatus.IN_PROCESS:
+          if (result.order?.client && result.coordinator?.id && result.address) {
+            this.emitGeneralUpdate(result.order.client.id, result.coordinator.id, result.address);
+          }
+          break;
+        case InstallationStatus.POSTPONED:
+          if (result.coordinator?.id && result.address) {
+            this.emitPostponedUpdate(result.coordinator.id, result.address);
+          }
+          break;
+        case InstallationStatus.CANCEL:
+          if (result.order?.client && result.installers) {
+            this.emitCancelledUpdate(result.order.client.id, result.installers);
+            this.emitRecalculateOrderProgress({ orderId: result.order.id });
+          }
+          break;
+        case InstallationStatus.FINISHED:
+          if (result.order?.client && result.installers && result.address) {
+            this.emitApprovedUpdate(result.order.client.id, result.installers, result.address, result.order.id);
+            this.emitRecalculateOrderProgress({ orderId: result.order.id });
+          }
+          break;
+        default:
+          if (result.order?.client && result.installers && result.address) {
+            this.emitApprovedUpdate(result.order.client.id, result.installers, result.address, result.order.id);
+            this.emitRecalculateOrderProgress({ orderId: result.order.id });
+          }
+      }
+    }
+
+    return await this.installationsRepository.getById(id);
+    }
+
 
   async sendToReview(id: string, files: Express.Multer.File[]) {
     const installation = await this.installationsRepository.getById(id)
@@ -250,7 +248,7 @@ export class InstallationsService {
     );
 
     if(!imagesUrls.length ) throw new ServiceUnavailableException('Hubo un problema al subir las imagenes')
-    const result = await this.installationsRepository.update(id, {status: InstallationStatus.TO_REVIEW, images: imagesUrls})
+    const result = await this.installationsRepository.update(id, {status: InstallationStatus.TO_REVIEW, images: imagesUrls, submittedForReviewAt: new Date()})
     if(!result) throw new InternalServerErrorException('No se pudo cambiar el estado')
     
     if(installation.order.client?.id && installation.coordinator?.id) {

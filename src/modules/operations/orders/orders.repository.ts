@@ -25,13 +25,16 @@ export class OrdersRepository {
 
         queryBuilder
         .leftJoinAndSelect('order.client', 'client')
+        .leftJoinAndSelect('client.user', 'clientUser')
         .leftJoinAndSelect('order.installations', 'installations')
         .leftJoinAndSelect('installations.address', 'address')
         .leftJoinAndSelect('installations.installers', 'installers')
+        .leftJoinAndSelect('installers.user', 'installersUsers')
         .leftJoinAndSelect('installations.coordinator', 'coordinator')
+        .leftJoinAndSelect('coordinator.user', 'coordinatorUser')
         .leftJoinAndSelect('address.city', 'city')
         .leftJoinAndSelect('city.province', 'province')
-        
+        .addSelect('order.createdAt')
 
         if(query.completed !== undefined) {
             queryBuilder.andWhere('order.completed = :completed', {completed: query.completed})
@@ -42,7 +45,6 @@ export class OrdersRepository {
         }
 
         if(query.createdAt) {
-            queryBuilder.addSelect('order.createdAt')
             queryBuilder.addOrderBy('order.createdAt', query.createdAt)
         }
 
@@ -56,31 +58,25 @@ export class OrdersRepository {
         .take(query.limit);
     
     const findResult = await queryBuilder.getManyAndCount()
-     
     return findResult
     
     }
 
     async getById(id: string) {
-        return await this.ordersRepository.findOne({
-            where: {id},
-            relations: {
-                client: {
-                    user: true
-                },
-                installations: {
-                    coordinator: {
-                        user: true
-                    },
-                    installers: true,
-                    address: {
-                        city: {
-                            province: true
-                        }
-                    }
-                }
-            }
-        })
+        return await this.ordersRepository
+         .createQueryBuilder('order')                     
+         .leftJoinAndSelect('order.client', 'client')
+         .leftJoinAndSelect('client.user', 'clientUser')
+         .leftJoinAndSelect('order.installations', 'inst')
+         .leftJoinAndSelect('inst.coordinator', 'coord')
+         .leftJoinAndSelect('coord.user', 'coordUser')
+         .leftJoinAndSelect('inst.installers', 'installer')
+         .leftJoinAndSelect('installer.user', 'installerUser')
+         .leftJoinAndSelect('inst.address', 'addr')
+          .leftJoinAndSelect('addr.city', 'city')
+         .leftJoinAndSelect('city.province', 'prov')
+         .addSelect('order.createdAt')                   
+         .getOne();
     }
 
     async getOneAndFilterInstallations (id: string, query: InstallationQueryOptionsDto) {

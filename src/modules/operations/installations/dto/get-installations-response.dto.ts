@@ -8,10 +8,10 @@ import { Installer } from "src/modules/installer/entities/installer.entity";
 export class GetInstallationsDto extends BaseDto {
     id: string;
     images: string[] | null;
-    startDate: string;
+    startDate: Date;
     endDate: Date;
-    coordinator: UserRole | null;
-    installers: Installer[] | null
+    coordinator: any;
+    installers: any
     status: InstallationStatus;
     address: AddressResponseDto;
 
@@ -22,8 +22,8 @@ export class GetInstallationsDto extends BaseDto {
         this.startDate = data.startDate
         this.endDate = data.endDate
         this.status = data.status
-        this.coordinator = data.coordinator
-        this.installers = data.installers
+        this.coordinator = (data.coordinator && data.coordinator.user)
+        this.installers = (data.installers && data.installers.map(installer => installer.user))
         this.address = new AddressResponseDto(data.address)
     }
 }

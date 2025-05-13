@@ -1,33 +1,42 @@
-FROM node:22-alpine AS development
+# syntax=docker/dockerfile:1.5
 
-WORKDIR /usr/src/app
-
-COPY package*.json ./
-
-RUN npm ci
-
-COPY . .
-
-FROM node:22-alpine AS build
-
-WORKDIR /usr/src/app
+################  DEPENDENCIAS  ################
+FROM node:22-slim AS deps
+WORKDIR /app
 
 COPY package*.json ./
 
-COPY --from=development /usr/src/app/node_modules ./node_modules
+RUN --mount=type=cache,id=npm-cache,target=/root/.npm \
+    npm ci --no-audit --no-fund --loglevel=error
 
-COPY . .
 
-RUN npm run build
+################  BUILDER  ################
+FROM deps AS builder
+WORKDIR /app
 
-RUN npm ci --only=production && npm cache clean --force
+COPY tsconfig*.json nest-cli.json ./
+COPY src ./src
 
-FROM node:22-alpine AS production
+RUN --mount=type=cache,id=npm-cache,target=/root/.npm \
+    npm run build && \
+    npm prune --omit=dev && \
+    npm dedupe --omit=dev && \
+    # borra documentación, tests, typings y mapas de sourcemap
+    find node_modules -type f \( -name "*.md" -o -name "*.markdown" \
+        -o -name "LICENSE*" -o -name "*.d.ts" -o -name "*.map" \
+        -o -name "*.html" -o -name "*.txt" \) -delete && \
+    find node_modules -type d \( -name "test" -o -name "__tests__" \
+        -o -name "tests" -o -name "docs" \) -exec rm -rf {} + && \
+    npm cache clean --force
 
-COPY --from=build /usr/src/app/node_modules ./node_modules
 
-COPY --from=build /usr/src/app/dist ./dist
+################  RUNTIME  ################
+FROM gcr.io/distroless/nodejs22-debian12
+WORKDIR /app
+
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/dist          ./dist
 
 EXPOSE 3000
-
-CMD ["node", "dist/main.js"] 
+USER 1000:1000
+CMD ["dist/main.js"]
