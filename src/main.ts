@@ -35,9 +35,7 @@ async function bootstrap() {
   );
   
   app.useGlobalFilters(new HttpExceptionFilter());
-  
-  app.useGlobalInterceptors(new DateFormatInterceptor());
-  
+    
   const usersSeed = app.get(UserSeeds);
   await usersSeed.seed(); 
   
