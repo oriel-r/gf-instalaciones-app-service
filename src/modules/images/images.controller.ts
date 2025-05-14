@@ -4,6 +4,7 @@ import {
   Post,
   UploadedFile,
   UploadedFiles,
+  UseGuards,
   UseInterceptors,
   UsePipes,
 } from '@nestjs/common';
@@ -12,6 +13,7 @@ import { ImagesService } from './images.service';
 import { FilesPipe } from 'src/common/pipes/file/files-pipe';
 import { FilePipe } from 'src/common/pipes/file/file.pipe';
 import { FileUploadService } from 'src/services/file-upload/file-upload.service';
+
 
 @Controller('images')
 export class ImagesController {
