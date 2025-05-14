@@ -35,7 +35,7 @@ async function bootstrap() {
   );
   
   app.useGlobalFilters(new HttpExceptionFilter());
-    
+  /*  
   const usersSeed = app.get(UserSeeds);
   await usersSeed.seed(); 
   
@@ -53,12 +53,10 @@ async function bootstrap() {
 
   const ordersSeeder = app.get(OrdersSeeder)
   await ordersSeeder.seed()  
-
+*/
   const documentation = () => SwaggerModule.createDocument(app, swaggerConfig)
   SwaggerModule.setup('docs', app, documentation)
 
-  await app.listen(process.env.PORT ?? 3000, () => {
-    console.log('✅ NEST_READY');
-  });
+  await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();

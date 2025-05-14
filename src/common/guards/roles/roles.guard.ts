@@ -22,7 +22,7 @@ export class RolesGuard implements CanActivate {
     if (!user || !user.userRoles) {
       throw new UnauthorizedException('No tienes los permisos adecuados.');
     }
-
+    
     const userRoles = user.userRoles.map((ur) => ur.role.name);
     const hasRole = requiredRoles.some((role) => userRoles.includes(role));
 

@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, ServiceUnavailableException } from '@nestjs/common';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { UpdateNotificationDto } from './dto/update-notification.dto';
 import { NotificationsRepository } from './notifications.repository';
@@ -10,13 +10,15 @@ import { InstallationPostponedDto } from './dto/installation-postponed.dto';
 import { InstallationApprovedDto } from './dto/installation-aproved.dto';
 import { DeepPartial } from 'typeorm';
 import { RoleEnum } from 'src/common/enums/user-role.enum';
+import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class NotificationsService {
   constructor(
     private readonly notificationsRepository: NotificationsRepository,
     private readonly userRoleService: UserRoleService,
-    private readonly eventEmitter: EventEmitter2
+    private readonly eventEmitter: EventEmitter2,
+    private readonly emailService: EmailService
   ) {}
 
  
@@ -33,9 +35,15 @@ export class NotificationsService {
       const client = await this.userRoleService.getByIdWhenRole(clientId, RoleEnum.USER)
       const coordinator = await this.userRoleService.getByIdWhenRole(coordinatorId, RoleEnum.COORDINATOR)
       if(!client || !coordinator ) throw new BadRequestException('No se encontro a alguno de los receptores')
+      const emails = await this.emailService.sendEmail({
+        to: [client.user.email, coordinator.user.email],
+        subject: "Los instladores an llegado!",
+        message: `La instalación con a realizarse en ${street} ${number} de la ciudad de ${city.name} (${city.province.name}) esta en proceso`
+      })
+      if (!emails) throw new ServiceUnavailableException('No se pudo enviar los emails')
       const newNotification = await this.create({
-        title: "Nuestro instlador a llegado!",
-        message: `La instalación a realizarse en ${street} ${number} de la ciudad de ${city.name} (${city.province.name}) esta en proceso`,
+        title: "Los instladores an llegado!",
+        message: `La instalación con a realizarse en ${street} ${number} de la ciudad de ${city.name} (${city.province.name}) esta en proceso`,
         receivers: [client, coordinator]
       })
       return newNotification
@@ -50,6 +58,12 @@ export class NotificationsService {
     try {
       const coordinator = await this.userRoleService.getByIdWhenRole(coordinatorId, RoleEnum.COORDINATOR)
       if(!coordinator) throw new BadRequestException('Coordinador incorrecto')
+           const emails = await this.emailService.sendEmail({
+        to: [coordinator.user.email],
+        subject: "La instalación se pospuso",
+        message: `La instalación a realizarse en ${address.street} ${address.number} de ciudad de ${address.city.name} (${address.city.province.name}) se pospuso`
+      })
+      if (!emails) throw new ServiceUnavailableException('No se pudo enviar los emails')
       const newNotification = await this.create({
         title: "La instalación se pospuso",
         message: `La instalación a realizarse en ${address.street} ${address.number} de ciudad de ${address.city.name} (${address.city.province.name}) se pospuso`,
@@ -71,10 +85,21 @@ export class NotificationsService {
 
   @OnEvent(NotifyEvents.INSTALLATION_APROVE)
   async installationFinished(data: InstallationApprovedDto) {
-    const {clientId, installers} = data
+    const {clientId, installers, address} = data
     try {
       const aClient = await this.userRoleService.getByIdWhenRole(clientId, RoleEnum.USER)
-      if(!aClient) throw new BadRequestException('Cliente incorrecto')
+      const installersUsers = await Promise.all(installers.map(async (inst) => {
+        return await this.userRoleService.getByIdWhenRole(inst.user.id, RoleEnum.INSTALLER)
+      }))
+
+      if(!aClient || !installersUsers) throw new BadRequestException('Cliente o Instaladores incorrectos')
+      
+      const installersEmails = installers.map(inst => inst.user.email)
+      const emails = await this.emailService.sendEmail({
+        to: [aClient.user.email, ...installersEmails],
+        subject: 'La instalación a finalizado!',
+        message: `La instalación realizada en ${address.street} ${address.number} de ciudad de ${address.city.name} (${address.city.province.name}) se finalizo con exitosamente`
+      })
       const newNotification = await this.create({
         title: "La instalación a finalizado!",
         message: `Se envian las fotos`,

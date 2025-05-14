@@ -5,11 +5,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserRoleModule } from '../user-role/user-role.module';
 import { Notification } from './entities/notification.entity';
 import { NotificationsRepository } from './notifications.repository';
+import { EmailModule } from '../email/email.module';
 
 @Module({
   imports:[
     TypeOrmModule.forFeature([Notification]),
-    UserRoleModule
+    UserRoleModule,
+    EmailModule
   ],
   controllers: [NotificationsController],
   providers: [NotificationsService, NotificationsRepository],
