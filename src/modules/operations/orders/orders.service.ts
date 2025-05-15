@@ -68,7 +68,7 @@ export class OrdersService {
     const isUser = roles.every(role => role.name !== RoleEnum.ADMIN)
     const clientId = isUser ? roles[0].id : null
 
-    const orders = await this.ordersRepository.get(query, clientId)
+    const orders = await this.ordersRepository.get(query)
 
       const result: PaginationResult<GetOrderResponseDto> = [orders[0].map(order => new GetOrderResponseDto(order)),orders[1]]
       return result
@@ -87,7 +87,7 @@ export class OrdersService {
         const isUser = roles && roles.every(role => role.name !== RoleEnum.ADMIN)
     const clientId = isUser ? roles[0].id : null
 
-    const order = await this.ordersRepository.getById(id, clientId)
+    const order = await this.ordersRepository.getById(id)
     if(!order) throw new NotFoundException('No se encontro la orden')
     const installations = await this.installationsService.filterFromOrder(id, query)
       return installations
