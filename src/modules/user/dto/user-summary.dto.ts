@@ -1,6 +1,7 @@
 import { Expose, Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { UserRoleDto } from 'src/modules/user-role/dto/user-role.dto';
+import { Installer } from 'src/modules/installer/entities/installer.entity';
 
 export class UserSummaryDto {
   @ApiProperty()
@@ -62,4 +63,8 @@ export class UserSummaryDto {
     description: 'Roles asignados al usuario',
   })
   userRoles: UserRoleDto[];
+
+  @Expose()
+  @Type(() => Installer)
+  installer: Installer
 }
