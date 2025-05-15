@@ -28,6 +28,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { addHours } from 'date-fns';
 import { RecoveryChangePasswordDto } from './dto/recovery-change-password.dto';
 import { RolePayload } from 'src/common/entities/role-payload.dto';
+import { StatusInstaller } from 'src/common/enums/status-installer';
 
 @ApiTags('Auth')
 @Injectable()
@@ -90,15 +91,14 @@ export class AuthService {
       );
     }
 
-    const roles = anUser.userRoles
-      .filter((ur) => ur.isActive)
+    const roles = anUser.userRoles.filter((ur) => ur.isActive)
 
     const isInstaller = roles.some((userRole) => userRole.role.name === RoleEnum.INSTALLER)
 
     if (isInstaller && anUser.installer) {
       if (
-        anUser.installer.status === 'EN PROCESO' ||
-        anUser.installer.status === 'RECHAZADO'
+        anUser.installer.status === StatusInstaller.InProcess ||
+        anUser.installer.status === StatusInstaller.Refused
       ) {
         throw new HttpException(
           'Necesita ser aprobado',
