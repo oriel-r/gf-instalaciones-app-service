@@ -129,7 +129,7 @@ export class UserService {
       return plainToInstance(UserWithRolesDto, user, { excludeExtraneousValues: true });
   }
   
-  async findAll(): Promise<UserWithRolesDto[]> {
+  async findAll(): Promise<User[]> {
     const users = await this.userRepository.find({
       relations: [
         'userRoles',
@@ -143,9 +143,7 @@ export class UserService {
       },
     });
   
-    return plainToInstance(UserWithRolesDto, users, {
-      excludeExtraneousValues: true,
-    });
+    return users
   }  
 
   async findAllRoles() {

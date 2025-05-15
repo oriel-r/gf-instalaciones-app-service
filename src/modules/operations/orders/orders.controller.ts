@@ -18,8 +18,8 @@ import { RoleEnum } from 'src/common/enums/user-role.enum';
 import { AuthGuard } from 'src/common/guards/auth/auth.guard';
 import { RolesGuard } from 'src/common/guards/roles/roles.guard';
 
-@Roles(RoleEnum.ADMIN)
-@UseGuards(AuthGuard, RolesGuard)
+//@Roles(RoleEnum.ADMIN)
+//@UseGuards(AuthGuard, RolesGuard)
 @Controller('orders')
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
@@ -45,7 +45,7 @@ export class OrdersController {
     return this.ordersService.addInstallations(id, data);
   }
 
-  @Roles(RoleEnum.USER, RoleEnum.ADMIN)
+  //@Roles(RoleEnum.USER, RoleEnum.ADMIN)
   @ApiOperation({
     summary: 'get and filter orders',
   })
@@ -55,23 +55,21 @@ export class OrdersController {
   @Get()
   async findAll(@Query(new QueryOptionsPipe(OrderQueryOptionsDto)) query: OrderQueryOptionsDto, @Req() req: Request) {
     const baseUrl = `${req.protocol}://${req.host}${req.path}` + "?" + `${new URLSearchParams(Object.entries(query).map(([k, v]) => [k, String(v)])).toString()}`
-    const roles = req['user'].roles
-    const result: PaginationResult<GetOrderResponseDto>= await this.ordersService.findAll(query, roles);
+    const result: PaginationResult<GetOrderResponseDto>= await this.ordersService.findAll(query);
     
     return new PaginatedResponseDto<GetOrderResponseDto>(result  ,query.page, query.limit, baseUrl)
   
   }
 
-  @Roles(RoleEnum.ADMIN, RoleEnum.USER)
+ // @Roles(RoleEnum.ADMIN, RoleEnum.USER)
   @Get(':id/installations')
   async findInstallationsFromOrder(
     @Param('id') id: string, 
     @Query(new QueryOptionsPipe(InstallationQueryOptionsDto)) query: InstallationQueryOptionsDto,
     @Req() req: Request
   ) {
-    const roles = req['user'].roles
 
-    return await this.ordersService.getInstallationsFromId(id, query, roles);
+    return await this.ordersService.getInstallationsFromId(id, query);
   }
 
   @Roles(RoleEnum.ADMIN, RoleEnum.USER)

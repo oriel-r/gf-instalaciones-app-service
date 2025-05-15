@@ -4,6 +4,7 @@ import { AdminBasicDto } from 'src/modules/admins/dto/admin-basic.dto';
 import { CoordinatorBasicDto } from 'src/modules/coordinators/dto/coordinator-basic.dto';
 import { InstallerBasicDto } from 'src/modules/installer/dto/installer-basic.dto';
 import { UserRoleDto } from 'src/modules/user-role/dto/user-role.dto';
+import { Installer } from 'src/modules/installer/entities/installer.entity';
 
 export class UserWithRolesDto {
   @ApiProperty()
@@ -66,10 +67,9 @@ export class UserWithRolesDto {
   })
   userRoles: UserRoleDto[];
 
-  @ApiProperty({ type: () => InstallerBasicDto, required: false })
   @Expose()
-  @Type(() => InstallerBasicDto)
-  installer?: InstallerBasicDto | null;
+  @Type(() => Installer)
+  installer?: Installer | null;
 
   @ApiProperty({ type: () => CoordinatorBasicDto, required: false })
   @Expose()
