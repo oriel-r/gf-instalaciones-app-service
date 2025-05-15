@@ -4,7 +4,7 @@ import { Installation } from "src/modules/operations/installations/entities/inst
 import { CreateInstallationDto } from "src/modules/operations/installations/dto/create-installation.dto";
 import { ApiProperty } from "@nestjs/swagger";
 import { IsArray, IsNotEmpty, IsOptional, IsString } from "class-validator";
-import { IsInstance, IsUUID, ValidateNested } from "@nestjs/class-validator";
+import { IsInstance, IsUUID, ValidateNested } from "class-validator";
 import { Type } from "class-transformer";
 import { InstallationDataRequesDto } from "./installation-data.request.dto";
 import { UserRole } from "src/modules/user-role/entities/user-role.entity";

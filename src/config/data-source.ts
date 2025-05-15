@@ -17,6 +17,9 @@ const dataSourceConfig: DataSourceOptions = {
   ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
   entities: ['dist/**/*.entity{.ts,.js}'],
   migrations: ['dist/migrations/*{.js,.ts}'],
+  extra: {
+    options: '-c timezone=America/Argentina/Buenos_Aires'
+  }
 }
 
 export const dbConfig = registerAs(

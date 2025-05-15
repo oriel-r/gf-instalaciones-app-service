@@ -43,8 +43,8 @@ export class Installation extends BaseEntity {
         title: 'startDate',
         description: "The day when start the installation"
     })
-    @Column('varchar', {nullable: true})
-    startDate: string
+    @Column('timestamptz', {nullable: true})
+    startDate: Date
     
     @ApiProperty({
         title: 'images',
@@ -54,8 +54,8 @@ export class Installation extends BaseEntity {
     images: string[] | null
 
     @ApiProperty({
-        title: 'startDate',
-        description: "The day when start the installation"
+        title: 'status',
+        description: "the installation status"
     })
     @Column({default: InstallationStatus.PENDING, type: 'enum', enum: InstallationStatus})
     status: InstallationStatus
@@ -78,8 +78,14 @@ export class Installation extends BaseEntity {
         title: 'endDate',
         description: "The day in that the installation is finished"
     })
-    @Column('date', {nullable: true})
+    @Column('timestamptz', {nullable: true})
     endDate: Date
+
+    @Column({ type: 'timestamptz', nullable: true })
+    startedAt!: Date | null;                
+
+    @Column({ type: 'timestamptz', nullable: true })
+    submittedForReviewAt!: Date | null;
 
     constructor(partial: DeepPartial<Installation>) {
         super()

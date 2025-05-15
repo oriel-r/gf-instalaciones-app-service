@@ -56,13 +56,14 @@ export class OrdersController {
   }
 
   @Get(':id/installations')
-  async findOne(@Param('id') id: string, @Query(new QueryOptionsPipe(InstallationQueryOptionsDto)) query: InstallationQueryOptionsDto) {
-    return this.ordersService.getInstallationsFromId(id, query);
+  async findInstallationsFromOrder(@Param('id') id: string, @Query(new QueryOptionsPipe(InstallationQueryOptionsDto)) query: InstallationQueryOptionsDto) {
+    return await this.ordersService.getInstallationsFromId(id, query);
   }
 
   @Get(':id')
-  async findInstallationsByOrder(@Param('id') id: string) {
-    return this.ordersService.findOne(id);
+  async findOne(@Param('id') id: string) {
+    const result = await this.ordersService.findOne(id);
+    return new GetOrderResponseDto(result)
   }
 
   @Patch(':id')
