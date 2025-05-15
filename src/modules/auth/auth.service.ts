@@ -69,18 +69,18 @@ export class AuthService {
       );
     }
 
-    const user = await this.userRepository.findOne({
+    const anUser = await this.userRepository.findOne({
       where: { email: credentials.emailSignIn },
       relations: ['userRoles', 'userRoles.role'],
     });
 
-    if (!user) {
+    if (!anUser) {
       throw new HttpException('Usuario, contraseña incorrecta', 404);
     }
 
     const isPasswordMatching = await compare(
       credentials.passwordSignIn,
-      user.password,
+      anUser.password,
     );
 
     if (!isPasswordMatching) {
@@ -90,15 +90,15 @@ export class AuthService {
       );
     }
 
-    const roles = user.userRoles
+    const roles = anUser.userRoles
       .filter((ur) => ur.isActive)
 
     const isInstaller = roles.some((userRole) => userRole.role.name === RoleEnum.INSTALLER)
 
-    if (isInstaller && user.installer) {
+    if (isInstaller && anUser.installer) {
       if (
-        user.installer.status === 'EN PROCESO' ||
-        user.installer.status === 'RECHAZADO'
+        anUser.installer.status === 'EN PROCESO' ||
+        anUser.installer.status === 'RECHAZADO'
       ) {
         throw new HttpException(
           'Necesita ser aprobado',
@@ -108,22 +108,22 @@ export class AuthService {
     }
 
     const userPayload = {
-      id: user.id,
-      email: user.email,
+      id: anUser.id,
+      email: anUser.email,
       roles: roles.map(ur => new RolePayload(ur)),
       installerId:
-        isInstaller && user.installer
-          ? user.installer.id
+        isInstaller && anUser.installer
+          ? anUser.installer.id
           : null,
     };
 
     const token = this.jwtService.sign(userPayload);
 
-    const userResponse = plainToInstance(UserSummaryDto, user, {
+    const user = plainToInstance(UserSummaryDto, anUser, {
       excludeExtraneousValues: true,
     });
 
-    return { token, userResponse };
+    return { token, user };
   }
 
   async signUpInstaller(dto: ExtendedInstallerDto) {
