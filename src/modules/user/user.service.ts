@@ -27,6 +27,8 @@ import { CoordinatorsService } from '../coordinators/coordinators.service';
 import { Order } from '../operations/orders/entities/order.entity';
 import { AdminService } from '../admins/admins.service';
 import { UserRole } from '../user-role/entities/user-role.entity';
+import { plainToInstance } from 'class-transformer';
+import { UserSummaryDto } from './dto/user-summary.dto';
 
 @ApiTags('Users')
 @Injectable()
@@ -113,85 +115,38 @@ export class UserService {
       );
     }
 
-    return this.mapToUserWithRolesDto(fullUser);
-  }
-
-  private mapToUserWithRolesDto(user: User): UserWithRolesDto {
-    return {
-      id: user.id,
-      fullName: user.fullName,
-      birthDate: user.birthDate,
-      country: user.country,
-      address: user.address,
-      idNumber: user.idNumber,
-      coverage: user.coverage,
-      email: user.email,
-      phone: user.phone,
-      location: user.location,
-      createdAt: user.createdAt,
-      isSubscribed: user.isSubscribed,
-      disabledAt: user.disabledAt,
-      userRoles:
-        user.userRoles?.map((ur) => ({
-          id: ur.id,
-          role: {
-            id: ur.role.id,
-            name: ur.role.name,
-          },
-        })) ?? [],
-        installer: user.installer ?? null,
-        coordinator: user.coordinator ?? null,
-        admin: user.admin ?? null,
-    };
+    return plainToInstance(UserWithRolesDto, fullUser, { excludeExtraneousValues: true });
   }
 
   async userByEmailByDisabled(email: string) {
-    return await this.userRepository
+    const user = await this.userRepository
       .createQueryBuilder('user')
       .withDeleted()
       .where('user.email = :email', { email })
       .andWhere('user.disabledAt IS NOT NULL')
       .getOne();
+
+      return plainToInstance(UserWithRolesDto, user, { excludeExtraneousValues: true });
   }
   
   async findAll(): Promise<UserWithRolesDto[]> {
-    const users = await this.userRepository
-    .createQueryBuilder('user')
-    .leftJoinAndSelect('user.userRoles', 'userRole')
-    .leftJoinAndSelect('userRole.role', 'role')
-    .leftJoinAndSelect('user.installer', 'installer')
-    .leftJoinAndSelect('user.coordinator', 'coordinator')
-    .leftJoinAndSelect('user.admin', 'admin')
-    .orderBy('role.name', 'DESC')
-    .getMany();
-
-    return users.map((user) => ({
-      id: user.id,
-      fullName: user.fullName,
-      email: user.email,
-      birthDate: user.birthDate,
-      idNumber: user.idNumber,
-      country: user.country,
-      address: user.address,
-      coverage: user.coverage,
-      location: user.location,
-      phone: user.phone,
-      createdAt: user.createdAt,
-      isSubscribed: user.isSubscribed,
-      disabledAt: user.disabledAt,
-      userRoles:
-        user.userRoles?.map((ur) => ({
-          id: ur.id,
-          role: {
-            id: ur.role.id,
-            name: ur.role.name,
-          },
-        })) ?? [],
-        installer: user.installer ?? null,
-        coordinator: user.coordinator ?? null,
-        admin: user.admin ?? null,
-    }));
-  }
+    const users = await this.userRepository.find({
+      relations: [
+        'userRoles',
+        'userRoles.role',
+        'installer',
+        'coordinator',
+        'admin',
+      ],
+      order: {
+        createdAt: 'DESC', // si querés ordenar (no podés por relaciones, pero sí por columnas propias)
+      },
+    });
+  
+    return plainToInstance(UserWithRolesDto, users, {
+      excludeExtraneousValues: true,
+    });
+  }  
 
   async findAllRoles() {
     return await this.roleRepository.find();
@@ -218,22 +173,43 @@ export class UserService {
     return findResult;
   }
 
-  async findByEmail(email: string) {
-    return await this.userRepository.findOne({
+  async findByEmail(email: string): Promise<UserWithRolesDto> {
+    const user = await this.userRepository.findOne({
       where: { email },
-      relations: ['userRoles', 'userRoles.role', 'installer', 'coordinator',
-      'admin'],
+      relations: [
+        'userRoles',
+        'userRoles.role',
+        'installer',
+        'coordinator',
+        'admin',
+      ],
     });
-  }
+  
+    if (!user) {
+      throw new NotFoundException('Usuario no encontrado');
+    }
+  
+    return plainToInstance(UserSummaryDto, user, { excludeExtraneousValues: true });
+  }  
 
-  async findById(id: string) {
+  async findById(id: string): Promise<UserWithRolesDto> {
     const user = await this.userRepository.findOne({
       where: { id },
-      relations: ['userRoles', 'userRoles.role', 'coordinator','admin', 'installer' ],
+      relations: [
+        'userRoles',
+        'userRoles.role',
+        'installer',
+        'coordinator',
+        'admin',
+      ],
     });
+  
     if (!user) throw new NotFoundException('Usuario no encontrado');
-    return user;
-  }
+  
+    return plainToInstance(UserWithRolesDto, user, {
+      excludeExtraneousValues: true,
+    });
+  }  
 
   async updateUser(id: string, updateUserDto: UpdateUserDto) {
     const user = await this.userRepository.findOne({ where: { id } });
@@ -244,7 +220,9 @@ export class UserService {
 
     Object.assign(user, updateUserDto);
 
-    return await this.userRepository.save(user);
+    const updateUser = await this.userRepository.save(user);
+
+    return plainToInstance(UserSummaryDto, updateUser, { excludeExtraneousValues: true });
   }
 
   async deleteUserByRole(userId: string, roleId: string): Promise<{ message: string }> {
@@ -269,9 +247,12 @@ export class UserService {
     return { message: 'Rol eliminado correctamente' };
   }
    
-
   async deleteUser(userId: string): Promise<{ message: string }> {
-    const user = await this.findById(userId);
+    const user = await this.userRepository.findOne({where: {id: userId}});
+
+    if (!user) {
+      throw new NotFoundException(`Usuario no encontrado`);
+    }
   
     const roles = await this.userRoleService.findRolesById(userId);
   
@@ -305,7 +286,7 @@ export class UserService {
   async disableUser(userId: string) {
     const user = await this.userRepository.findOne({
       where: { id: userId },
-      relations: ['installer', 'coordinator'],
+      relations: ['installer', 'coordinator', 'admin'],
     });
   
     if (!user) {
@@ -324,8 +305,14 @@ export class UserService {
     }
   
     if (user.coordinator) {
-      await this.coordinatorService.delete(user.coordinator.id);
+      await this.coordinatorService.disable(user.coordinator.id);
     }
+
+    if (user.admin) {
+      await this.adminService.disable(user.admin.id);
+    }
+
+    await this.userRoleService.disabledUserRole(user.id);
 
     return { message: 'Usuario desactivado correctamente' };
   }
@@ -351,13 +338,21 @@ export class UserService {
     if (user.coordinator?.disabledAt) {
       await this.coordinatorService.restore(user.coordinator.id);
     }
+
+    if (user.admin?.disabledAt) {
+      await this.adminService.restore(user.admin.id);
+    }
   
+    await this.userRoleService.restoreUserRoles(user.id);
+
     return { message: 'Usuario restaurado correctamente' };
   }
 
   async findByIdNumber(idNumber: string) {
-    return await this.userRepository.findOne({
+    const user = await this.userRepository.findOne({
       where: { idNumber },
     });
+
+    return plainToInstance(UserSummaryDto, user, { excludeExtraneousValues: true });
   }
 }

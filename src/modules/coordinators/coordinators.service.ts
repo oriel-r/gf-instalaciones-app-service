@@ -75,6 +75,17 @@ export class CoordinatorsService {
     return { message: 'Coordinador eliminado correctamente.' };
   }
 
+  async disable(id: string) {
+    const coordinator = await this.findById(id);
+    if (coordinator.disabledAt) {
+      throw new BadRequestException('Este coordinador ya está deshabilitado');
+    }
+  
+    coordinator.disabledAt = new Date();
+    await this.coordinatorRepository.save(coordinator);
+    return { message: 'Coordinador desactivado correctamente' };
+  }
+
   async findById(id: string) {
     const coordinator = await this.coordinatorRepository.findOne({
       where: { id },

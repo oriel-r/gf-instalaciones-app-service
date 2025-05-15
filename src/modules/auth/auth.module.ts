@@ -16,9 +16,12 @@ import { Coordinator } from "../coordinators/entities/coordinator.entity";
 import { CoordinatorsService } from "../coordinators/coordinators.service";
 import { AdminModule } from "../admins/admins.module";
 import { UserRole } from "../user-role/entities/user-role.entity";
+import { PasswordResetToken } from "./entities/passwordResetToken.entity";
+import { EmailService } from "../email/email.service";
+import { ContactMessage } from "../email/entities/contact-message.entity";
 
 @Module({
-    imports: [TypeOrmModule.forFeature([User, Installer, Role, Coordinator, UserRole]),
+    imports: [TypeOrmModule.forFeature([User, Installer, Role, Coordinator, UserRole, PasswordResetToken, ContactMessage]),
     UserModule,
     UserRoleModule,
     InstallerModule,
@@ -29,7 +32,7 @@ import { UserRole } from "../user-role/entities/user-role.entity";
         secret: process.env.JWT_SECRET,
       }),
 ],
-    providers: [AuthService, UserService, InstallerService, CoordinatorsService],
+    providers: [AuthService, UserService, InstallerService, CoordinatorsService, EmailService],
     controllers: [AuthController],
 })
 
