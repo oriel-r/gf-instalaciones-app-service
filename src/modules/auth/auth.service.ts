@@ -72,7 +72,7 @@ export class AuthService {
 
     const anUser = await this.userRepository.findOne({
       where: { email: credentials.emailSignIn },
-      relations: ['userRoles', 'userRoles.role', 'installer'],
+      relations: ['userRoles', 'userRoles.role', 'installer', 'coordinator'],
     });
 
     if (!anUser) {
