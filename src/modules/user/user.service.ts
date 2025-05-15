@@ -76,7 +76,7 @@ export class UserService {
     }
 
     const userDisabled = await this.userByEmailByDisabled(email);
-    if (userDisabled?.disabledAt) {
+    if (userDisabled.disabledAt) {
       throw new ConflictException('El correo electrónico está deshabilitado');
     }
 
@@ -139,7 +139,7 @@ export class UserService {
         'admin',
       ],
       order: {
-        createdAt: 'DESC', // si querés ordenar (no podés por relaciones, pero sí por columnas propias)
+        createdAt: 'ASC', // si querés ordenar (no podés por relaciones, pero sí por columnas propias)
       },
     });
   
