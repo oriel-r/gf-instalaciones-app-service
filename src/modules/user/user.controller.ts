@@ -9,6 +9,7 @@ import {
   Query,
   Req,
   ParseEnumPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -22,6 +23,7 @@ import { Request } from 'express';
 import { Role } from './entities/roles.entity';
 import { UserWithRolesDto } from './dto/user-with-roles.dto';
 import { RoleEnum } from 'src/common/enums/user-role.enum';
+import { AuthGuard } from 'src/common/guards/auth/auth.guard';
 
 @ApiTags('Users')
 @Controller('user')
@@ -108,7 +110,7 @@ export class UserController {
   @ApiOperation({ summary: 'Restaurar usuario desactivado' })
   @ApiResponse({ status: 200, description: 'Usuario restaurado correctamente.' })
   @ApiResponse({ status: 400, description: 'El usuario ya se encuentra activo.' })
-  @Put('restore/:id')
+  @Patch('restore/:id')
   async restore(@Param('id') id: string) {
     return await this.userService.restoreUser(id);
   }

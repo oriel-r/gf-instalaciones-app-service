@@ -5,25 +5,28 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { ROLES_KEY } from 'src/common/decorators/roles/roles.decorator';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
   constructor(private readonly reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const requiredRoles = this.reflector.getAllAndOverride<string[]>('roles', [
+    const requiredRoles = this.reflector.getAllAndOverride<string[]>(ROLES_KEY, [
       context.getHandler(),
       context.getClass(),
     ]);
 
+    console.log(requiredRoles)
+
     const request = context.switchToHttp().getRequest();
     const user = request.user;
 
-    if (!user || !user.userRoles) {
+    if (!user || !user.roles) {
       throw new UnauthorizedException('No tienes los permisos adecuados.');
     }
 
-    const userRoles = user.userRoles.map((ur) => ur.role.name);
+    const userRoles = user.roles.map((ur) => ur.name);
     const hasRole = requiredRoles.some((role) => userRoles.includes(role));
 
     if (!hasRole) {

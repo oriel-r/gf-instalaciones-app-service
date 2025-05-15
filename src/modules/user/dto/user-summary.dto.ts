@@ -1,69 +1,65 @@
+import { Expose, Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
-import { Expose } from 'class-transformer';
+import { UserRoleDto } from 'src/modules/user-role/dto/user-role.dto';
 
-export class InstallerUserBasicDto {
-  @Expose()
+export class UserSummaryDto {
   @ApiProperty()
+  @Expose()
   id: string;
 
-  @Expose()
   @ApiProperty()
+  @Expose()
   fullName: string;
 
-  @Expose()
   @ApiProperty()
+  @Expose()
   email: string;
 
-  @Expose()
   @ApiProperty()
+  @Expose()
   birthDate: Date;
 
-  @Expose()
   @ApiProperty()
+  @Expose()
   idNumber: string;
 
-  @Expose()
   @ApiProperty()
+  @Expose()
   country: string;
 
-  @Expose()
   @ApiProperty()
+  @Expose()
   address: string;
 
-  @Expose()
   @ApiProperty()
+  @Expose()
   location: string;
 
-  @Expose()
-  @ApiProperty({ required: false })
-  coverage?: string;
-
-  @Expose()
   @ApiProperty()
+  @Expose()
   phone: string;
 
+  @ApiProperty({ required: false })
   @Expose()
+  coverage?: string;
+
+  @ApiProperty({ required: false })
+  @Expose()
+  disabledAt?: Date | null;
+
   @ApiProperty()
+  @Expose()
   createdAt: Date;
 
-  @Expose()
   @ApiProperty({ required: false })
+  @Expose()
   isSubscribed?: boolean;
 
   @Expose()
-  @ApiProperty({ required: false })
-  disabledAt?: Date | null;
-
-  @Expose()
+  @Type(() => UserRoleDto)
   @ApiProperty({
-    type: () => [Object],
+    type: () => [UserRoleDto],
+    description: 'Roles asignados al usuario',
   })
-  userRoles: {
-    id: string;
-    role: {
-      id: string;
-      name: string;
-    };
-  }[];
+  userRoles: UserRoleDto[];
 }
-
