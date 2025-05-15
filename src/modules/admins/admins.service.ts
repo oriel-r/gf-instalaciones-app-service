@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   forwardRef,
   HttpException,
@@ -116,4 +117,26 @@ export class AdminService {
     
     return { message: 'Rol de administrador eliminado correctamente' };
   }
+
+  async disable(id: string) {
+      const admin = await this.findOne(id);
+      if (admin.disabledAt) {
+        throw new BadRequestException('Este admin ya está deshabilitado');
+      }
+    
+      admin.disabledAt = new Date();
+      await this.adminRepository.save(admin);
+      return { message: 'admin desactivado correctamente' };
+  }
+
+  async restore(id: string) {
+    const admin = await this.findOne(id);
+    if (!admin.disabledAt) {
+      throw new BadRequestException('Este admin ya está activo');
+    }
+  
+    admin.disabledAt = null;
+    await this.adminRepository.save(admin);
+    return { message: 'admin restaurado correctamente' };
+  } 
 }

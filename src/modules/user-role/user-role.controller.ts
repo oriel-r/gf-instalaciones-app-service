@@ -2,12 +2,15 @@ import { Controller, Post, Body, Get, Param, Delete, HttpCode } from '@nestjs/co
 import { UserRoleService } from './user-role.service';
 import { AssignRoleDto } from './dto/assign-role.dto';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { resolveCname } from 'dns';
-import { RoleEnum } from 'src/common/enums/user-role.enum';
 
 @Controller('user-role')
 export class UserRoleController {
   constructor(private readonly userRoleService: UserRoleService) {}
+
+  @Get() 
+  async getAll() {
+    return await this.userRoleService.findAll()
+  }
 
   @Post('assign-role')
   async assignRole(@Body() assignRoleDto: AssignRoleDto) {

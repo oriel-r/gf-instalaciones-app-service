@@ -11,6 +11,8 @@ import { UserRole } from '../../user-role/entities/user-role.entity';
 import { Installer } from 'src/modules/installer/entities/installer.entity';
 import { Coordinator } from 'src/modules/coordinators/entities/coordinator.entity';
 import { Admin } from 'src/modules/admins/entities/admins.entity';
+import { Exclude } from 'class-transformer';
+import { PasswordResetToken } from '../../auth/entities/passwordResetToken.entity';
 
 @Entity({ name: 'users' })
 export class User {
@@ -41,6 +43,7 @@ export class User {
   @Column()
   phone: string;
 
+  @Exclude()
   @Column()
   password: string;
 
@@ -65,6 +68,9 @@ export class User {
   @OneToOne(() => Admin, admin => admin.user, { cascade: true })
   admin?: Admin;
 
-  @OneToMany(() => UserRole, (userRole) => userRole.user,  { cascade: true,})
+  @OneToMany(() => UserRole, (userRole) => userRole.user,  { cascade: true})
   userRoles: UserRole[];
+
+  @OneToMany(() => PasswordResetToken, (passwordResetToken) => passwordResetToken.user, {cascade: true})
+  passwordResetToken: PasswordResetToken[];
 }

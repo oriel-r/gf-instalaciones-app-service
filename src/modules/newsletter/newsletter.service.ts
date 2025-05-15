@@ -19,7 +19,7 @@ export class NewsletterService {
   ) {}
 
   async subscribe(email: string) {
-    const exists = await this.userService.findByEmail(email);
+    const exists = await this.userRepository.findOne({where: {email: email}});
   
     if (!exists) throw new Error('No se encontró un usuario con este email.');
   
@@ -30,7 +30,7 @@ export class NewsletterService {
   }
   
   async unsubscribe(email: string) {
-      const subscriber = await this.userService.findByEmail(email);
+      const subscriber = await this.userRepository.findOne({where: {email: email}});
       
       if (!subscriber?.isSubscribed) throw new Error('Este email no está suscrito.');
 

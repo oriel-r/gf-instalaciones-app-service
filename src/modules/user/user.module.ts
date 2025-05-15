@@ -12,7 +12,6 @@
   import { AdminModule } from '../admins/admins.module';
   import { Admin } from '../admins/entities/admins.entity';
 
-
   @Module({
     imports:[TypeOrmModule.forFeature([User, Role, UserRole, Coordinator, Admin]), 
     forwardRef(() => InstallerModule), 

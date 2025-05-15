@@ -7,17 +7,12 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { User } from 'src/modules/user/entities/user.entity';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(
     private readonly jwtService: JwtService,
-    private readonly configService: ConfigService,
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
+    private readonly configService: ConfigService
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -33,17 +28,10 @@ export class AuthGuard implements CanActivate {
         secret: this.configService.get<string>('JWT_SECRET'),
       });
 
-      const user = await this.userRepository.findOne({
-        where: { id: payload.id },
-        relations: ['userRoles', 'userRoles.role', 'installer', 'coordinator'],
-      });
+      request['user'] = payload;
 
-      if (!user) {
-        throw new UnauthorizedException('Usuario no encontrado');
-      }
-
-      request['user'] = user;
       return true;
+
     } catch (error) {
       throw new UnauthorizedException('Token no válido.');
     }

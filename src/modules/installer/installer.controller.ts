@@ -5,8 +5,7 @@ import {
   Get,
   Param,
   Patch,
-  Post,
-  Put
+  Post
 } from '@nestjs/common';
 import { InstallerService } from './installer.service';
 import { CreateInstallerDto } from './dto/create-installer.dto';
@@ -71,7 +70,7 @@ export class InstallerController {
     status: 200,
     description: 'El instalador ha sido restaurado correctamente',
   })
-  @Put('restore/:id')
+  @Patch('restore/:id')
   async restore(@Param('id') id: string) {
     return await this.installerService.restore(id);
   }

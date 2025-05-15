@@ -4,6 +4,7 @@ import {
   Post,
   UploadedFile,
   UploadedFiles,
+  UseGuards,
   UseInterceptors,
   UsePipes,
 } from '@nestjs/common';
@@ -12,6 +13,10 @@ import { ImagesService } from './images.service';
 import { FilesPipe } from 'src/common/pipes/file/files-pipe';
 import { FilePipe } from 'src/common/pipes/file/file.pipe';
 import { FileUploadService } from 'src/services/file-upload/file-upload.service';
+import { AuthGuard } from 'src/common/guards/auth/auth.guard';
+import { RolesGuard } from 'src/common/guards/roles/roles.guard';
+import { Roles, ROLES_KEY } from 'src/common/decorators/roles/roles.decorator';
+import { RoleEnum } from 'src/common/enums/user-role.enum';
 
 @Controller('images')
 export class ImagesController {
@@ -20,6 +25,8 @@ export class ImagesController {
     private readonly fileUploadService: FileUploadService,
   ) {}
 
+  @Roles(RoleEnum.ADMIN)
+  @UseGuards(AuthGuard, RolesGuard)
   @Post()
   @UseInterceptors(FileInterceptor('file'))
   @UsePipes(
