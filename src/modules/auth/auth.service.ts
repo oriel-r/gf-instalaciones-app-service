@@ -27,6 +27,7 @@ import { FindUserByEmailDto } from '../user/dto/find-user-by-email.dto';
 import { v4 as uuidv4 } from 'uuid';
 import { addHours } from 'date-fns';
 import { RecoveryChangePasswordDto } from './dto/recovery-change-password.dto';
+import { RolePayload } from 'src/common/entities/role-payload.dto';
 
 @ApiTags('Auth')
 @Injectable()
@@ -89,11 +90,12 @@ export class AuthService {
       );
     }
 
-    const roles: RoleEnum[] = user.userRoles
+    const roles = user.userRoles
       .filter((ur) => ur.isActive)
-      .map((ur) => ur.role.name as RoleEnum);
 
-    if (roles.includes(RoleEnum.INSTALLER) && user.installer) {
+    const isInstaller = roles.some((userRole) => userRole.role.name === RoleEnum.INSTALLER)
+
+    if (isInstaller && user.installer) {
       if (
         user.installer.status === 'EN PROCESO' ||
         user.installer.status === 'RECHAZADO'
@@ -108,9 +110,9 @@ export class AuthService {
     const userPayload = {
       id: user.id,
       email: user.email,
-      roles,
+      roles: roles.map(ur => new RolePayload(ur)),
       installerId:
-        roles.includes(RoleEnum.INSTALLER) && user.installer
+        isInstaller && user.installer
           ? user.installer.id
           : null,
     };

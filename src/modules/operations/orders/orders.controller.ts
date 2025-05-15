@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, Query, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, Query, Req, UseGuards } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderRequestDto } from './dto/create-order.request.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
@@ -13,7 +13,13 @@ import { Order } from './entities/order.entity';
 import { GetOrderResponseDto } from './dto/get-order-response.dto';
 import { PaginationResult } from 'src/common/interfaces/pagination-result.interface';
 import { InstallationQueryOptionsDto } from '../installations/dto/installation-query-options.dto';
+import { Roles } from 'src/common/decorators/roles/roles.decorator';
+import { RoleEnum } from 'src/common/enums/user-role.enum';
+import { AuthGuard } from 'src/common/guards/auth/auth.guard';
+import { RolesGuard } from 'src/common/guards/roles/roles.guard';
 
+@Roles(RoleEnum.ADMIN)
+@UseGuards(AuthGuard, RolesGuard)
 @Controller('orders')
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
@@ -39,6 +45,7 @@ export class OrdersController {
     return this.ordersService.addInstallations(id, data);
   }
 
+  @Roles(RoleEnum.USER, RoleEnum.ADMIN)
   @ApiOperation({
     summary: 'get and filter orders',
   })
@@ -48,21 +55,30 @@ export class OrdersController {
   @Get()
   async findAll(@Query(new QueryOptionsPipe(OrderQueryOptionsDto)) query: OrderQueryOptionsDto, @Req() req: Request) {
     const baseUrl = `${req.protocol}://${req.host}${req.path}` + "?" + `${new URLSearchParams(Object.entries(query).map(([k, v]) => [k, String(v)])).toString()}`
-        
-    const result: PaginationResult<GetOrderResponseDto>= await this.ordersService.findAll(query);
+    const roles = req['user'].roles
+    const result: PaginationResult<GetOrderResponseDto>= await this.ordersService.findAll(query, roles);
     
     return new PaginatedResponseDto<GetOrderResponseDto>(result  ,query.page, query.limit, baseUrl)
   
   }
 
+  @Roles(RoleEnum.ADMIN, RoleEnum.USER)
   @Get(':id/installations')
-  async findInstallationsFromOrder(@Param('id') id: string, @Query(new QueryOptionsPipe(InstallationQueryOptionsDto)) query: InstallationQueryOptionsDto) {
-    return await this.ordersService.getInstallationsFromId(id, query);
+  async findInstallationsFromOrder(
+    @Param('id') id: string, 
+    @Query(new QueryOptionsPipe(InstallationQueryOptionsDto)) query: InstallationQueryOptionsDto,
+    @Req() req: Request
+  ) {
+    const roles = req['user'].roles
+
+    return await this.ordersService.getInstallationsFromId(id, query, roles);
   }
 
+  @Roles(RoleEnum.ADMIN, RoleEnum.USER)
   @Get(':id')
-  async findOne(@Param('id') id: string) {
-    const result = await this.ordersService.findOne(id);
+  async findOne(@Param('id') id: string, @Req() req: Request) {
+    const roles = req['user'].roles
+    const result = await this.ordersService.findOne(id, roles);
     return new GetOrderResponseDto(result)
   }
 

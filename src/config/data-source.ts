@@ -12,14 +12,11 @@ const dataSourceConfig: DataSourceOptions = {
   username: process.env.DB_USERNAME_PSQL,
   password: process.env.DB_PASSWORD_PSQL,
   synchronize: true,
-  dropSchema: false,
+  dropSchema: true,
   logging: ['error'],
   ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
   entities: ['dist/**/*.entity{.ts,.js}'],
   migrations: ['dist/migrations/*{.js,.ts}'],
-  extra: {
-    options: '-c timezone=America/Argentina/Buenos_Aires'
-  }
 }
 
 export const dbConfig = registerAs(
