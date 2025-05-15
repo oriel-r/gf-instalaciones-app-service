@@ -21,8 +21,6 @@ import { AuthGuard } from 'src/common/guards/auth/auth.guard';
 import { RolesGuard } from 'src/common/guards/roles/roles.guard';
 
 @ApiTags('Installer')
-@Roles(RoleEnum.ADMIN)
-@UseGuards(AuthGuard, RolesGuard)
 @Controller('installer')
 export class InstallerController {
   constructor(private readonly installerService: InstallerService) {}
