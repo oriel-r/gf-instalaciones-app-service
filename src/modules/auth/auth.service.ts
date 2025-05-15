@@ -123,7 +123,7 @@ export class AuthService {
       excludeExtraneousValues: true,
     });
 
-    return { token, user };
+    return { token, user: anUser };
   }
 
   async signUpInstaller(dto: ExtendedInstallerDto) {
