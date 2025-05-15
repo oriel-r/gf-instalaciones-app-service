@@ -9,6 +9,7 @@ import { FilesPipe } from 'src/common/pipes/file/files-pipe';
 import { QueryOptionsPipe } from 'src/common/pipes/query-options/query-options.pipe';
 import { InstallationQueryOptionsDto } from './dto/installation-query-options.dto';
 import { Request } from 'express';
+import { Roles } from 'src/common/decorators/roles/roles.decorator';
 
 @Controller('installations')
 export class InstallationsController {
