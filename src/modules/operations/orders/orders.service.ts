@@ -23,6 +23,7 @@ import { InstallationPostponedDto } from 'src/modules/notifications/dto/installa
 import { InstallationApprovedDto } from 'src/modules/notifications/dto/installation-aproved.dto';
 import { OrderEvent } from 'src/common/enums/orders-event.enum';
 import { RecalculateProgressDto } from './dto/recalculate-progress.dto';
+import { RolePayload } from 'src/common/entities/role-payload.dto';
 
 @Injectable()
 export class OrdersService {
@@ -63,21 +64,30 @@ export class OrdersService {
     return newInstallations
   } 
 
-  async findAll(query: OrderQueryOptionsDto) {
-    const orders = await this.ordersRepository.get(query)
+  async findAll(query: OrderQueryOptionsDto, roles: RolePayload[]) {
+    const isUser = roles.every(role => role.name !== RoleEnum.ADMIN)
+    const clientId = isUser ? roles[0].id : null
+
+    const orders = await this.ordersRepository.get(query, clientId)
 
       const result: PaginationResult<GetOrderResponseDto> = [orders[0].map(order => new GetOrderResponseDto(order)),orders[1]]
       return result
   }
 
-  async findOne(id: string) {
-    const order = await this.ordersRepository.getById(id)
+  async findOne(id: string, roles?: RolePayload[]) {
+    const isUser = roles && roles.every(role => role.name !== RoleEnum.ADMIN)
+    const clientId = isUser ? roles[0].id : null
+
+    const order = await this.ordersRepository.getById(id, clientId)
     if(!order) throw new NotFoundException('No se encontro la orden')
       return order
   }
 
-  async getInstallationsFromId (id: string, query: InstallationQueryOptionsDto) {
-    const order = await this.ordersRepository.getById(id)
+  async getInstallationsFromId (id: string, query: InstallationQueryOptionsDto, roles: RolePayload[]) {
+        const isUser = roles && roles.every(role => role.name !== RoleEnum.ADMIN)
+    const clientId = isUser ? roles[0].id : null
+
+    const order = await this.ordersRepository.getById(id, clientId)
     if(!order) throw new NotFoundException('No se encontro la orden')
     const installations = await this.installationsService.filterFromOrder(id, query)
       return installations
