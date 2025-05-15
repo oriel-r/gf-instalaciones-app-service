@@ -64,9 +64,9 @@ export class OrdersService {
     return newInstallations
   } 
 
-  async findAll(query: OrderQueryOptionsDto, roles: RolePayload[]) {
-    const isUser = roles.every(role => role.name !== RoleEnum.ADMIN)
-    const clientId = isUser ? roles[0].id : null
+  async findAll(query: OrderQueryOptionsDto) {
+   // const isUser = roles.every(role => role.name !== RoleEnum.ADMIN)
+   // const clientId = isUser ? roles[0].id : null
 
     const orders = await this.ordersRepository.get(query)
 
@@ -78,12 +78,12 @@ export class OrdersService {
     const isUser = roles && roles.every(role => role.name !== RoleEnum.ADMIN)
     const clientId = isUser ? roles[0].id : null
 
-    const order = await this.ordersRepository.getById(id, clientId)
+    const order = await this.ordersRepository.getById(id)
     if(!order) throw new NotFoundException('No se encontro la orden')
       return order
   }
 
-  async getInstallationsFromId (id: string, query: InstallationQueryOptionsDto, roles: RolePayload[]) {
+  async getInstallationsFromId (id: string, query: InstallationQueryOptionsDto, roles?: RolePayload[]) {
         const isUser = roles && roles.every(role => role.name !== RoleEnum.ADMIN)
     const clientId = isUser ? roles[0].id : null
 
