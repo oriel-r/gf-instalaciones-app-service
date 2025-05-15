@@ -76,7 +76,7 @@ export class UserService {
     }
 
     const userDisabled = await this.userByEmailByDisabled(email);
-    if (userDisabled.disabledAt) {
+    if (userDisabled) {
       throw new ConflictException('El correo electrónico está deshabilitado');
     }
 
