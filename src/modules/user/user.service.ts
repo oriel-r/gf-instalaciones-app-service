@@ -130,19 +130,15 @@ export class UserService {
   }
   
   async findAll(): Promise<User[]> {
-    const users = await this.userRepository.find({
-      relations: [
-        'userRoles',
-        'userRoles.role',
-        'installer',
-        'coordinator',
-        'admin',
-      ],
-      order: {
-        createdAt: 'ASC', // si querés ordenar (no podés por relaciones, pero sí por columnas propias)
-      },
-    });
-  
+    const qb = this.userRepository.createQueryBuilder('user')
+    .leftJoinAndSelect('user.userRoles', 'userRole')
+    .leftJoinAndSelect('userRole.role', 'role')
+    .leftJoinAndSelect('user.installer', 'installer')
+    .leftJoinAndSelect('user.coordinator', 'coordinator')
+    .leftJoinAndSelect('user.admin', 'admin')
+    .orderBy('role.name', 'DESC')
+    const users = await qb.getMany();
+
     return users
   }  
 
