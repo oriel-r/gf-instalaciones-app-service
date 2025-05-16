@@ -72,11 +72,11 @@ export class OrdersController {
     return await this.ordersService.getInstallationsFromId(id, query);
   }
 
-  @Roles(RoleEnum.ADMIN, RoleEnum.USER)
+  //@Roles(RoleEnum.ADMIN, RoleEnum.USER)
   @Get(':id')
   async findOne(@Param('id') id: string, @Req() req: Request) {
-    const roles = req['user'].roles
-    const result = await this.ordersService.findOne(id, roles);
+    //const roles = req['user'].roles
+    const result = await this.ordersService.findOne(id);
     return new GetOrderResponseDto(result)
   }
 
