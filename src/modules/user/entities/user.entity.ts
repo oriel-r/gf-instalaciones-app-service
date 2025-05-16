@@ -38,6 +38,12 @@ export class User {
   address: string;
 
   @Column()
+  locality: string;
+
+  @Column()
+  postalCode: string;
+
+  @Column()
   country: string;
 
   @Column()
