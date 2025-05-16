@@ -66,7 +66,7 @@ export class EmailService{
           <p>Recibimos una solicitud para recuperar tu contraseña.</p>
           <p>Haz click en el siguiente botón para crear una nueva contraseña:</p>
           <p>
-            <a href="${recoveryLink}" style="display: inline-block; background-color: #4CAF50; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px;">
+            <a href="${recoveryLink}" style="display: inline-block; background-color: #A79351; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px;">
               Recuperar contraseña
             </a>
           </p>
