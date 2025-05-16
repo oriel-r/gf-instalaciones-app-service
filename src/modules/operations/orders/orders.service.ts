@@ -61,7 +61,7 @@ export class OrdersService {
     const fraction = calculateProgressFraction((await this.findOne(id)).installations)
     await this.update(order.id, {installationsFinished: fraction})
 
-    return await this.findOne(id)
+    return newInstallations
   } 
 
   async findAll(query: OrderQueryOptionsDto) {
