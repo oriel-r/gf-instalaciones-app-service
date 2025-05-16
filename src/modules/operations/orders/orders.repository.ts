@@ -7,6 +7,7 @@ import { OrderQueryOptionsDto } from "./dto/orders-query-options.dto";
 import { PaginationResult } from "src/common/interfaces/pagination-result.interface";
 import { InstallationQueryOptionsDto } from "../installations/dto/installation-query-options.dto";
 import { Provinces } from "src/common/enums/provinces.enum";
+import { RolePayload } from "src/common/entities/role-payload.dto";
 
 @Injectable()
 export class OrdersRepository { 
@@ -20,18 +21,21 @@ export class OrdersRepository {
         )
     }
 
-    async get(query: OrderQueryOptionsDto) {
+    async get(query: OrderQueryOptionsDto, clientId?: string | null) {
         const queryBuilder = this.ordersRepository.createQueryBuilder('order')
-
+        console.log(clientId)
         queryBuilder
         .leftJoinAndSelect('order.client', 'client')
+        .leftJoinAndSelect('client.user', 'clientUser')
         .leftJoinAndSelect('order.installations', 'installations')
         .leftJoinAndSelect('installations.address', 'address')
         .leftJoinAndSelect('installations.installers', 'installers')
+        .leftJoinAndSelect('installers.user', 'installersUsers')
         .leftJoinAndSelect('installations.coordinator', 'coordinator')
+        .leftJoinAndSelect('coordinator.user', 'coordinatorUser')
         .leftJoinAndSelect('address.city', 'city')
         .leftJoinAndSelect('city.province', 'province')
-        
+        .addSelect('order.createdAt')
 
         if(query.completed !== undefined) {
             queryBuilder.andWhere('order.completed = :completed', {completed: query.completed})
@@ -42,9 +46,12 @@ export class OrdersRepository {
         }
 
         if(query.createdAt) {
-            queryBuilder.addSelect('order.createdAt')
             queryBuilder.addOrderBy('order.createdAt', query.createdAt)
         }
+
+        if(clientId) {
+            queryBuilder.andWhere('client.id = :clientId', {clientId: clientId})
+        } 
 
         if(query.updatedAt) {
             queryBuilder.addSelect('order.updatedAt')
@@ -54,33 +61,32 @@ export class OrdersRepository {
         queryBuilder
         .skip((query.page - 1) * query.limit)
         .take(query.limit);
-    
+
     const findResult = await queryBuilder.getManyAndCount()
-     
     return findResult
     
     }
 
-    async getById(id: string) {
-        return await this.ordersRepository.findOne({
-            where: {id},
-            relations: {
-                client: {
-                    user: true
-                },
-                installations: {
-                    coordinator: {
-                        user: true
-                    },
-                    installers: true,
-                    address: {
-                        city: {
-                            province: true
-                        }
-                    }
-                }
-            }
-        })
+    async getById(id: string, clientId?: string | null) {
+        const qb = await this.ordersRepository
+         .createQueryBuilder('order')                     
+         .leftJoinAndSelect('order.client', 'client')
+         .leftJoinAndSelect('client.user', 'clientUser')
+         .leftJoinAndSelect('order.installations', 'inst')
+         .leftJoinAndSelect('inst.coordinator', 'coord')
+         .leftJoinAndSelect('coord.user', 'coordUser')
+         .leftJoinAndSelect('inst.installers', 'installer')
+         .leftJoinAndSelect('installer.user', 'installerUser')
+         .leftJoinAndSelect('inst.address', 'addr')
+            .leftJoinAndSelect('addr.city', 'city')
+         .leftJoinAndSelect('city.province', 'prov')
+         .addSelect('order.createdAt')                   
+         .where('order.id = :orderId', {orderId: id})
+        if(clientId) {
+            qb.andWhere('client.id = :clientId', {clientId: clientId})
+        }
+
+        return await qb.getOne()
     }
 
     async getOneAndFilterInstallations (id: string, query: InstallationQueryOptionsDto) {

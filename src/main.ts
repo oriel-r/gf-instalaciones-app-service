@@ -1,12 +1,11 @@
-import { NestFactory } from '@nestjs/core';
+import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { SwaggerModule } from '@nestjs/swagger';
 import swaggerConfig from './config/documentation';
 import { loggerMiddleware } from './common/helpers/logger';
-import { ValidationPipe } from '@nestjs/common';
+import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { UserSeeds } from './seeders/users/user.seeds';
-import { DateFormatInterceptor } from './common/interceptors/date-format.interceptor';
 import { BlogCategoriesSeeder } from './seeders/blog/blog-categories.seeder';
 import { BlogTemplatesSeeder } from './seeders/blog/blog-templates.seeder';
 import { BlogPostsSeeder } from './seeders/blog/blog-posts.seeder';
@@ -20,6 +19,7 @@ async function bootstrap() {
   
   
   app.use(loggerMiddleware)
+  app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
   
   app.enableCors({
     origin: '*'
@@ -35,9 +35,7 @@ async function bootstrap() {
   );
   
   app.useGlobalFilters(new HttpExceptionFilter());
-  
-  app.useGlobalInterceptors(new DateFormatInterceptor());
-  
+ /*
   const usersSeed = app.get(UserSeeds);
   await usersSeed.seed(); 
   
@@ -55,7 +53,7 @@ async function bootstrap() {
 
   const ordersSeeder = app.get(OrdersSeeder)
   await ordersSeeder.seed()  
-
+*/
   const documentation = () => SwaggerModule.createDocument(app, swaggerConfig)
   SwaggerModule.setup('docs', app, documentation)
 

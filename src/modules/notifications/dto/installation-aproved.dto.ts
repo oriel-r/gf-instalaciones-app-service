@@ -1,6 +1,6 @@
 import { IsArray, IsInstance, IsOptional, IsString, IsUUID } from "class-validator";
 import { CreateNotificationDto } from "./create-notification.dto";
-import { ValidateNested } from "@nestjs/class-validator";
+import { ValidateNested } from "class-validator";
 import { Installer } from "src/modules/installer/entities/installer.entity";
 import { Address } from "src/modules/locations/address/entities/address.entity";
 

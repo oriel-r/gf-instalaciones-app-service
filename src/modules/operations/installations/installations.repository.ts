@@ -37,17 +37,15 @@ export class InstallationsRepository {
         createQueryBuilder('installations')
         .leftJoinAndSelect('installations.address', 'address')
         .leftJoinAndSelect('address.city', 'city')
-        .leftJoinAndSelect('city.province', 'province');
-    
+        .leftJoinAndSelect('city.province', 'province')
+        .leftJoinAndSelect('installations.coordinator', 'coordinator')
+        .leftJoinAndSelect('coordinator.user', 'coordinatorUser')
+        .leftJoinAndSelect('installations.installers', 'installers')
+        .leftJoinAndSelect('installers.user', 'installerUser');
+
         if (orderId) {
             queryBuilder.innerJoin('installations.order', 'order', 'order.id = :orderId', { orderId });
         }
-            
-            queryBuilder
-            .leftJoinAndSelect('installations.coordinator', 'coordinator')
-            .leftJoinAndSelect('coordinator.user', 'coordinatorUser')
-            .leftJoinAndSelect('installations.installers', 'installers')
-            .leftJoinAndSelect('installers.user', 'installerUser');
         
         if (coordinatorId || installerId) {
         const conditions: string[] = [];

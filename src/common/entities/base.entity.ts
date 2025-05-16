@@ -2,13 +2,13 @@ import { Column, CreateDateColumn, DeepPartial, DeleteDateColumn, BaseEntity as 
 
 export abstract class BaseEntity extends TypeOrmBaseEntity {
     
-    @CreateDateColumn({name:'created_at', select: false})
+    @CreateDateColumn({type: 'timestamptz', name:'created_at', select: false})
     createdAt: Date
 
-    @UpdateDateColumn({name: 'updated_at', select: false})
+    @UpdateDateColumn({type: 'timestamptz', name: 'updated_at', select: false})
     updatedAt: Date
 
-    @DeleteDateColumn({name: 'deleted_aat', nullable: true, select: false})
+    @DeleteDateColumn({type: 'timestamptz', name: 'deleted_aat', nullable: true, select: false})
     deletedAt: Date | null
 
 }

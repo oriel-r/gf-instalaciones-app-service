@@ -5,7 +5,6 @@ import { UserModule } from './modules/user/user.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { dbConfig } from './config/data-source';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
-import { sqlitedbConfig } from './config/sqlite-data-source';
 import { BlogModule } from './modules/blog/blog.module';
 import { EmailModule } from './modules/email/email.module';
 import { NewsletterModule } from './modules/newsletter/newsletter.module';
@@ -34,19 +33,14 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['.env.development.local', 'env'],
-      load: [dbConfig, sqlitedbConfig, () =>({
-        environment: process.env.ENVIRONMENT || "LOCAL",
-        }),
-      ],
+      load: [dbConfig],
     }),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService): TypeOrmModuleOptions => {
         
-        const config = configService.get('environment') === "LOCAL"
-        ? configService.get<TypeOrmModuleOptions>('postgres')
-        : configService.get<TypeOrmModuleOptions>('sqlite')
-        
+        const config = configService.get<TypeOrmModuleOptions>('postgres')
+         
         if (!config) {
           throw new Error('Database configuration not found');
         }

@@ -29,28 +29,40 @@ export class UserRoleService {
     private readonly dataSource: DataSource,
   ) {}
 
+  async findAll() {
+    return await this.userRoleRepository.find()
+  }
+
   async assignRole(userId: string, roleId: string): Promise<UserRole> {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
     try {
-      const user = await queryRunner.manager.findOne(User, { where: { id: userId } });
+      const user = await queryRunner.manager.findOne(User, {
+        where: { id: userId },
+      });
       if (!user) throw new NotFoundException('Usuario no encontrado');
 
-      const role = await queryRunner.manager.findOne(Role, { where: { id: roleId } });
+      const role = await queryRunner.manager.findOne(Role, {
+        where: { id: roleId },
+      });
       if (!role) throw new NotFoundException('Rol no encontrado');
 
       const existingRole = await queryRunner.manager.findOne(UserRole, {
         where: { user: { id: userId }, role: { id: roleId } },
       });
-      if (existingRole) throw new ConflictException('El usuario ya tiene este rol asignado');
+      if (existingRole)
+        throw new ConflictException('El usuario ya tiene este rol asignado');
 
       const userRole = queryRunner.manager.create(UserRole, { user, role });
       const savedRole = await queryRunner.manager.save(userRole);
 
       if (role.name === RoleEnum.COORDINATOR) {
-        await this.coordinatorService.createCoordinatorTransactional(user.id, queryRunner);
+        await this.coordinatorService.createCoordinatorTransactional(
+          user.id,
+          queryRunner,
+        );
       }
 
       if (role.name === RoleEnum.ADMIN) {
@@ -73,7 +85,7 @@ export class UserRoleService {
       relations: ['role'],
     });
   }
-  
+
   async findRolesById(userId: string) {
     return await this.userRoleRepository.find({
       where: { user: { id: userId } },
@@ -99,12 +111,12 @@ export class UserRoleService {
       relations: ['user', 'role'],
     });
   }
-  
+
   async removeRole(
     userId: string,
     roleId: string,
   ): Promise<{ message: string }> {
-    const existingRole = await this.getByUserIdAndRole(userId, roleId)
+    const existingRole = await this.getByUserIdAndRole(userId, roleId);
 
     if (!existingRole) {
       throw new NotFoundException('Este rol no está asignado al usuario');
@@ -115,4 +127,39 @@ export class UserRoleService {
 
     return { message: 'Rol removido del usuario correctamente' };
   }
+
+  async disabledUserRole(userId: string) {
+    const userRoles = await this.userRoleRepository.find({
+      where: { user: { id: userId } },
+      relations: ['user', 'role'],
+    });
+
+    if (!userRoles.length) {
+      throw new NotFoundException('No se encontraron roles para este usuario');
+    }
+
+    for (const userRole of userRoles) {
+      userRole.isActive = false;
+    }
+
+    await this.userRoleRepository.save(userRoles);
+  }
+
+  async restoreUserRoles(userId: string) {
+  const userRoles = await this.userRoleRepository.find({
+    where: { user: { id: userId } },
+    relations: ['user', 'role'],
+  });
+
+  if (!userRoles.length) {
+    throw new NotFoundException('No se encontraron roles para este usuario');
+  }
+
+  for (const userRole of userRoles) {
+    userRole.isActive = true;
+  }
+
+  await this.userRoleRepository.save(userRoles);
+}
+
 }

@@ -1,8 +1,9 @@
 import { ApiProperty } from "@nestjs/swagger";
+import { timestamp } from "rxjs";
 import { BaseEntity } from "src/common/entities/base.entity";
 import { Installation } from "src/modules/operations/installations/entities/installation.entity";
 import { UserRole } from "src/modules/user-role/entities/user-role.entity";
-import { Column, DeepPartial, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, DeepPartial, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class Order extends BaseEntity {
@@ -47,7 +48,7 @@ export class Order extends BaseEntity {
         title: 'description',
         description: "order's status"
     })
-    @Column({nullable: true, type: 'date' })
+    @Column({nullable: true, type: 'timestamptz' })
     endDate: Date | null
     
     @ApiProperty({
@@ -82,6 +83,9 @@ export class Order extends BaseEntity {
     })
     @OneToMany(() => Installation, (installation) => installation.order, {nullable: true, eager: true})
     installations: Installation[]
+
+    @Column({default: null, nullable: true, type: 'timestamptz'})
+    finishedAt: Date | null
 
 
     constructor(partial: DeepPartial<Order>) {
