@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { CreateInstallationDto } from './dto/create-installation.dto';
 import { InstallationsRepository } from './installations.repository';
 import { DeepPartial } from 'typeorm';
@@ -29,6 +29,7 @@ import { PaginationResult } from 'src/common/interfaces/pagination-result.interf
 import { TemporalUploadService } from 'src/services/temporal-file-upload/temporal-file-upload.service';
 import { OrderEvent } from 'src/common/enums/orders-event.enum';
 import { RecalculateProgressDto } from '../orders/dto/recalculate-progress.dto';
+import { StatusInstaller } from 'src/common/enums/status-installer';
 
 
 @Injectable()
@@ -57,10 +58,11 @@ export class InstallationsService {
         }))
               
         const installers = getInstallers.filter((i): i is Installer => i !== null)
-              
+         if(!installers.length) throw new BadRequestException('No se encontraron los instaladores')      
+
         if(!coordinator) throw new BadRequestException('Coordinador no encontrado')
         
-        if(!installers.length) throw new BadRequestException('No se encontraron los instaladores')
+        if(installers.some((i) => i.status !== StatusInstaller.Approved)) throw new HttpException('Estas intentando asignar instaladores no aprobados', HttpStatus.UNPROCESSABLE_ENTITY)
         const installationAddress = await this.addressService.create(address);
         return await this.installationsRepository.create({
           ...otherData,

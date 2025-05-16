@@ -8,6 +8,7 @@ import { UserRole } from 'src/modules/user-role/entities/user-role.entity';
 import { usersData } from './users.mock';
 import { Admin } from 'src/modules/admins/entities/admins.entity';
 import { Coordinator } from 'src/modules/coordinators/entities/coordinator.entity';
+import { StatusInstaller } from 'src/common/enums/status-installer';
 
 export class UserSeeds {
   async seed(): Promise<void> {
@@ -61,6 +62,7 @@ export class UserSeeds {
             canInstallVinylOnWallsOrGlass: userData.canInstallVinylOnWallsOrGlass,
             canDoCarWrapping: userData.canDoCarWrapping,
             hasOwnTransportation: userData.hasOwnTransportation,
+            status: StatusInstaller.Approved
           });
           await manager.save(installer);
         } else if (userRoles === 'Admin') {
