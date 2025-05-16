@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, InternalServerErrorException, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpException, HttpStatus, InternalServerErrorException, Post } from '@nestjs/common';
 import { EmailService } from './email.service';
 import { SendEmailDto } from './dto/send-email.dto';
 import { FormContactDto} from './dto/form-contact.dto';
@@ -10,18 +10,16 @@ export class EmailController {
   constructor(private emailService: EmailService) {}
 
   @Post('sendEmail')
-  @HttpCode(HttpStatus.OK)
-  async sendMail(@Body() sendEmailDto: SendEmailDto) {
+  async sendGeneralEmail(@Body() sendEmailDto: SendEmailDto) {
     try {
       const { from, to, subject, message } = sendEmailDto;
       return await this.emailService.sendEmail({ from, to, subject, message });
     } catch (error) {
-      throw new Error(`Error enviando el correo: ${error.message}`);
+      throw new HttpException(`Error al enviar el correo: ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
   @Post('formContact')
-  @HttpCode(HttpStatus.CREATED)
   async formContact(@Body() formContactDto: FormContactDto) {
     try {
       const { surname, from, subject, message } = formContactDto;
