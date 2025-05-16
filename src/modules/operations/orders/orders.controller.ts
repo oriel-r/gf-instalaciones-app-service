@@ -46,7 +46,7 @@ export class OrdersController {
   async addInstallation(@Param('id') id: string, @Body() data: InstallationDataRequesDto) {
  
     const orderWithNewInstallation = await this.ordersService.addInstallations(id, data);
-    return new GetOrderResponseDto(orderWithNewInstallation)
+    return orderWithNewInstallation
   }
 
   //@Roles(RoleEnum.USER, RoleEnum.ADMIN)
