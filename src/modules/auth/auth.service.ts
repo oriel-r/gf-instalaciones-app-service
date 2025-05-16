@@ -72,7 +72,7 @@ export class AuthService {
 
     const anUser = await this.userRepository.findOne({
       where: { email: credentials.emailSignIn },
-      relations: ['userRoles', 'userRoles.role', 'installer'],
+      relations: ['userRoles', 'userRoles.role', 'installer', 'coordinator', 'admin'],
     });
 
     if (!anUser) {
@@ -123,7 +123,7 @@ export class AuthService {
       excludeExtraneousValues: true,
     });
 
-    return { token, user };
+    return { token, user: anUser };
   }
 
   async signUpInstaller(dto: ExtendedInstallerDto) {

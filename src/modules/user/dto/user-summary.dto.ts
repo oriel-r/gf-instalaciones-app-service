@@ -65,6 +65,5 @@ export class UserSummaryDto {
   userRoles: UserRoleDto[];
 
   @Expose()
-  @Type(() => Installer)
   installer: Installer
 }
