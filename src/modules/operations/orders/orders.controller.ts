@@ -43,15 +43,8 @@ export class OrdersController {
   @HttpCode(HttpStatus.CREATED)
   @HttpCode(HttpStatus.NOT_FOUND)
   @Post(':id/installations')
-  async addInstallation(@Param('id') id: string, @Body() data: any[]) {
-  const transformed = plainToInstance(InstallationDataRequesDto, data);
-
-   for (const item of transformed) {
-     const errors = validateSync(item);
-      if (errors.length > 0) {
-       throw new BadRequestException(errors);
-     }
-    }    
+  async addInstallation(@Param('id') id: string, @Body() data: InstallationDataRequesDto) {
+ 
     const orderWithNewInstallation = await this.ordersService.addInstallations(id, data);
     return new GetOrderResponseDto(orderWithNewInstallation)
   }
