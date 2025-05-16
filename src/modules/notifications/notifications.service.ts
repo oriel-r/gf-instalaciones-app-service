@@ -35,6 +35,7 @@ export class NotificationsService {
       const client = await this.userRoleService.getByIdWhenRole(clientId, RoleEnum.USER)
       const coordinator = await this.userRoleService.getByIdWhenRole(coordinatorId, RoleEnum.COORDINATOR)
       if(!client || !coordinator ) throw new BadRequestException('No se encontro a alguno de los receptores')
+        console.log(client, coordinator)
       const emails = await this.emailService.sendEmail({
         to: [client.user.email, coordinator.user.email],
         subject: "Los instladores an llegado!",
@@ -58,6 +59,7 @@ export class NotificationsService {
     try {
       const coordinator = await this.userRoleService.getByIdWhenRole(coordinatorId, RoleEnum.COORDINATOR)
       if(!coordinator) throw new BadRequestException('Coordinador incorrecto')
+      console.log(coordinator)
            const emails = await this.emailService.sendEmail({
         to: [coordinator.user.email],
         subject: "La instalación se pospuso",
@@ -78,6 +80,7 @@ export class NotificationsService {
 
   @OnEvent(NotifyEvents.INSTALLATION_TO_REVIEW)
   async installationToReview(createNotificationDto: CreateNotificationDto) {
+
     const result = await this.notificationsRepository.create(createNotificationDto)
     if(!result) throw new BadRequestException('Hubo un problema al enviar la notificaion')
       return result
@@ -88,6 +91,8 @@ export class NotificationsService {
     const {clientId, installers, address} = data
     try {
       const aClient = await this.userRoleService.getByIdWhenRole(clientId, RoleEnum.USER)
+      console.log(aClient)
+      console.log(installers)
       const installersUsers = await Promise.all(installers.map(async (inst) => {
         return await this.userRoleService.getByIdWhenRole(inst.user.id, RoleEnum.INSTALLER)
       }))

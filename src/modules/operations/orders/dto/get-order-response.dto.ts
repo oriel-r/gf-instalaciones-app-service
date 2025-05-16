@@ -14,7 +14,7 @@ export class GetOrderResponseDto {
     installationsFinished: string;
     progress: number;
     client: any
-    installations: GetInstallationsDto[];
+    installations?: GetInstallationsDto[] | void[];
     createdAt: Date
     finishedAt: Date | null
 

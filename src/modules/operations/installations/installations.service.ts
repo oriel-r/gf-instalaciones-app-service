@@ -171,7 +171,7 @@ export class InstallationsService {
     async statusChange(id: string, dto: StatusChangeDto) {
     const installation = await this.installationsRepository.getById(id);
     if (!installation) throw new NotFoundException('Instalación no encontrada, id incorrecto o inexistente');
-
+      console.log(installation.order.client)
     if (!allowedTransitions[installation.status]?.includes(dto.status)) {
       throw new BadRequestException(`Transición de estado no permitida: ${installation.status} -> ${dto.status}`);
     }
