@@ -110,7 +110,6 @@ export class InstallationsService {
       if (!installation) {
         throw new NotFoundException("No se encontró la instalación");
       }
-      console.log(installation, data)
       if (![InstallationStatus.PENDING, InstallationStatus.POSTPONED].includes(installation.status)) {
         throw new BadRequestException(`No se puede modificar una instalación con estado ${installation.status}`);
       }
@@ -133,7 +132,7 @@ export class InstallationsService {
       
       if (installation.status === InstallationStatus.POSTPONED && data.startDate) {
         const newStartDate = new Date(data.startDate);
-        const currentStartDate = new Date(installation.startDate);
+        const currentStartDate = installation.startDate;
         if (newStartDate <= currentStartDate) {
           throw new BadRequestException("La nueva fecha de inicio debe ser posterior a la fecha actual de la instalación");
         }
@@ -164,7 +163,6 @@ export class InstallationsService {
       updateData.status = InstallationStatus.PENDING
 
       const updatedInstallation = await this.installationsRepository.update(id, updateData);
-      console.log(updatedInstallation)
       return updatedInstallation
 
     }
@@ -173,7 +171,6 @@ export class InstallationsService {
     async statusChange(id: string, dto: StatusChangeDto) {
     const installation = await this.installationsRepository.getById(id);
     if (!installation) throw new NotFoundException('Instalación no encontrada, id incorrecto o inexistente');
-      console.log(installation.order.client)
     if (!allowedTransitions[installation.status]?.includes(dto.status)) {
       throw new BadRequestException(`Transición de estado no permitida: ${installation.status} -> ${dto.status}`);
     }

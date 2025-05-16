@@ -12,12 +12,10 @@ import { CreateAddressDto } from 'src/modules/locations/address/dto/create-addre
 export class UpdateInstallationDto {
   @IsOptional()
   @IsISO8601()
-  @Transform(({ value }) => new Date(value), { toClassOnly: true })
-  startDate: string;
+  startDate?: string;
 
   @IsOptional()
   @IsArray()
-  @IsUUID()
   installersIds?: string[];
 
   @IsUUID()
@@ -29,7 +27,6 @@ export class UpdateInstallationDto {
   addressId?: string;
 
   @IsOptional()
-  @ValidateNested()
   @Type(() => CreateAddressDto)
   addressData?: DeepPartial<CreateAddressDto>;
 }
