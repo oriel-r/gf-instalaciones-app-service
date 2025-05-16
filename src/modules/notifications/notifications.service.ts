@@ -37,7 +37,7 @@ export class NotificationsService {
       const client = await this.userRoleService.getByIdWhenRole(clientId, RoleEnum.USER)
       const coordinator = await this.userRoleService.getByIdWhenRole(coordinatorId, RoleEnum.COORDINATOR)
       if(!client || !coordinator ) throw new BadRequestException('No se encontro a alguno de los receptores')
-    /*  const emails = await this.emailService.sendEmail({
+      const emails = await this.emailService.sendEmail({
         to: [client.user.email, coordinator.user.email],
         subject: "¡Los instaladores ya llegaron!",
         html: `<h2>Tu instalación en:</h2>
@@ -46,7 +46,7 @@ export class NotificationsService {
           <p><strong>Provincia:</strong> ${address.city.province.name}</p>
           <p>Esta en proceso.</p>`
       })
-      if (!emails) throw new ServiceUnavailableException('No se pudo enviar los emails') */
+      if (!emails) throw new ServiceUnavailableException('No se pudo enviar los emails') 
       const newNotification = await this.create({
         title: "Los instladores an llegado!",
         message: `La instalación con a realizarse en ${street} ${number} de la ciudad de ${city.name} (${city.province.name}) esta en proceso`,
@@ -64,12 +64,12 @@ export class NotificationsService {
     try {
       const coordinator = await this.userRoleService.getByIdWhenRole(coordinatorId, RoleEnum.COORDINATOR)
       if(!coordinator) throw new BadRequestException('Coordinador incorrecto')
-     /*      const emails = await this.emailService.sendEmail({
+           const emails = await this.emailService.sendEmail({
         to: [coordinator.user.email],
         subject: "La instalación fue pospuesta",
         html: `<h2>La instalación prevista en ${address.street} ${address.number}, ${address.city.name} (${address.city.province.name}) fue pospuesta.</h2>`
       })
-      if (!emails) throw new ServiceUnavailableException('No se pudo enviar los emails') */
+      if (!emails) throw new ServiceUnavailableException('No se pudo enviar los emails') 
       const newNotification = await this.create({
         title: "La instalación se pospuso",
         message: `La instalación a realizarse en ${address.street} ${address.number} de ciudad de ${address.city.name} (${address.city.province.name}) se pospuso`,
@@ -91,21 +91,21 @@ export class NotificationsService {
 
         if(!aClient || !aCoordinator) throw new HttpException('Coordinador o cliente no encontrados', HttpStatus.UNPROCESSABLE_ENTITY)
         
-       /* const emailForClient = await this.emailService.sendEmail({
+        const emailForClient = await this.emailService.sendEmail({
           to: aClient.user.email,
           subject: '¡Ya casi!',
           html: `<h2>Estamos verificando tu instalación en:</h2>
           <p><strong>Calle:</strong> ${address.street} ${address.number}</p>
           <p><strong>Ciudad:</strong> ${address.city.name}</p>
           <p><strong>Provincia:</strong> ${address.city.province.name}</p>
-          <p>Te notificaremos cuando esté finalizada.</p>
+          <p>Te notificaremos cuando esté finalizada.</p>`
         })
         
         const emailForCoord = await this.emailService.sendEmail({
           to: aCoordinator.user.email,
           subject: `Verificá la instalación en ${address.street} ${address.number}` ,
           html: '<h2>Las imágenes de la instalación ya están disponibles en la plataforma para su revisión.</h2>'
-        }) */
+        }) 
         const newNotification = await this.create({
         title: "La instalación esta pendiente a revisar",
         message: `La instalación a realizarse en ${address.street} ${address.number} de ciudad de ${address.city.name} (${address.city.province.name}) esta pendiente de reivsar`,
