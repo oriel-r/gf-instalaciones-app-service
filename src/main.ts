@@ -35,7 +35,7 @@ async function bootstrap() {
   );
   
   app.useGlobalFilters(new HttpExceptionFilter());
- /*
+/*
   const usersSeed = app.get(UserSeeds);
   await usersSeed.seed(); 
   
