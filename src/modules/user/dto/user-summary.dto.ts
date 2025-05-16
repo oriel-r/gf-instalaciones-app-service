@@ -38,6 +38,14 @@ export class UserSummaryDto {
 
   @ApiProperty()
   @Expose()
+  locality: string;
+
+  @ApiProperty()
+  @Expose()
+  postalCode: string;
+
+  @ApiProperty()
+  @Expose()
   phone: string;
 
   @ApiProperty({ required: false })

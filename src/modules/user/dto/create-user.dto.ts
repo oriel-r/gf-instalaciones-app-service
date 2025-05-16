@@ -53,6 +53,26 @@ export class CreateUserDto {
           @IsNotEmpty()
           @IsString()
           country: string;
+
+          @ApiProperty({
+            type: String,
+            required: true,
+            description: 'Localidad del usuario',
+            example: 'Almagro',
+          })
+          @IsNotEmpty()
+          @IsString()
+          locality: string;
+
+          @ApiProperty({
+            type: String,
+            required: true,
+            description: 'Codigo postal',
+            example: '1109',
+          })
+          @IsNotEmpty()
+          @IsString()
+          postalCode: string;
         
           @ApiProperty({
             type: String,
@@ -65,8 +85,8 @@ export class CreateUserDto {
           @ApiProperty({
             type: String,
             required: true,
-            description: 'Localidad del usuario',
-            example: 'Buenos aires',
+            description: 'Provincia del usuario',
+            example: 'Cordoba',
           })
           @IsString()
           location: string;
