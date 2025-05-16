@@ -29,7 +29,8 @@ export class OrdersController {
   })
   @Post()
   async create(@Body() createOrderDto: CreateOrderRequestDto) {
-    return this.ordersService.create(createOrderDto);
+    const newOrder = await this.ordersService.create(createOrderDto);
+    return new GetOrderResponseDto(newOrder)
   }
 
   @ApiOperation({
@@ -42,7 +43,8 @@ export class OrdersController {
   @HttpCode(HttpStatus.NOT_FOUND)
   @Post(':id/installations')
   async addInstallation(@Param('id') id: string, @Body() data: InstallationDataRequesDto | InstallationDataRequesDto[]) {
-    return this.ordersService.addInstallations(id, data);
+    const orderWithNewInstallation = await this.ordersService.addInstallations(id, data);
+    return new GetOrderResponseDto(orderWithNewInstallation)
   }
 
   //@Roles(RoleEnum.USER, RoleEnum.ADMIN)

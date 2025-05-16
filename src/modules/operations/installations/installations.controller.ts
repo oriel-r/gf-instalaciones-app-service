@@ -52,6 +52,7 @@ export class InstallationsController {
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
+    console.log(id)
     return this.installationsService.findOne(id);
   }
 
@@ -67,7 +68,9 @@ export class InstallationsController {
   @HttpCode(HttpStatus.NOT_FOUND)
   @HttpCode(HttpStatus.INTERNAL_SERVER_ERROR)
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() data: UpdateInstallationDto ) {
+  async update(@Param('id') id: string, @Body() data , @Req() req: Request){
+    const datalog = req.body
+    console.log('datalog: ',datalog)
     return await this.installationsService.update(id, data);
   }
 
