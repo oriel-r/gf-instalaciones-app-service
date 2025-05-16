@@ -30,6 +30,7 @@ import { TemporalUploadService } from 'src/services/temporal-file-upload/tempora
 import { OrderEvent } from 'src/common/enums/orders-event.enum';
 import { RecalculateProgressDto } from '../orders/dto/recalculate-progress.dto';
 import { StatusInstaller } from 'src/common/enums/status-installer';
+import { usersData } from 'src/seeders/users/users.mock';
 
 
 @Injectable()
@@ -109,12 +110,12 @@ export class InstallationsService {
       if (!installation) {
         throw new NotFoundException("No se encontró la instalación");
       }
-    
+      console.log(installation, data)
       if (![InstallationStatus.PENDING, InstallationStatus.POSTPONED].includes(installation.status)) {
         throw new BadRequestException(`No se puede modificar una instalación con estado ${installation.status}`);
       }
     
-      let installers: Installer[] = [];
+      let installers: Installer[] | null = null;
       let newCoordinator: UserRole | null = null
       let newAddress: Address | null = null
 
@@ -151,7 +152,7 @@ export class InstallationsService {
       if (data.startDate) {
         updateData.startDate = new Date(data.startDate);
       }
-      if (installers.length > 0) {
+      if (installers) {
         updateData.installers = installers;
       }
       if(newAddress) {
@@ -160,9 +161,10 @@ export class InstallationsService {
       if(newCoordinator) {
         updateData.coordinator = newCoordinator
       }
+      updateData.status = InstallationStatus.PENDING
 
       const updatedInstallation = await this.installationsRepository.update(id, updateData);
-      
+      console.log(updatedInstallation)
       return updatedInstallation
 
     }
@@ -254,7 +256,7 @@ export class InstallationsService {
     if(!result) throw new InternalServerErrorException('No se pudo cambiar el estado')
     
     if(installation.order.client?.id && installation.coordinator?.id) {
-      this.emitToReviewUpdate(installation.order.client.id, installation.coordinator.id, installation.address)
+      this.emitToReviewUpdate(installation.order.client.id, installation.coordinator.id, installation.address, imagesUrls)
     }
     return result
   }
@@ -289,10 +291,10 @@ export class InstallationsService {
     )
   }
 
-  private emitToReviewUpdate(clientId: string, coordinatorId: string , address: Address) {
+  private emitToReviewUpdate(clientId: string, coordinatorId: string , address: Address, images: string[]) {
     this.eventEmitter.emit(
       NotifyEvents.INSTALLATION_TO_REVIEW,
-      new InstallationToReviewDto(clientId, address)
+      new InstallationToReviewDto(clientId, coordinatorId, address, images)
     )
   }
 
