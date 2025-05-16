@@ -48,7 +48,7 @@ export class OrdersService {
   
     if(!newOrder) throw new InternalServerErrorException('Hubo un problema al crear la orden')
   
-    return newOrder
+    return await this.findOne(newOrder.id)
   }
 
   async addInstallations(id: string, data: InstallationDataRequesDto | InstallationDataRequesDto[]) {
@@ -61,7 +61,7 @@ export class OrdersService {
     const fraction = calculateProgressFraction((await this.findOne(id)).installations)
     await this.update(order.id, {installationsFinished: fraction})
 
-    return newInstallations
+    return await this.findOne(id)
   } 
 
   async findAll(query: OrderQueryOptionsDto) {

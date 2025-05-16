@@ -35,5 +35,8 @@ export class SendEmailDto {
   example: 'Tenemos nuevos precios'; */
   @IsString()
   @IsNotEmpty()
-  message: string;
+  message?: string;
+
+  @IsOptional()
+  html?: string
 }

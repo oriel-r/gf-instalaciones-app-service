@@ -35,25 +35,16 @@ async function bootstrap() {
   );
   
   app.useGlobalFilters(new HttpExceptionFilter());
- 
+ /*
   const usersSeed = app.get(UserSeeds);
   await usersSeed.seed(); 
-  
-  const categoriesSeeder = app.get(BlogCategoriesSeeder)
-  await categoriesSeeder.seed()  
-  
-  const templatesSeeder = app.get(BlogTemplatesSeeder)
-  await templatesSeeder.seed()
-  
-  const postsSeeder = app.get(BlogPostsSeeder)
-  await postsSeeder.seed()
   
   const locationSeeder = app.get(LocationsSeeder)
   await locationSeeder.seed()
 
   const ordersSeeder = app.get(OrdersSeeder)
   await ordersSeeder.seed()  
-
+*/
   const documentation = () => SwaggerModule.createDocument(app, swaggerConfig)
   SwaggerModule.setup('docs', app, documentation)
 
