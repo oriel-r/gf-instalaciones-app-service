@@ -92,7 +92,7 @@ export class InstallationsRepository {
     async getById(id: string) {
         return await this.installationsRepository.findOne({
             where:{id: id},
-            relations: ['installers', 'order' , 'order.client', 'order.client.user', 'coordinator', 'coordinator.user', 'address', 'address.city', 'address.city.province']
+            relations: ['installers', 'installers.user','order' , 'order.client', 'order.client.user', 'coordinator', 'coordinator.user', 'address', 'address.city', 'address.city.province']
         })
     }
 
