@@ -1,15 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, Query, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, Query, Req, UseGuards, BadRequestException } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderRequestDto } from './dto/create-order.request.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { ApiBody, ApiOperation, ApiQuery } from '@nestjs/swagger';
-import { InstallationDataRequesDto } from './dto/installation-data.request.dto';
 import { UpdateInstallationStatus } from './dto/update-installation-status.dto';
 import { OrderQueryOptionsDto } from './dto/orders-query-options.dto';
 import { QueryOptionsPipe } from 'src/common/pipes/query-options/query-options.pipe';
 import { Request } from 'express';
 import { PaginatedResponseDto } from 'src/common/entities/paginated-response.dto';
-import { Order } from './entities/order.entity';
 import { GetOrderResponseDto } from './dto/get-order-response.dto';
 import { PaginationResult } from 'src/common/interfaces/pagination-result.interface';
 import { InstallationQueryOptionsDto } from '../installations/dto/installation-query-options.dto';
@@ -17,6 +15,9 @@ import { Roles } from 'src/common/decorators/roles/roles.decorator';
 import { RoleEnum } from 'src/common/enums/user-role.enum';
 import { AuthGuard } from 'src/common/guards/auth/auth.guard';
 import { RolesGuard } from 'src/common/guards/roles/roles.guard';
+import { InstallationDataRequesDto } from './dto/installation-data.request.dto';
+import { plainToInstance } from 'class-transformer';
+import { validate, validateSync } from 'class-validator';
 
 //@Roles(RoleEnum.ADMIN)
 //@UseGuards(AuthGuard, RolesGuard)
@@ -42,7 +43,15 @@ export class OrdersController {
   @HttpCode(HttpStatus.CREATED)
   @HttpCode(HttpStatus.NOT_FOUND)
   @Post(':id/installations')
-  async addInstallation(@Param('id') id: string, @Body() data: InstallationDataRequesDto | InstallationDataRequesDto[]) {
+  async addInstallation(@Param('id') id: string, @Body() data: any[]) {
+  const transformed = plainToInstance(InstallationDataRequesDto, data);
+
+   for (const item of transformed) {
+     const errors = validateSync(item);
+      if (errors.length > 0) {
+       throw new BadRequestException(errors);
+     }
+    }    
     const orderWithNewInstallation = await this.ordersService.addInstallations(id, data);
     return new GetOrderResponseDto(orderWithNewInstallation)
   }
