@@ -208,14 +208,14 @@ export class InstallationsService {
           }
           break;
         case InstallationStatus.FINISHED:
-          if (result.order?.client && result.installers && result.address) {
-            this.emitApprovedUpdate(result.order.client.id, result.installers, result.address, result.order.id);
+          if (result.order?.client && result.installers && result.address && result.images) {
+            this.emitApprovedUpdate(result.order.client.id, result.installers, result.address, result.order.id, result.images);
             this.emitRecalculateOrderProgress({ orderId: result.order.id });
           }
           break;
         default:
-          if (result.order?.client && result.installers && result.address) {
-            this.emitApprovedUpdate(result.order.client.id, result.installers, result.address, result.order.id);
+          if (result.order?.client && result.installers && result.address && result.images) {
+            this.emitApprovedUpdate(result.order.client.id, result.installers, result.address, result.order.id, result.images);
             this.emitRecalculateOrderProgress({ orderId: result.order.id });
           }
       }
@@ -281,10 +281,10 @@ export class InstallationsService {
     )
   }
   
-  private emitApprovedUpdate(clientId: string, installers: any, address: Address, orderId: string) {
+  private emitApprovedUpdate(clientId: string, installers: any, address: Address, orderId: string, images: string[]) {
     this.eventEmitter.emit(
       NotifyEvents.INSTALLATION_APROVE,
-      new InstallationApprovedDto(clientId, installers, address, orderId)
+      new InstallationApprovedDto(clientId, installers, address, orderId, images)
     )
   }
 

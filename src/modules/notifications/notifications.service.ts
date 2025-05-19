@@ -40,11 +40,11 @@ export class NotificationsService {
       const emails = await this.emailService.sendEmail({
         to: [client.user.email, coordinator.user.email],
         subject: "¡Los instaladores ya llegaron!",
-        html: `<h2>Tu instalación en:</h2>
+        html: `<h2>Tu instalación está en:</h2>
           <p><strong>Calle:</strong> ${address.street} ${address.number}</p>
           <p><strong>Ciudad:</strong> ${address.city.name}</p>
           <p><strong>Provincia:</strong> ${address.city.province.name}</p>
-          <p>Esta en proceso.</p>`
+          <p>Esta en proceso, los instaladores estan trabajando en ella.</p>`
       })
       if (!emails) throw new ServiceUnavailableException('No se pudo enviar los emails') 
       const newNotification = await this.create({
@@ -67,7 +67,7 @@ export class NotificationsService {
            const emails = await this.emailService.sendEmail({
         to: [coordinator.user.email],
         subject: "La instalación fue pospuesta",
-        html: `<h2>La instalación prevista en ${address.street} ${address.number}, ${address.city.name} (${address.city.province.name}) fue pospuesta.</h2>`
+        html: `<h2>La instalación prevista en ${address.street} ${address.number}, ${address.city.name} (${address.city.province.name}) ha sido pospuesta.</h2>`
       })
       if (!emails) throw new ServiceUnavailableException('No se pudo enviar los emails') 
       const newNotification = await this.create({
@@ -93,18 +93,18 @@ export class NotificationsService {
         
         const emailForClient = await this.emailService.sendEmail({
           to: aClient.user.email,
-          subject: '¡Ya casi!',
-          html: `<h2>Estamos verificando tu instalación en:</h2>
-          <p><strong>Calle:</strong> ${address.street} ${address.number}</p>
-          <p><strong>Ciudad:</strong> ${address.city.name}</p>
-          <p><strong>Provincia:</strong> ${address.city.province.name}</p>
-          <p>Te notificaremos cuando esté finalizada.</p>`
+          subject: `¡Estamos verificando tu instalación!`,
+          html: `<h2>Se completó la instalación en:</h2>
+            <p><strong>Calle:</strong> ${address.street} ${address.number}</p>
+            <p><strong>Ciudad:</strong> ${address.city.name}</p>
+            <p><strong>Provincia:</strong> ${address.city.province.name}</p>
+            <p>Estamos verificando que todo haya salido bien. En breve recibirás las imágenes.</p>`
         })
         
         const emailForCoord = await this.emailService.sendEmail({
           to: aCoordinator.user.email,
           subject: `Verificá la instalación en ${address.street} ${address.number}` ,
-          html: '<h2>Las imágenes de la instalación ya están disponibles en la plataforma para su revisión.</h2>'
+          html: this.sendEmailtToCoordinatorForReview(images, address.street, address.number)
         }) 
         const newNotification = await this.create({
         title: "La instalación esta pendiente a revisar",
@@ -115,7 +115,7 @@ export class NotificationsService {
 
   @OnEvent(NotifyEvents.INSTALLATION_APROVE)
   async installationFinished(data: InstallationApprovedDto) {
-    const {clientId, installers, address} = data
+    const {clientId, installers, address, images} = data
     try {
       const aClient = await this.userRoleService.getByIdWhenRole(clientId, RoleEnum.USER)
       const rawInstallersUsers = await Promise.all(
@@ -129,7 +129,7 @@ export class NotificationsService {
       const emails = await this.emailService.sendEmail({
         to: [aClient.user.email, ...installersEmails],
         subject: 'La instalación a finalizado!',
-        message: `La instalación realizada en ${address.street} ${address.number}, ${address.city.name} (${address.city.province.name}) se finalizó exitosamente.`
+        html: this.generateSimpleInstallationEmail(images as string[]),
       })
       const newNotification = await this.create({
         title: "La instalación a finalizado!",
@@ -156,5 +156,57 @@ export class NotificationsService {
   async remove(id: string) {
     const result = await this.notificationsRepository.delete()
     return `This action adds a new notification ${result}`;
+  }
+
+  generateSimpleInstallationEmail(imageUrls: string[]) {
+  const imagesHtml = imageUrls
+    .map(
+      (url) => `
+        <div style="margin: 16px 0;">
+          <img src="${url}" alt="Imagen de la instalación" style="max-width: 100%; border-radius: 8px;" />
+          <p style="margin-top: 4px;">
+            <a href="${url}" target="_blank" rel="noopener noreferrer" style="color: #1a73e8; text-decoration: none;">
+              Ver o descargar imagen
+            </a>
+          </p>
+        </div>
+      `
+    )
+    .join("");
+
+  return `
+    <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.5;">
+      <h2>¡Tu instalación ha sido completada!</h2>
+      <p>Estas son las fotos del resultado final:</p>
+      ${imagesHtml}
+      <p style="margin-top: 24px;">Muchas gracias por confiar en nosotros.</p>
+    </div>
+  `;
+  }
+
+    sendEmailtToCoordinatorForReview(imageUrls: string[], stret: string, number: string) {
+  const imagesHtml = imageUrls
+    .map(
+      (url) => `
+        <div style="margin: 16px 0;">
+          <img src="${url}" alt="Imagen de la instalación" style="max-width: 100%; border-radius: 8px;" />
+          <p style="margin-top: 4px;">
+            <a href="${url}" target="_blank" rel="noopener noreferrer" style="color: #1a73e8; text-decoration: none;">
+              Ver o descargar imagen
+            </a>
+          </p>
+        </div>
+      `
+    )
+    .join("");
+
+  return `
+    <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.5;">
+      <h2>La instalación en ${stret} ${number} esta completa!</h2>
+      <p>Estas son la imagenes tomadas por los instaladores, ingresa a la plataforma para marcar como finalizada la instalación.</p>
+      ${imagesHtml}
+      <p style="margin-top: 24px;">Muchas gracias por confiar en nosotros.</p>
+    </div>
+  `;
   }
 }
