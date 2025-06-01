@@ -14,7 +14,7 @@ export class GetOrderResponseDto {
     installationsFinished: string;
     progress: number;
     client: any
-    installations: GetInstallationsDto[];
+    installations?: GetInstallationsDto[] | void[];
     createdAt: Date
     finishedAt: Date | null
 
@@ -23,7 +23,7 @@ export class GetOrderResponseDto {
         this.id = data.id
         this.orderNumber = data.orderNumber
         this.title = data.title
-        this.client = (data.client && data.client.user)
+        this.client = (data.client && data.client)
         this.description = data.description
         this.createdAt = data.createdAt
         this.finishedAt = data.finishedAt

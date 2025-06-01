@@ -19,11 +19,12 @@ export class EmailService{
     ) {}
     
     async sendEmail(sendEmailDto: SendEmailDto): Promise<string> {
-        const { to, subject, message } = sendEmailDto;
+        const { to, subject, message, html} = sendEmailDto;
         await this.mailerService.sendMail({
             to: to,
             subject: subject,
             text: message,
+            html: html
         });
 
         return 'Correo electrónico enviado exitosamente.';

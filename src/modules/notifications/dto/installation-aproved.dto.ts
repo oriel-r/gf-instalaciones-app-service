@@ -19,10 +19,15 @@ export class InstallationApprovedDto {
     @IsString()
     orderId: string
 
-    constructor(client: string, installers: Installer[], address: Address, orderId: string) {
+    @IsOptional()
+    @IsArray()
+    images?: string[]
+
+    constructor(client: string, installers: Installer[], address: Address, orderId: string, images: string[]) {
         this.clientId = client
         this.installers = installers
         this.address = address
         this.orderId = orderId
+        this.images = images
 }
 }

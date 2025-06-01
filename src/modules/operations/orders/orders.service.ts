@@ -48,7 +48,7 @@ export class OrdersService {
   
     if(!newOrder) throw new InternalServerErrorException('Hubo un problema al crear la orden')
   
-    return newOrder
+    return await this.findOne(newOrder.id)
   }
 
   async addInstallations(id: string, data: InstallationDataRequesDto | InstallationDataRequesDto[]) {

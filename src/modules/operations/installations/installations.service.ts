@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { CreateInstallationDto } from './dto/create-installation.dto';
 import { InstallationsRepository } from './installations.repository';
 import { DeepPartial } from 'typeorm';
@@ -29,6 +29,8 @@ import { PaginationResult } from 'src/common/interfaces/pagination-result.interf
 import { OrderEvent } from 'src/common/enums/orders-event.enum';
 import { RecalculateProgressDto } from '../orders/dto/recalculate-progress.dto';
 import { FileUploadService } from 'src/services/file-upload/file-upload.service';
+import { StatusInstaller } from 'src/common/enums/status-installer';
+import { usersData } from 'src/seeders/users/users.mock';
 
 
 @Injectable()
@@ -57,10 +59,11 @@ export class InstallationsService {
         }))
               
         const installers = getInstallers.filter((i): i is Installer => i !== null)
-              
+         if(!installers.length) throw new BadRequestException('No se encontraron los instaladores')      
+
         if(!coordinator) throw new BadRequestException('Coordinador no encontrado')
         
-        if(!installers.length) throw new BadRequestException('No se encontraron los instaladores')
+        if(installers.some((i) => i.status !== StatusInstaller.Approved)) throw new HttpException('Estas intentando asignar instaladores no aprobados', HttpStatus.UNPROCESSABLE_ENTITY)
         const installationAddress = await this.addressService.create(address);
         return await this.installationsRepository.create({
           ...otherData,
@@ -107,12 +110,11 @@ export class InstallationsService {
       if (!installation) {
         throw new NotFoundException("No se encontró la instalación");
       }
-    
       if (![InstallationStatus.PENDING, InstallationStatus.POSTPONED].includes(installation.status)) {
         throw new BadRequestException(`No se puede modificar una instalación con estado ${installation.status}`);
       }
     
-      let installers: Installer[] = [];
+      let installers: Installer[] | null = null;
       let newCoordinator: UserRole | null = null
       let newAddress: Address | null = null
 
@@ -130,7 +132,7 @@ export class InstallationsService {
       
       if (installation.status === InstallationStatus.POSTPONED && data.startDate) {
         const newStartDate = new Date(data.startDate);
-        const currentStartDate = new Date(installation.startDate);
+        const currentStartDate = installation.startDate;
         if (newStartDate <= currentStartDate) {
           throw new BadRequestException("La nueva fecha de inicio debe ser posterior a la fecha actual de la instalación");
         }
@@ -149,7 +151,7 @@ export class InstallationsService {
       if (data.startDate) {
         updateData.startDate = new Date(data.startDate);
       }
-      if (installers.length > 0) {
+      if (installers) {
         updateData.installers = installers;
       }
       if(newAddress) {
@@ -158,9 +160,9 @@ export class InstallationsService {
       if(newCoordinator) {
         updateData.coordinator = newCoordinator
       }
+      updateData.status = InstallationStatus.PENDING
 
       const updatedInstallation = await this.installationsRepository.update(id, updateData);
-      
       return updatedInstallation
 
     }
@@ -169,7 +171,6 @@ export class InstallationsService {
     async statusChange(id: string, dto: StatusChangeDto) {
     const installation = await this.installationsRepository.getById(id);
     if (!installation) throw new NotFoundException('Instalación no encontrada, id incorrecto o inexistente');
-
     if (!allowedTransitions[installation.status]?.includes(dto.status)) {
       throw new BadRequestException(`Transición de estado no permitida: ${installation.status} -> ${dto.status}`);
     }
@@ -207,14 +208,14 @@ export class InstallationsService {
           }
           break;
         case InstallationStatus.FINISHED:
-          if (result.order?.client && result.installers && result.address) {
-            this.emitApprovedUpdate(result.order.client.id, result.installers, result.address, result.order.id);
+          if (result.order?.client && result.installers && result.address && result.images) {
+            this.emitApprovedUpdate(result.order.client.id, result.installers, result.address, result.order.id, result.images);
             this.emitRecalculateOrderProgress({ orderId: result.order.id });
           }
           break;
         default:
-          if (result.order?.client && result.installers && result.address) {
-            this.emitApprovedUpdate(result.order.client.id, result.installers, result.address, result.order.id);
+          if (result.order?.client && result.installers && result.address && result.images) {
+            this.emitApprovedUpdate(result.order.client.id, result.installers, result.address, result.order.id, result.images);
             this.emitRecalculateOrderProgress({ orderId: result.order.id });
           }
       }
@@ -252,7 +253,7 @@ export class InstallationsService {
     if(!result) throw new InternalServerErrorException('No se pudo cambiar el estado')
     
     if(installation.order.client?.id && installation.coordinator?.id) {
-      this.emitToReviewUpdate(installation.order.client.id, installation.coordinator.id, installation.address)
+      this.emitToReviewUpdate(installation.order.client.id, installation.coordinator.id, installation.address, imagesUrls)
     }
     return result
   }
@@ -280,17 +281,17 @@ export class InstallationsService {
     )
   }
   
-  private emitApprovedUpdate(clientId: string, installers: any, address: Address, orderId: string) {
+  private emitApprovedUpdate(clientId: string, installers: any, address: Address, orderId: string, images: string[]) {
     this.eventEmitter.emit(
       NotifyEvents.INSTALLATION_APROVE,
-      new InstallationApprovedDto(clientId, installers, address, orderId)
+      new InstallationApprovedDto(clientId, installers, address, orderId, images)
     )
   }
 
-  private emitToReviewUpdate(clientId: string, coordinatorId: string , address: Address) {
+  private emitToReviewUpdate(clientId: string, coordinatorId: string , address: Address, images: string[]) {
     this.eventEmitter.emit(
       NotifyEvents.INSTALLATION_TO_REVIEW,
-      new InstallationToReviewDto(clientId, address)
+      new InstallationToReviewDto(clientId, coordinatorId, address, images)
     )
   }
 

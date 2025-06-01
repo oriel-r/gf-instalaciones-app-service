@@ -67,7 +67,8 @@ export class InstallationsController {
   @HttpCode(HttpStatus.NOT_FOUND)
   @HttpCode(HttpStatus.INTERNAL_SERVER_ERROR)
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() data: UpdateInstallationDto ) {
+  async update(@Param('id') id: string, @Body() data: UpdateInstallationDto , @Req() req: Request){
+    const datalog = req.body
     return await this.installationsService.update(id, data);
   }
 
