@@ -5,7 +5,8 @@ import {
   Get,
   Param,
   Patch,
-  Post
+  Post,
+  UseGuards
 } from '@nestjs/common';
 import { InstallerService } from './installer.service';
 import { CreateInstallerDto } from './dto/create-installer.dto';
@@ -13,7 +14,9 @@ import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Installer } from './entities/installer.entity';
 import { UpdateInstallerDto } from './dto/update-installer';
 import { StatusInstallerDto } from './dto/status-update-installer.dto';
+import { AuthGuard } from 'src/common/guards/auth/auth.guard';
 
+@UseGuards(AuthGuard)
 @ApiTags('Installer')
 @Controller('installer')
 export class InstallerController {

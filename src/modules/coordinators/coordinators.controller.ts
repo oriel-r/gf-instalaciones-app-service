@@ -1,8 +1,10 @@
-import { Controller, Get, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { CoordinatorsService } from './coordinators.service';
 import { UpdateCoordinatorDto } from './dto/update-coordinator.dto';
 import { ApiTags } from '@nestjs/swagger';
+import { AuthGuard } from 'src/common/guards/auth/auth.guard';
 
+@UseGuards(AuthGuard)
 @ApiTags('Coordinators')
 @Controller('coordinators')
 export class CoordinatorsController {

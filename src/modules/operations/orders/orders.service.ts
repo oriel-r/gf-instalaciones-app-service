@@ -24,6 +24,8 @@ import { InstallationApprovedDto } from 'src/modules/notifications/dto/installat
 import { OrderEvent } from 'src/common/enums/orders-event.enum';
 import { RecalculateProgressDto } from './dto/recalculate-progress.dto';
 import { RolePayload } from 'src/common/entities/role-payload.dto';
+import { UserRole } from 'src/modules/user-role/entities/user-role.entity';
+import { response } from 'express';
 
 @Injectable()
 export class OrdersService {
@@ -35,12 +37,12 @@ export class OrdersService {
   ) {}
   
   async create(createOrderDto: CreateOrderRequestDto) {
-    const { clientId, ...orderData } = createOrderDto;
+    const { clientId, clientEmail, ...orderData } = createOrderDto;
   
     const existOrder = await this.ordersRepository.getByNumber(orderData.orderNumber);
-    if (existOrder) throw new BadRequestException('Ya existe una orden con este número de referencia')
-  
-    const client = await this.userRoleService.getByIdWhenRole(clientId, RoleEnum.USER)
+    const client = await this.getValidClient({clientId, clientEmail})
+    
+    if (existOrder) throw new BadRequestException('Ya existe una orden con este número de referencia')  
     
     if(!client) throw new BadRequestException('Cliente no encontrado')
 
@@ -51,24 +53,19 @@ export class OrdersService {
     return await this.findOne(newOrder.id)
   }
 
-  async addInstallations(id: string, data: InstallationDataRequesDto | InstallationDataRequesDto[]) {
-    const order = await this.findOne(id);
-    const installations = Array.isArray(data) ? data : [data];
-      
-    if (!order) throw new NotFoundException('orden no encontrada o numero invalido');
-    const newInstallations = await this.installationsService.createFromOrder({order, installations})
-    if(!newInstallations) throw new InternalServerErrorException('No se crearon las instalaciónes')
-    const fraction = calculateProgressFraction((await this.findOne(id)).installations)
-    await this.update(order.id, {installationsFinished: fraction})
+  async addInstallations(data: InstallationDataRequesDto | InstallationDataRequesDto[], id?: string) {
+    let order: Order | null = null
 
-    return newInstallations
+    if(!id && Array.isArray(data) && data.every(item => item.orderNumber)) return this.addinstallationsFromBatch(data)
+
+   return this.addInstallation(id as string, data as unknown as InstallationDataRequesDto)
   } 
 
-  async findAll(query: OrderQueryOptionsDto) {
-   // const isUser = roles.every(role => role.name !== RoleEnum.ADMIN)
-   // const clientId = isUser ? roles[0].id : null
+  async findAll(query: OrderQueryOptionsDto, roles: any[]) {
+    const isUser = roles.every(role => role.name !== RoleEnum.ADMIN)
+    const clientId = isUser ? roles[0].id : null
 
-    const orders = await this.ordersRepository.get(query)
+    const orders = await this.ordersRepository.get(query, clientId)
 
       const result: PaginationResult<GetOrderResponseDto> = [orders[0].map(order => new GetOrderResponseDto(order)),orders[1]]
       return result
@@ -118,6 +115,56 @@ export class OrdersService {
     }
     if(!result) throw new HttpException('Hubo un problema al borrar la orden', HttpStatus.INTERNAL_SERVER_ERROR)
       return new DeleteResponse('orden', id) 
+  }
+
+  private async addinstallationsFromBatch(data: InstallationDataRequesDto[]) {
+     const formattedData: Array<{ order: Order; installation: any }> = [];
+    for (const item of data) {
+      const { orderNumber, ...installationData } = item;
+      const order = await this.findByOrderNumber(orderNumber!);
+      formattedData.push({ order, installation: installationData });
+    }
+
+    const creationPromises = formattedData.map(item =>
+      this.installationsService
+        .createFromOrder(item)
+        .then(response => ({
+          status: 'fulfilled' as const,
+          referenceId: response!.referenceId,
+        }))
+        .catch(err => ({
+          status: 'reject' as const,
+          referenceId: item.installation.referenceId,
+          reason: err['response']['message'],
+        }))
+    );
+
+    const newInstallationsResult = await Promise.all(creationPromises);
+
+    return newInstallationsResult;
+  }
+
+  private async addInstallation(id: string, data: InstallationDataRequesDto) {
+
+    const order = await this.findOne(id as string)
+    if (!order) throw new NotFoundException('orden no encontrada o numero invalido');
+    const newInstallation = await this.installationsService.createFromOrder({order, installation: data})
+    if(!newInstallation) throw new InternalServerErrorException('No se crearon las instalaciónes')
+    const fraction = calculateProgressFraction((await this.findOne(id as string)).installations)
+    await this.update(order.id, {installationsFinished: fraction})
+
+    return newInstallation
+  }
+
+  private async getValidClient({clientId, clientEmail}: Record<'clientId' | 'clientEmail' , string | undefined>) {
+    let client: UserRole | null = null
+    if(clientId) {
+      client = await this.userRoleService.getByIdWhenRole(clientId, RoleEnum.USER)
+    } else if (clientEmail) {
+      client = await this.userRoleService.getByUserEmail(clientEmail, RoleEnum.USER)
+    }
+
+    return client
   }
 
   @OnEvent(OrderEvent.RECALCULATE)

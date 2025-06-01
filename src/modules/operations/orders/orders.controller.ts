@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus
 import { OrdersService } from './orders.service';
 import { CreateOrderRequestDto } from './dto/create-order.request.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
-import { ApiBody, ApiOperation, ApiQuery } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiProperty, ApiQuery } from '@nestjs/swagger';
 import { UpdateInstallationStatus } from './dto/update-installation-status.dto';
 import { OrderQueryOptionsDto } from './dto/orders-query-options.dto';
 import { QueryOptionsPipe } from 'src/common/pipes/query-options/query-options.pipe';
@@ -19,7 +19,7 @@ import { InstallationDataRequesDto } from './dto/installation-data.request.dto';
 import { plainToInstance } from 'class-transformer';
 import { validate, validateSync } from 'class-validator';
 
-//@Roles(RoleEnum.ADMIN)
+@Roles(RoleEnum.ADMIN)
 //@UseGuards(AuthGuard, RolesGuard)
 @Controller('orders')
 export class OrdersController {
@@ -35,6 +35,15 @@ export class OrdersController {
   }
 
   @ApiOperation({
+    summary: 'endpoint for create installations from a batch'
+  })
+  @Post('batch_load/installations')
+  async addInstallationsBatch(@Body() data: any[]) {
+    const installationsData = data.map(installationData => plainToInstance(InstallationDataRequesDto, installationData ))
+    return await this.ordersService.addInstallations(installationsData)
+  }
+
+  @ApiOperation({
     summary: 'Add installation to an existed order',
   })
   @ApiBody({
@@ -45,11 +54,11 @@ export class OrdersController {
   @Post(':id/installations')
   async addInstallation(@Param('id') id: string, @Body() data: InstallationDataRequesDto) {
  
-    const orderWithNewInstallation = await this.ordersService.addInstallations(id, data);
+    const orderWithNewInstallation = await this.ordersService.addInstallations(data, id);
     return orderWithNewInstallation
   }
 
-  //@Roles(RoleEnum.USER, RoleEnum.ADMIN)
+  @Roles(RoleEnum.USER, RoleEnum.ADMIN)
   @ApiOperation({
     summary: 'get and filter orders',
   })
@@ -59,13 +68,15 @@ export class OrdersController {
   @Get()
   async findAll(@Query(new QueryOptionsPipe(OrderQueryOptionsDto)) query: OrderQueryOptionsDto, @Req() req: Request) {
     const baseUrl = `${req.protocol}://${req.host}${req.path}` + "?" + `${new URLSearchParams(Object.entries(query).map(([k, v]) => [k, String(v)])).toString()}`
-    const result: PaginationResult<GetOrderResponseDto>= await this.ordersService.findAll(query);
+
+    const role = req['user']['roles']
+    const result: PaginationResult<GetOrderResponseDto>= await this.ordersService.findAll(query, role);
     
     return new PaginatedResponseDto<GetOrderResponseDto>(result  ,query.page, query.limit, baseUrl)
   
   }
 
- // @Roles(RoleEnum.ADMIN, RoleEnum.USER)
+ @Roles(RoleEnum.ADMIN, RoleEnum.USER)
   @Get(':id/installations')
   async findInstallationsFromOrder(
     @Param('id') id: string, 
@@ -76,7 +87,32 @@ export class OrdersController {
     return await this.ordersService.getInstallationsFromId(id, query);
   }
 
-  //@Roles(RoleEnum.ADMIN, RoleEnum.USER)
+  @ApiOperation({
+      summary: 'this endpoint recive the sheets data'
+    })
+  @Post('batch_load')
+  async createOrders(@Body() data ) {
+    const dataArray = Array.isArray(data) ? data : [data]
+  
+    const orders = dataArray
+    .map(orderData => this.ordersService.create(orderData)
+    .then(response => ({
+        status: 'fulfilled' as const,
+        referenceId: response.orderNumber
+      }))
+    .catch(error => ({
+        status: 'reject' as const,
+        reason: error['response']['message'],
+        referenceId: orderData.orderNumber
+      }))
+    )
+
+    const result = await Promise.all(orders)
+    
+    return result
+  }
+
+  @Roles(RoleEnum.ADMIN, RoleEnum.USER)
   @Get(':id')
   async findOne(@Param('id') id: string, @Req() req: Request) {
     //const roles = req['user'].roles

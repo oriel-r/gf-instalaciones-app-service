@@ -36,12 +36,12 @@ export class InstallationDataRequesDto {
   @IsOptional()
   @IsArray()
   @IsUUID("4", { each: true })
-  installersIds: string[];
+  installersIds?: string[] | undefined;
 
   @ApiProperty()
   @IsOptional()
   @IsUUID()
-  coordinatorId: string;
+  coordinatorId?: string | undefined;
 
   @ApiProperty({
     title: 'notes',
@@ -50,4 +50,20 @@ export class InstallationDataRequesDto {
   @IsString()
   @IsOptional()
   notes?: string;
+
+  @IsString()
+  @IsOptional()
+  referenceId?: string
+
+  @IsString()
+  @IsOptional()
+  orderNumber?: string
+
+  @IsOptional()
+  @IsString()
+  coordinatorEmail?: string
+
+  @IsOptional()
+  @IsArray()
+  installersEmails?: string[]
 }

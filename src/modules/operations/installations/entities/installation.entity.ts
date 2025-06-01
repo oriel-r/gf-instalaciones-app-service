@@ -1,4 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
+import { randomUUID } from "crypto";
 import { BaseEntity } from "src/common/entities/base.entity";
 import { InstallationStatus } from "src/common/enums/installations-status.enum";
 import { Installer } from "src/modules/installer/entities/installer.entity";
@@ -83,6 +84,11 @@ export class Installation extends BaseEntity {
 
     @Column({ type: 'timestamptz', nullable: true })
     startedAt!: Date | null;                
+  
+    @Column('varchar', {
+      default: () => `('INS-' || left(uuid_generate_v4()::text,8))`
+    })
+    referenceId: string;
 
     @Column({ type: 'timestamptz', nullable: true })
     submittedForReviewAt!: Date | null;

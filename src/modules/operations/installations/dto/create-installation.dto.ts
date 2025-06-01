@@ -20,10 +20,7 @@ export class CreateInstallationDto extends BaseDto{
         description: 'is optional',
         type: [InstallationDataRequesDto]
     })
-    @IsOptional()
-    @IsArray()
-    @ValidateNested({ each: true})
-    @Type(() => InstallationDataRequesDto)
-    installations: InstallationDataRequesDto[]
+    @IsNotEmpty()
+    installation: InstallationDataRequesDto
 
 }

@@ -45,39 +45,27 @@ export class InstallationsService {
     private eventEmitter: EventEmitter2,
   ){}
   
-  async createFromOrder(createInstallationDto: CreateInstallationDto) {
+async createFromOrder(createInstallationDto: CreateInstallationDto) {
+  const { installation, order } = createInstallationDto;
+  const { address, coordinatorId, installersIds, installersEmails, coordinatorEmail, ...otherData } = installation;
+  let coordinator: UserRole | null = null
 
-    const newInstallations = await Promise.all(
-      createInstallationDto.installations.map(async (installation) => {
-        const { address, coordinatorId, installersIds, ...otherData } = installation;
-
-        const coordinator = await this.userRoleService.getByIdWhenRole(coordinatorId, RoleEnum.COORDINATOR)
-        
-        const getInstallers = await Promise.all(
-        installersIds.map( async(installer) => {
-           return await this.installerService.findById(installer)
-        }))
-              
-        const installers = getInstallers.filter((i): i is Installer => i !== null)
-         if(!installers.length) throw new BadRequestException('No se encontraron los instaladores')      
-
-        if(!coordinator) throw new BadRequestException('Coordinador no encontrado')
-        
-        if(installers.some((i) => i.status !== StatusInstaller.Approved)) throw new HttpException('Estas intentando asignar instaladores no aprobados', HttpStatus.UNPROCESSABLE_ENTITY)
-        const installationAddress = await this.addressService.create(address);
-        return await this.installationsRepository.create({
-          ...otherData,
-          installers: installers,
-          coordinator: coordinator, 
-          order: createInstallationDto.order,
-          address: installationAddress,
-        })
-
-      })
-    );
+  coordinator = await this.getValidCoordinator({coordinatorId, coordinatorEmail});
   
-    return newInstallations;
-  }
+  const installers = await this.getValidInstallers({installersIds, installersEmails});
+
+  const installationAddress = await this.addressService.create(address);
+
+  const newInstallation = await this.installationsRepository.create({
+    ...otherData,
+    installers,
+    coordinator,
+    order,
+    address: installationAddress,
+  });
+
+  return newInstallation;
+}
   
   async create(data) {
     return {newData: data}
@@ -305,4 +293,52 @@ export class InstallationsService {
   private emitRecalculateOrderProgress(data: RecalculateProgressDto) {
     this.eventEmitter.emit(OrderEvent.RECALCULATE,data)
   }
+
+
+
+  private async getValidCoordinator({coordinatorId, coordinatorEmail}: Record< 'coordinatorId'| 'coordinatorEmail', string | undefined>) {
+  let coordinator: UserRole | null = null
+  if(coordinatorId) {
+    coordinator = await this.userRoleService.getByIdWhenRole(
+    coordinatorId,
+    RoleEnum.COORDINATOR,
+  )} else if (coordinatorEmail) {
+    coordinator = await this.userRoleService.getByUserEmail(coordinatorEmail, RoleEnum.COORDINATOR)
+  }
+  
+
+  if (!coordinator) {
+    throw new BadRequestException('Coordinador no encontrado');
+  }
+    return coordinator;
+  }
+
+  private async getValidInstallers({installersIds, installersEmails}: Record<'installersIds' | 'installersEmails', string[] | undefined>) {
+  let found: Installer[] | void[] = []
+
+  if(installersIds)
+    found = await Promise.all(
+    installersIds.map((id) => this.installerService.findById(id))
+  ); else if(installersEmails) {
+    found = await Promise.all(
+      installersEmails.map((email) => this.installerService.findByEmail(email, true) as unknown as Installer)
+    )
+  }
+
+
+  const installers = found.filter((i): i is Installer => i != null);
+  if (installers.length === 0) {
+    throw new BadRequestException('No se encontraron los instaladores');
+  }
+
+  const invalid = installers.find((i) => i.status !== StatusInstaller.Approved);
+  if (invalid) {
+    throw new HttpException(
+      'Estás intentando asignar instaladores no aprobados',
+      HttpStatus.UNPROCESSABLE_ENTITY,
+    );
+  }
+
+  return installers;
+}
 }

@@ -150,14 +150,15 @@ export class InstallerService {
     return installer;
   }
 
-  async findByEmail(email: string)  {
+  async findByEmail(email: string, raw?: boolean)  {
     const installer = await this.installerRepository.findOne({
       where: { user: { email } },
       relations: ['user'],
     });
   
     if (!installer) throw new NotFoundException('Instalador no encontrado');
-  
+    if(raw) return installer
+    
     return plainToInstance(InstallerResponseDto, installer, {
       excludeExtraneousValues: true,
     });
