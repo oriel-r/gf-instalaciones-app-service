@@ -26,11 +26,11 @@ import { InstallationQueryOptionsDto } from './dto/installation-query-options.dt
 import { PaginatedResponseDto } from 'src/common/entities/paginated-response.dto';
 import { UserRole } from 'src/modules/user-role/entities/user-role.entity';
 import { PaginationResult } from 'src/common/interfaces/pagination-result.interface';
-import { TemporalUploadService } from 'src/services/temporal-file-upload/temporal-file-upload.service';
 import { OrderEvent } from 'src/common/enums/orders-event.enum';
 import { RecalculateProgressDto } from '../orders/dto/recalculate-progress.dto';
 import { StatusInstaller } from 'src/common/enums/status-installer';
 import { usersData } from 'src/seeders/users/users.mock';
+import { FileUploadService } from 'src/services/file-upload/file-upload.service';
 
 
 @Injectable()
@@ -39,10 +39,10 @@ export class InstallationsService {
     private readonly installationsRepository: InstallationsRepository,
     private readonly addressService: AddressService,
     private readonly imageService: ImagesService,
+    private readonly fileUploadService: FileUploadService,
     private readonly userRoleService: UserRoleService,
     private readonly installerService: InstallerService,
     private eventEmitter: EventEmitter2,
-    private readonly temporalUploadService: TemporalUploadService
   ){}
   
   async createFromOrder(createInstallationDto: CreateInstallationDto) {
@@ -239,7 +239,7 @@ export class InstallationsService {
 
     const imagesUrls: string[] = await Promise.all(
       files.map(async (file) => {
-        const fileUrl = await this.temporalUploadService.uploadFile(file.buffer);
+        const fileUrl = await this.fileUploadService.uploadFile(file);
         await this.imageService.saveFile({
           url: fileUrl,
           mimetype: file.mimetype,
