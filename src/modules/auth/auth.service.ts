@@ -179,7 +179,7 @@ export class AuthService {
 
     await this.passwordResetTokenRepositoy.save(recovery);
 
-    const recoveryLink = `http://localhost:3000/recovery-password?token=${token}`;
+    const recoveryLink = `https://gfrecursosgraficos.com.ar/recovery-password?token=${token}`;
 
     await this.emailService.sendPasswordRecoveryEmail(user.email, recoveryLink);
   }

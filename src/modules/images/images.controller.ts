@@ -26,8 +26,8 @@ export class ImagesController {
     private readonly fileUploadService: FileUploadService,
   ) {}
 
-  @Roles(RoleEnum.ADMIN)
-  @UseGuards(AuthGuard, RolesGuard)
+  /* @Roles(RoleEnum.ADMIN)
+  @UseGuards(AuthGuard, RolesGuard) */
   @Post()
   @UseInterceptors(FileInterceptor('file'))
   @UsePipes(
