@@ -4,13 +4,15 @@ import { registerAs } from "@nestjs/config";
 
 dotenvConfig({ path: '.env.development.local' });
 
+const isCloud = process.env.ENVIRONMENT === 'CLOUD';
+
 const dataSourceConfig: DataSourceOptions = {
   type: 'postgres',
-  database: process.env.DB_NAME_PSQL,
-  host: process.env.DB_HOST_PSQL,
-  port: parseInt(process.env.DB_PORT_PSQL as string),
-  username: process.env.DB_USERNAME_PSQL,
-  password: process.env.DB_PASSWORD_PSQL,
+  host: isCloud ? process.env.DB_HOST_CLOUD : process.env.DB_HOST_LOCAL,
+  port: parseInt(isCloud ? process.env.DB_PORT_CLOUD! : process.env.DB_PORT_LOCAL!),
+  username: isCloud ? process.env.DB_USERNAME_CLOUD : process.env.DB_USERNAME_LOCAL,
+  password: isCloud ? process.env.DB_PASSWORD_CLOUD : process.env.DB_PASSWORD_LOCAL,
+  database: isCloud ? process.env.DB_NAME_CLOUD : process.env.DB_NAME_LOCAL,
   synchronize: true,
   dropSchema: false,
   logging: ['error'],
