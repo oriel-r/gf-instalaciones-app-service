@@ -4,9 +4,9 @@ export class RecalculateProgressDto {
 
     @IsNotEmpty()
     @IsString()
-    orderId: string
+    orderId: string | string[]
 
-    constructor(id: string) {
+    constructor(id: string | string[]) {
         this.orderId = id
     }
 

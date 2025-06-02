@@ -128,9 +128,11 @@ export class OrdersService {
     const creationPromises = formattedData.map(item =>
       this.installationsService
         .createFromOrder(item)
-        .then(response => ({
+        .then(response =>
+          ({
           status: 'fulfilled' as const,
           referenceId: response!.referenceId,
+          orderId: item.order.id
         }))
         .catch(err => ({
           status: 'reject' as const,
@@ -140,6 +142,13 @@ export class OrdersService {
     );
 
     const newInstallationsResult = await Promise.all(creationPromises);
+
+    const ordersIds = newInstallationsResult.reduce((acc: string[], item) => {
+      if(item['status'] === 'fulfilled') acc.push(item.orderId)
+        return acc
+      }, [])
+
+    this.updateProgress({orderId: ordersIds})
 
     return newInstallationsResult;
   }
@@ -169,10 +178,27 @@ export class OrdersService {
 
   @OnEvent(OrderEvent.RECALCULATE)
   async updateProgress({ orderId }: RecalculateProgressDto) {
-    const installations = (await this.findOne(orderId)).installations
-    const progress = calculateProgress(installations)
-    const installationsFinished = calculateProgressFraction(installations)
 
-    return await this.update(orderId, {progress, installationsFinished})
+    const isArray = Array.isArray(orderId)
+
+    if(!isArray) {
+
+      const installations = (await this.findOne(orderId)).installations
+      const progress = calculateProgress(installations)
+      const installationsFinished = calculateProgressFraction(installations)
+  
+      return await this.update(orderId, {progress, installationsFinished})
+    }
+
+    const updatePromises = orderId.map( async (order) => {
+        const installations = (await this.findOne(order)).installations
+        const progress = calculateProgress(installations)
+        const installationsFinished = calculateProgressFraction(installations)
+        this.update(order, {progress, installationsFinished})
+        
+      })
+
+      return await Promise.all(updatePromises)      
+      
+    }
   }
-}

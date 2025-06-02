@@ -18,9 +18,11 @@ import { RolesGuard } from 'src/common/guards/roles/roles.guard';
 import { InstallationDataRequesDto } from './dto/installation-data.request.dto';
 import { plainToInstance } from 'class-transformer';
 import { validate, validateSync } from 'class-validator';
+import { Public } from 'src/common/decorators/roles/public';
+import { BatchKeyGuard } from 'src/common/guards/batch-loading/batch-loading.guard';
 
 @Roles(RoleEnum.ADMIN)
-//@UseGuards(AuthGuard, RolesGuard)
+@UseGuards(AuthGuard, RolesGuard)
 @Controller('orders')
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
@@ -37,6 +39,8 @@ export class OrdersController {
   @ApiOperation({
     summary: 'endpoint for create installations from a batch'
   })
+  @Public()
+  @UseGuards(BatchKeyGuard)
   @Post('batch_load/installations')
   async addInstallationsBatch(@Body() data: any[]) {
     const installationsData = data.map(installationData => plainToInstance(InstallationDataRequesDto, installationData ))
@@ -90,6 +94,8 @@ export class OrdersController {
   @ApiOperation({
       summary: 'this endpoint recive the sheets data'
     })
+  @Public()
+  @UseGuards(BatchKeyGuard)
   @Post('batch_load')
   async createOrders(@Body() data ) {
     const dataArray = Array.isArray(data) ? data : [data]
