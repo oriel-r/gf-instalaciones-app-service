@@ -29,6 +29,7 @@ import { addHours } from 'date-fns';
 import { RecoveryChangePasswordDto } from './dto/recovery-change-password.dto';
 import { RolePayload } from 'src/common/entities/role-payload.dto';
 import { StatusInstaller } from 'src/common/enums/status-installer';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @ApiTags('Auth')
 @Injectable()
