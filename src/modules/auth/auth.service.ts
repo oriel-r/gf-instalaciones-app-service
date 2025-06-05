@@ -71,10 +71,16 @@ export class AuthService {
       );
     }
 
-    const anUser = await this.userRepository.findOne({
-      where: { email: credentials.emailSignIn },
-      relations: ['userRoles', 'userRoles.role', 'installer', 'coordinator', 'admin'],
-    });
+      const anUser = await this.userRepository
+        .createQueryBuilder('user')
+        .leftJoinAndSelect('user.userRoles', 'userRoles')
+        .leftJoinAndSelect('userRoles.role', 'role')
+        .leftJoinAndSelect('user.installer', 'installer')
+        .leftJoinAndSelect('user.coordinator', 'coordinator')
+        .leftJoinAndSelect('user.admin', 'admin')
+        .where('user.email = :email', { email: credentials.emailSignIn })
+        .orderBy('role.name', 'DESC')
+        .getOne();
 
     if (!anUser) {
       throw new HttpException('Usuario, contraseña incorrecta', 404);

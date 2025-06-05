@@ -7,9 +7,7 @@ import { DeepPartial, DeleteResult } from 'typeorm';
 import { InstallationDataRequesDto } from './dto/installation-data.request.dto';
 import { calculateProgressFraction } from 'src/common/helpers/calculate-progress-fraction';
 import { Order } from './entities/order.entity';
-import { InstallationStatus } from 'src/common/enums/installations-status.enum';
 import { calculateProgress } from 'src/common/helpers/calculate-progress';
-import { UpdateInstallationStatus } from './dto/update-installation-status.dto';
 import { GetOrderResponseDto } from './dto/get-order-response.dto';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { UserRoleService } from 'src/modules/user-role/user-role.service';
@@ -17,15 +15,10 @@ import { RoleEnum } from 'src/common/enums/user-role.enum';
 import { OrderQueryOptionsDto } from './dto/orders-query-options.dto';
 import { PaginationResult } from 'src/common/interfaces/pagination-result.interface';
 import { InstallationQueryOptionsDto } from '../installations/dto/installation-query-options.dto';
-import { NotifyEvents } from 'src/common/enums/notifications-events.enum';
-import { InstallationGeneralUpdate } from 'src/modules/notifications/dto/installation-general-update.dto';
-import { InstallationPostponedDto } from 'src/modules/notifications/dto/installation-postponed.dto';
-import { InstallationApprovedDto } from 'src/modules/notifications/dto/installation-aproved.dto';
 import { OrderEvent } from 'src/common/enums/orders-event.enum';
 import { RecalculateProgressDto } from './dto/recalculate-progress.dto';
 import { RolePayload } from 'src/common/entities/role-payload.dto';
 import { UserRole } from 'src/modules/user-role/entities/user-role.entity';
-import { response } from 'express';
 
 @Injectable()
 export class OrdersService {
@@ -37,16 +30,16 @@ export class OrdersService {
   ) {}
   
   async create(createOrderDto: CreateOrderRequestDto) {
-    const { clientId, clientEmail, ...orderData } = createOrderDto;
+    const { clientsIds, clientsEmails, ...orderData } = createOrderDto;
   
     const existOrder = await this.ordersRepository.getByNumber(orderData.orderNumber);
-    const client = await this.getValidClient({clientId, clientEmail})
+    const clients = await this.getValidClients({clientsIds, clientsEmails})
     
     if (existOrder) throw new BadRequestException('Ya existe una orden con este número de referencia')  
     
-    if(!client) throw new BadRequestException('Cliente no encontrado')
+    if(!clients.length) throw new BadRequestException('Cliente no encontrado')
 
-    const newOrder = await this.ordersRepository.create({...orderData, client: client});
+    const newOrder = await this.ordersRepository.create({...orderData, client: clients});
   
     if(!newOrder) throw new InternalServerErrorException('Hubo un problema al crear la orden')
   
@@ -165,15 +158,25 @@ export class OrdersService {
     return newInstallation
   }
 
-  private async getValidClient({clientId, clientEmail}: Record<'clientId' | 'clientEmail' , string | undefined>) {
-    let client: UserRole | null = null
-    if(clientId) {
-      client = await this.userRoleService.getByIdWhenRole(clientId, RoleEnum.USER)
-    } else if (clientEmail) {
-      client = await this.userRoleService.getByUserEmail(clientEmail, RoleEnum.USER)
-    }
+  private async getValidClients({clientsIds, clientsEmails}: Record<'clientsIds' | 'clientsEmails' , string[] | undefined>) {
+   let found: Array<UserRole | null> = []
 
-    return client
+  if(clientsIds)
+    found = await Promise.all(
+    clientsIds.map((id) => this.userRoleService.getByIdWhenRole(id, RoleEnum.USER))
+  ); else if(clientsEmails) {
+    found = await Promise.all(
+      clientsEmails.map((email) => this.userRoleService.getByUserEmail(email, RoleEnum.USER))
+    )
+  }
+
+
+  const clients = found.filter((UserRole) => UserRole != null);
+  if (clients.length === 0) {
+    throw new BadRequestException('No se encontraron los instaladores');
+  }
+
+    return clients
   }
 
   @OnEvent(OrderEvent.RECALCULATE)

@@ -3,7 +3,7 @@ import { timestamp } from "rxjs";
 import { BaseEntity } from "src/common/entities/base.entity";
 import { Installation } from "src/modules/operations/installations/entities/installation.entity";
 import { UserRole } from "src/modules/user-role/entities/user-role.entity";
-import { Column, CreateDateColumn, DeepPartial, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, DeepPartial, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryColumn, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class Order extends BaseEntity {
@@ -19,9 +19,9 @@ export class Order extends BaseEntity {
         title: 'Client',
         description: "order's client"
     })
-    @ManyToOne(() => UserRole, { onDelete: 'SET NULL', nullable: true, eager: true})
-    @JoinColumn({name: 'client_id'})
-    client: UserRole | null;
+    @ManyToMany(() => UserRole, { onDelete: 'SET NULL', nullable: true, eager: true})
+    @JoinTable({name: 'client_id'})
+    client: UserRole[] | null;
     
     @ApiProperty({
         title: 'orderNumber',

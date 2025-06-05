@@ -8,12 +8,12 @@ import {
 import { Transform, Type } from 'class-transformer';
 import { DeepPartial } from 'typeorm';
 import { CreateAddressDto } from 'src/modules/locations/address/dto/create-address.dto';
-import { IsAfterToday } from 'src/common/decorators/is-affter-today.valitaion';
+import { IsTodayOrAffterToday } from 'src/common/decorators/is-affter-today.valitaion';
 
 export class UpdateInstallationDto {
   @IsOptional()
   @IsISO8601()
-  @IsAfterToday()
+  @IsTodayOrAffterToday()
   startDate?: string;
 
   @IsOptional()
@@ -22,7 +22,7 @@ export class UpdateInstallationDto {
 
   @IsUUID()
   @IsOptional()
-  coordinatorId?: string;
+  coordinatorsIds?: string[];
 
   @IsUUID()
   @IsOptional()

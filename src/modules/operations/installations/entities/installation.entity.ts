@@ -6,7 +6,7 @@ import { Installer } from "src/modules/installer/entities/installer.entity";
 import { Address } from "src/modules/locations/address/entities/address.entity";
 import { Order } from "src/modules/operations/orders/entities/order.entity";
 import { UserRole } from "src/modules/user-role/entities/user-role.entity";
-import { Column, DeepPartial, Entity, JoinColumn, ManyToMany, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, DeepPartial, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class Installation extends BaseEntity {
@@ -36,9 +36,9 @@ export class Installation extends BaseEntity {
         title: 'Coordinator',
         description: "installation coordinators"
     })
-    @ManyToOne(() => UserRole, { onDelete: 'SET NULL', nullable: true, eager: true})
-    @JoinColumn({name: 'coordinator_id'})
-    coordinator: UserRole | null;
+    @ManyToMany(() => UserRole, { onDelete: 'SET NULL', nullable: true, eager: true})
+    @JoinTable({name: 'coordinator_id'})
+    coordinator: UserRole[] | null;
 
     @ApiProperty({
         title: 'startDate',

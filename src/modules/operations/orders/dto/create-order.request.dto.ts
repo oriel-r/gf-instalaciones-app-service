@@ -24,7 +24,7 @@ export class CreateOrderRequestDto extends BaseDto {
     })
     @IsUUID()
     @IsOptional()
-    clientId?: string;
+    clientsIds?: string[];
 
     @ApiProperty({
         title: 'title',
@@ -44,5 +44,5 @@ export class CreateOrderRequestDto extends BaseDto {
 
     @IsEmail()
     @IsOptional()
-    clientEmail?: string
+    clientsEmails?: string[]
 }

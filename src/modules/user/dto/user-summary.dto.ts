@@ -74,4 +74,6 @@ export class UserSummaryDto {
 
   @Expose()
   installer: Installer
+
+  
 }
