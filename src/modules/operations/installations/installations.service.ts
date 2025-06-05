@@ -28,6 +28,7 @@ import { UserRole } from 'src/modules/user-role/entities/user-role.entity';
 import { PaginationResult } from 'src/common/interfaces/pagination-result.interface';
 import { OrderEvent } from 'src/common/enums/orders-event.enum';
 import { RecalculateProgressDto } from '../orders/dto/recalculate-progress.dto';
+import { FileUploadService } from 'src/services/file-upload/file-upload.service';
 import { StatusInstaller } from 'src/common/enums/status-installer';
 import { usersData } from 'src/seeders/users/users.mock';
 import { FileUploadService } from 'src/services/file-upload/file-upload.service';
