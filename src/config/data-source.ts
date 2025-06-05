@@ -14,7 +14,7 @@ const dataSourceConfig: DataSourceOptions = {
   password: isCloud ? process.env.DB_PASSWORD_CLOUD : process.env.DB_PASSWORD_LOCAL,
   database: isCloud ? process.env.DB_NAME_CLOUD : process.env.DB_NAME_LOCAL,
   synchronize: true,
-  dropSchema: false,
+  dropSchema: true,
   logging: ['error'],
   ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
   entities: ['dist/**/*.entity{.ts,.js}'],

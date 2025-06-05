@@ -21,6 +21,8 @@ import { InstallerResponseDto } from './dto/installer-response.dto';
 import { User } from '../user/entities/user.entity';
 import { StatusInstaller } from 'src/common/enums/status-installer';
 import { plainToInstance } from 'class-transformer';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { SyncWithSheetsEnum } from 'src/common/enums/sync-with-sheets-event.enum';
 
 @ApiTags('Installer')
 @Injectable()
@@ -35,6 +37,7 @@ export class InstallerService {
     private readonly userRoleService: UserRoleService,
     @InjectRepository(Role)
     private readonly roleRepository: Repository<Role>,
+    private readonly eventEmitter: EventEmitter2
   ) {}
 
   async findAll() {
@@ -109,6 +112,8 @@ export class InstallerService {
     const installer = await this.findById(installerId);
     installer.status = status;
     await this.installerRepository.save(installer);
+    this.eventEmitter.emit(SyncWithSheetsEnum.APPEND_ROW, {sheet: 'INSTALADORES', values: [installer.user.fullName, installer.user.email]})
+
     return {message: 'Estado actualizado correctamente'}
   }
 
@@ -150,14 +155,15 @@ export class InstallerService {
     return installer;
   }
 
-  async findByEmail(email: string)  {
+  async findByEmail(email: string, raw?: boolean)  {
     const installer = await this.installerRepository.findOne({
       where: { user: { email } },
       relations: ['user'],
     });
   
     if (!installer) throw new NotFoundException('Instalador no encontrado');
-  
+    if(raw) return installer
+    
     return plainToInstance(InstallerResponseDto, installer, {
       excludeExtraneousValues: true,
     });

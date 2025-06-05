@@ -7,9 +7,7 @@ import { DeepPartial, DeleteResult } from 'typeorm';
 import { InstallationDataRequesDto } from './dto/installation-data.request.dto';
 import { calculateProgressFraction } from 'src/common/helpers/calculate-progress-fraction';
 import { Order } from './entities/order.entity';
-import { InstallationStatus } from 'src/common/enums/installations-status.enum';
 import { calculateProgress } from 'src/common/helpers/calculate-progress';
-import { UpdateInstallationStatus } from './dto/update-installation-status.dto';
 import { GetOrderResponseDto } from './dto/get-order-response.dto';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { UserRoleService } from 'src/modules/user-role/user-role.service';
@@ -17,13 +15,10 @@ import { RoleEnum } from 'src/common/enums/user-role.enum';
 import { OrderQueryOptionsDto } from './dto/orders-query-options.dto';
 import { PaginationResult } from 'src/common/interfaces/pagination-result.interface';
 import { InstallationQueryOptionsDto } from '../installations/dto/installation-query-options.dto';
-import { NotifyEvents } from 'src/common/enums/notifications-events.enum';
-import { InstallationGeneralUpdate } from 'src/modules/notifications/dto/installation-general-update.dto';
-import { InstallationPostponedDto } from 'src/modules/notifications/dto/installation-postponed.dto';
-import { InstallationApprovedDto } from 'src/modules/notifications/dto/installation-aproved.dto';
 import { OrderEvent } from 'src/common/enums/orders-event.enum';
 import { RecalculateProgressDto } from './dto/recalculate-progress.dto';
 import { RolePayload } from 'src/common/entities/role-payload.dto';
+import { UserRole } from 'src/modules/user-role/entities/user-role.entity';
 
 @Injectable()
 export class OrdersService {
@@ -35,40 +30,35 @@ export class OrdersService {
   ) {}
   
   async create(createOrderDto: CreateOrderRequestDto) {
-    const { clientId, ...orderData } = createOrderDto;
+    const { clientsIds, clientsEmails, ...orderData } = createOrderDto;
   
     const existOrder = await this.ordersRepository.getByNumber(orderData.orderNumber);
-    if (existOrder) throw new BadRequestException('Ya existe una orden con este número de referencia')
-  
-    const client = await this.userRoleService.getByIdWhenRole(clientId, RoleEnum.USER)
+    const clients = await this.getValidClients({clientsIds, clientsEmails})
     
-    if(!client) throw new BadRequestException('Cliente no encontrado')
+    if (existOrder) throw new BadRequestException('Ya existe una orden con este número de referencia')  
+    
+    if(!clients.length) throw new BadRequestException('Cliente no encontrado')
 
-    const newOrder = await this.ordersRepository.create({...orderData, client: client});
+    const newOrder = await this.ordersRepository.create({...orderData, client: clients});
   
     if(!newOrder) throw new InternalServerErrorException('Hubo un problema al crear la orden')
   
     return await this.findOne(newOrder.id)
   }
 
-  async addInstallations(id: string, data: InstallationDataRequesDto | InstallationDataRequesDto[]) {
-    const order = await this.findOne(id);
-    const installations = Array.isArray(data) ? data : [data];
-      
-    if (!order) throw new NotFoundException('orden no encontrada o numero invalido');
-    const newInstallations = await this.installationsService.createFromOrder({order, installations})
-    if(!newInstallations) throw new InternalServerErrorException('No se crearon las instalaciónes')
-    const fraction = calculateProgressFraction((await this.findOne(id)).installations)
-    await this.update(order.id, {installationsFinished: fraction})
+  async addInstallations(data: InstallationDataRequesDto | InstallationDataRequesDto[], id?: string) {
+    let order: Order | null = null
 
-    return newInstallations
+    if(!id && Array.isArray(data) && data.every(item => item.orderNumber)) return this.addinstallationsFromBatch(data)
+
+   return this.addInstallation(id as string, data as unknown as InstallationDataRequesDto)
   } 
 
-  async findAll(query: OrderQueryOptionsDto) {
-   // const isUser = roles.every(role => role.name !== RoleEnum.ADMIN)
-   // const clientId = isUser ? roles[0].id : null
+  async findAll(query: OrderQueryOptionsDto, roles: any[]) {
+    const isUser = roles.every(role => role.name !== RoleEnum.ADMIN)
+    const clientId = isUser ? roles[0].id : null
 
-    const orders = await this.ordersRepository.get(query)
+    const orders = await this.ordersRepository.get(query, clientId)
 
       const result: PaginationResult<GetOrderResponseDto> = [orders[0].map(order => new GetOrderResponseDto(order)),orders[1]]
       return result
@@ -120,12 +110,98 @@ export class OrdersService {
       return new DeleteResponse('orden', id) 
   }
 
+  private async addinstallationsFromBatch(data: InstallationDataRequesDto[]) {
+     const formattedData: Array<{ order: Order; installation: any }> = [];
+    for (const item of data) {
+      const { orderNumber, ...installationData } = item;
+      const order = await this.findByOrderNumber(orderNumber!);
+      formattedData.push({ order, installation: installationData });
+    }
+
+    const creationPromises = formattedData.map(item =>
+      this.installationsService
+        .createFromOrder(item)
+        .then(response =>
+          ({
+          status: 'fulfilled' as const,
+          referenceId: response!.referenceId,
+          orderId: item.order.id
+        }))
+        .catch(err => ({
+          status: 'reject' as const,
+          referenceId: item.installation.referenceId,
+          reason: err['response']['message'],
+        }))
+    );
+
+    const newInstallationsResult = await Promise.all(creationPromises);
+
+    const ordersIds = newInstallationsResult.reduce((acc: string[], item) => {
+      if(item['status'] === 'fulfilled') acc.push(item.orderId)
+        return acc
+      }, [])
+
+    this.updateProgress({orderId: ordersIds})
+
+    return newInstallationsResult;
+  }
+
+  private async addInstallation(id: string, data: InstallationDataRequesDto) {
+
+    const order = await this.findOne(id as string)
+    if (!order) throw new NotFoundException('orden no encontrada o numero invalido');
+    const newInstallation = await this.installationsService.createFromOrder({order, installation: data})
+    if(!newInstallation) throw new InternalServerErrorException('No se crearon las instalaciónes')
+    const fraction = calculateProgressFraction((await this.findOne(id as string)).installations)
+    await this.update(order.id, {installationsFinished: fraction})
+
+    return newInstallation
+  }
+
+  private async getValidClients({clientsIds, clientsEmails}: Record<'clientsIds' | 'clientsEmails' , string[] | undefined>) {
+   let found: Array<UserRole | null> = []
+
+  if(clientsIds)
+    found = await Promise.all(
+    clientsIds.map((id) => this.userRoleService.getByIdWhenRole(id, RoleEnum.USER))
+  ); else if(clientsEmails) {
+    found = await Promise.all(
+      clientsEmails.map((email) => this.userRoleService.getByUserEmail(email, RoleEnum.USER))
+    )
+  }
+
+
+  const clients = found.filter((UserRole) => UserRole != null);
+  if (clients.length === 0) {
+    throw new BadRequestException('No se encontraron los instaladores');
+  }
+
+    return clients
+  }
+
   @OnEvent(OrderEvent.RECALCULATE)
   async updateProgress({ orderId }: RecalculateProgressDto) {
-    const installations = (await this.findOne(orderId)).installations
-    const progress = calculateProgress(installations)
-    const installationsFinished = calculateProgressFraction(installations)
 
-    return await this.update(orderId, {progress, installationsFinished})
+    const isArray = Array.isArray(orderId)
+
+    if(!isArray) {
+
+      const installations = (await this.findOne(orderId)).installations
+      const progress = calculateProgress(installations)
+      const installationsFinished = calculateProgressFraction(installations)
+  
+      return await this.update(orderId, {progress, installationsFinished})
+    }
+
+    const updatePromises = orderId.map( async (order) => {
+        const installations = (await this.findOne(order)).installations
+        const progress = calculateProgress(installations)
+        const installationsFinished = calculateProgressFraction(installations)
+        this.update(order, {progress, installationsFinished})
+        
+      })
+
+      return await Promise.all(updatePromises)      
+      
+    }
   }
-}

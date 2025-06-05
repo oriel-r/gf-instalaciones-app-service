@@ -1,14 +1,9 @@
-import { BaseDto } from "src/common/entities/base.dto";
 import { CreateAddressDto } from "src/modules/locations/address/dto/create-address.dto";
-import { IsArray, IsInstance, IsNotEmpty, IsOptional, IsString, IsUppercase, isUUID, IsUUID } from "class-validator";
+import { IsArray, IsNotEmpty, IsOptional, IsString, IsUUID } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
-import { Transform, Type } from "class-transformer";
-import { IsISO8601, ValidateNested } from "class-validator";
-import { Installer } from "src/modules/installer/entities/installer.entity";
-import { Coordinator } from "src/modules/coordinators/entities/coordinator.entity";
-import { UserRole } from "src/modules/user-role/entities/user-role.entity";
-import { UUID } from "crypto";
-import { IsAfterToday } from "src/common/decorators/is-affter-today.valitaion";
+import { IsISO8601 } from "class-validator";
+import { IsTodayOrAffterToday } from "src/common/decorators/is-affter-today.valitaion";
+import { Type } from "class-transformer";
 
 export class InstallationDataRequesDto {
   
@@ -17,7 +12,7 @@ export class InstallationDataRequesDto {
     description: "Fecha en la que se realizará la instalación"
   })
   @IsNotEmpty()
-  @IsAfterToday({ message: 'La fecha debe ser posterior a la actual.' })
+  @IsTodayOrAffterToday({ message: 'La fecha debe ser posterior a la actual.' })
   @IsISO8601()
   startDate: string;
 
@@ -36,12 +31,12 @@ export class InstallationDataRequesDto {
   @IsOptional()
   @IsArray()
   @IsUUID("4", { each: true })
-  installersIds: string[];
+  installersIds?: string[] | undefined;
 
   @ApiProperty()
   @IsOptional()
   @IsUUID()
-  coordinatorId: string;
+  coordinatorsIds?: string[] | undefined;
 
   @ApiProperty({
     title: 'notes',
@@ -50,4 +45,20 @@ export class InstallationDataRequesDto {
   @IsString()
   @IsOptional()
   notes?: string;
+
+  @IsString()
+  @IsOptional()
+  referenceId?: string
+
+  @IsString()
+  @IsOptional()
+  orderNumber?: string
+
+  @IsOptional()
+  @IsString()
+  coordinatorsEmails?: string[]
+
+  @IsOptional()
+  @IsArray()
+  installersEmails?: string[]
 }

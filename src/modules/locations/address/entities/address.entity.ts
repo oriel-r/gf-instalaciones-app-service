@@ -29,7 +29,7 @@ export class Address extends BaseEntity{
     @ApiProperty({
         title: 'number'
     })
-    @Column('varchar', {nullable: false})
+    @Column('varchar', {nullable: true})
     note: string
     
     

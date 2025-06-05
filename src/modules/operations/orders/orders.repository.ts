@@ -23,7 +23,6 @@ export class OrdersRepository {
 
     async get(query: OrderQueryOptionsDto, clientId?: string | null) {
         const queryBuilder = this.ordersRepository.createQueryBuilder('order')
-        console.log(clientId)
         queryBuilder
         .leftJoinAndSelect('order.client', 'client')
         .leftJoinAndSelect('client.user', 'clientUser')
@@ -120,8 +119,9 @@ export class OrdersRepository {
     }
 
     async getByNumber(orderNumber: string) {
-        return await this.ordersRepository.findOneBy({orderNumber})
-    }
+        const result = await this.ordersRepository.findOneBy({orderNumber: orderNumber})
+        return result
+    }s
 
     async update(id: string, data: DeepPartial<Order>) {
         return await this.ordersRepository.update(id, data)

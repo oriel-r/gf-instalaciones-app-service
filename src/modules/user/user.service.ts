@@ -29,6 +29,8 @@ import { AdminService } from '../admins/admins.service';
 import { UserRole } from '../user-role/entities/user-role.entity';
 import { plainToInstance } from 'class-transformer';
 import { UserSummaryDto } from './dto/user-summary.dto';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { SyncWithSheetsEnum } from 'src/common/enums/sync-with-sheets-event.enum';
 
 @ApiTags('Users')
 @Injectable()
@@ -44,7 +46,9 @@ export class UserService {
     private readonly roleRepository: Repository<Role>,
     private readonly installerService: InstallerService,
     private readonly coordinatorService: CoordinatorsService,
-    private readonly adminService: AdminService
+    private readonly adminService: AdminService,
+    private readonly eventEmiiter: EventEmitter2
+
   ) {}
 
   async createUser(createUserDto: CreateUserDto): Promise<UserWithRolesDto> {
@@ -114,6 +118,8 @@ export class UserService {
         'Error al cargar el usuario completo',
       );
     }
+
+    this.eventEmiiter.emit(SyncWithSheetsEnum.APPEND_ROW, {sheet: 'CLIENTES', values: [fullUser.fullName, fullUser.email, fullUser.id]})
 
     return plainToInstance(UserWithRolesDto, fullUser, { excludeExtraneousValues: true });
   }

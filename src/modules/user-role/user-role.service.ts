@@ -101,12 +101,19 @@ export class UserRoleService {
     return role;
   }
 
+  async getByUserEmail(email: string, roleName: RoleEnum) {
+    const role = await this.userRoleRepository.findOne({
+      where: { user:{ email: email }, role: { name: roleName }},
+      relations: { role: true, user: true},
+    });
+    return role;
+  }
+
   async getByInstallerId(id: string) {
     const installer = await this.userRoleRepository.findOne({
       where: {user: {installer: {id: id}}},
       relations: {user: {installer: true}}
     })
-    console.log(installer)
     return installer
   }
 

@@ -31,6 +31,7 @@ import { RecalculateProgressDto } from '../orders/dto/recalculate-progress.dto';
 import { FileUploadService } from 'src/services/file-upload/file-upload.service';
 import { StatusInstaller } from 'src/common/enums/status-installer';
 import { usersData } from 'src/seeders/users/users.mock';
+import { FileUploadService } from 'src/services/file-upload/file-upload.service';
 
 
 @Injectable()
@@ -45,39 +46,27 @@ export class InstallationsService {
     private eventEmitter: EventEmitter2,
   ){}
   
-  async createFromOrder(createInstallationDto: CreateInstallationDto) {
+async createFromOrder(createInstallationDto: CreateInstallationDto) {
+  const { installation, order } = createInstallationDto;
+  const { address, coordinatorsIds, installersIds, installersEmails, coordinatorsEmails, ...otherData } = installation;
 
-    const newInstallations = await Promise.all(
-      createInstallationDto.installations.map(async (installation) => {
-        const { address, coordinatorId, installersIds, ...otherData } = installation;
-
-        const coordinator = await this.userRoleService.getByIdWhenRole(coordinatorId, RoleEnum.COORDINATOR)
-        
-        const getInstallers = await Promise.all(
-        installersIds.map( async(installer) => {
-           return await this.installerService.findById(installer)
-        }))
-              
-        const installers = getInstallers.filter((i): i is Installer => i !== null)
-         if(!installers.length) throw new BadRequestException('No se encontraron los instaladores')      
-
-        if(!coordinator) throw new BadRequestException('Coordinador no encontrado')
-        
-        if(installers.some((i) => i.status !== StatusInstaller.Approved)) throw new HttpException('Estas intentando asignar instaladores no aprobados', HttpStatus.UNPROCESSABLE_ENTITY)
-        const installationAddress = await this.addressService.create(address);
-        return await this.installationsRepository.create({
-          ...otherData,
-          installers: installers,
-          coordinator: coordinator, 
-          order: createInstallationDto.order,
-          address: installationAddress,
-        })
-
-      })
-    );
+  const coordinators = await this.getValidCoordinator({coordinatorsIds, coordinatorsEmails});
   
-    return newInstallations;
-  }
+  const installers = await this.getValidInstallers({installersIds, installersEmails});
+
+  const installationAddress = await this.addressService.create(address);
+
+
+  const newInstallation = await this.installationsRepository.create({
+    ...otherData,
+    installers,
+    coordinator: coordinators,
+    order,
+    address: installationAddress,
+  });
+
+  return newInstallation;
+}
   
   async create(data) {
     return {newData: data}
@@ -103,10 +92,11 @@ export class InstallationsService {
     const installation = await this.installationsRepository.getById(id)
     if(!installation) throw new NotFoundException('Instalación no encontrada, id incorrecto o inexistente')
       return installation  
-    }
+  }
 
-    async update(id: string, data: UpdateInstallationDto) {
+  async update(id: string, data: UpdateInstallationDto) {
       const installation = await this.installationsRepository.getById(id);
+      
       if (!installation) {
         throw new NotFoundException("No se encontró la instalación");
       }
@@ -115,19 +105,11 @@ export class InstallationsService {
       }
     
       let installers: Installer[] | null = null;
-      let newCoordinator: UserRole | null = null
+      let newCoordinators: UserRole[] | null = null
       let newAddress: Address | null = null
 
       if (data.installersIds && data.installersIds.length > 0) {
-        installers = await Promise.all(
-          data.installersIds.map(async (installerId) => {
-            const installer = await this.installerService.findById(installerId);
-            if (!installer) {
-              throw new NotFoundException(`Instalador con id ${installerId} no encontrado`);
-            }
-            return installer;
-          })
-        );
+        installers = await this.getValidInstallers({installersIds: data.installersIds, installersEmails: undefined})
       }
       
       if (installation.status === InstallationStatus.POSTPONED && data.startDate) {
@@ -138,8 +120,8 @@ export class InstallationsService {
         }
       }
 
-      if(data.coordinatorId) {
-        newCoordinator = await this.userRoleService.getByIdWhenRole(data.coordinatorId, RoleEnum.COORDINATOR)
+      if(data.coordinatorsIds) {
+        newCoordinators = await this.getValidCoordinator({coordinatorsIds: data.coordinatorsIds, coordinatorsEmails: undefined})
       }
 
       if(data.addressId && data.addressData) {
@@ -151,24 +133,25 @@ export class InstallationsService {
       if (data.startDate) {
         updateData.startDate = new Date(data.startDate);
       }
-      if (installers) {
+      if (installers?.length) {
         updateData.installers = installers;
       }
       if(newAddress) {
         updateData.address = newAddress
       }
-      if(newCoordinator) {
-        updateData.coordinator = newCoordinator
+      if(newCoordinators) {
+        updateData.coordinator = newCoordinators
       }
+
       updateData.status = InstallationStatus.PENDING
 
       const updatedInstallation = await this.installationsRepository.update(id, updateData);
       return updatedInstallation
 
-    }
+  }
     
 
-    async statusChange(id: string, dto: StatusChangeDto) {
+  async statusChange(id: string, dto: StatusChangeDto) {
     const installation = await this.installationsRepository.getById(id);
     if (!installation) throw new NotFoundException('Instalación no encontrada, id incorrecto o inexistente');
     if (!allowedTransitions[installation.status]?.includes(dto.status)) {
@@ -188,7 +171,7 @@ export class InstallationsService {
 
     const result = await this.installationsRepository.update(id, updateData);
     if (!result) throw new InternalServerErrorException('No se pudo actualizar el estado de la instalación');
-
+/*
     if (result.status !== installation.status) {
       switch (result.status) {
         case InstallationStatus.IN_PROCESS:
@@ -220,10 +203,10 @@ export class InstallationsService {
           }
       }
     }
-
+    */
     return await this.installationsRepository.getById(id);
-    }
-
+  
+  }
 
   async sendToReview(id: string, files: Express.Multer.File[]) {
     const installation = await this.installationsRepository.getById(id)
@@ -251,10 +234,10 @@ export class InstallationsService {
     if(!imagesUrls.length ) throw new ServiceUnavailableException('Hubo un problema al subir las imagenes')
     const result = await this.installationsRepository.update(id, {status: InstallationStatus.TO_REVIEW, images: imagesUrls, submittedForReviewAt: new Date()})
     if(!result) throw new InternalServerErrorException('No se pudo cambiar el estado')
-    
+    /*
     if(installation.order.client?.id && installation.coordinator?.id) {
       this.emitToReviewUpdate(installation.order.client.id, installation.coordinator.id, installation.address, imagesUrls)
-    }
+    }*/
     return result
   }
 
@@ -305,4 +288,58 @@ export class InstallationsService {
   private emitRecalculateOrderProgress(data: RecalculateProgressDto) {
     this.eventEmitter.emit(OrderEvent.RECALCULATE,data)
   }
+
+
+
+  private async getValidCoordinator({coordinatorsIds, coordinatorsEmails}: Record< 'coordinatorsIds'| 'coordinatorsEmails', string[] | undefined>): Promise<UserRole[]> {
+  let found: Array<UserRole | null> | void[] = []
+  
+  if(coordinatorsIds)
+    found = await Promise.all(
+    coordinatorsIds.map((id) => this.userRoleService.getByIdWhenRole(id, RoleEnum.COORDINATOR))
+  ); else if(coordinatorsEmails) {
+    found = await Promise.all(
+      coordinatorsEmails.map((email) => this.userRoleService.getByUserEmail(email, RoleEnum.COORDINATOR))
+    )
+  }
+
+
+  const coordinators = found.filter((i) => i != null);
+  if (coordinators.length === 0) {
+    throw new BadRequestException('No se encontraron los instaladores');
+  }
+  
+    return coordinators;
+  }
+
+    private async getValidInstallers({installersIds, installersEmails}: Record<'installersIds' | 'installersEmails', string[] | undefined>): Promise<Installer[]>{
+    let found: Installer[] | void[] = []
+
+    if(installersIds)
+      found = await Promise.all(
+      installersIds.map((id) => this.installerService.findById(id))
+    ); else if(installersEmails) {
+      found = await Promise.all(
+        installersEmails.map((email) => this.installerService.findByEmail(email, true) as unknown as Installer)
+      )
+    }
+
+
+    const installers = found.filter((i): i is Installer => i != null);
+    if (installers.length === 0) {
+      throw new BadRequestException('No se encontraron los instaladores');
+    }
+
+    const invalid = installers.find((i) => i.status !== StatusInstaller.Approved);
+    if (invalid) {
+      throw new HttpException(
+        'Estás intentando asignar instaladores no aprobados',
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+
+    return installers;
+  }
+
+
 }

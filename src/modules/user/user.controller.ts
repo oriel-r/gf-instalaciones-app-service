@@ -25,6 +25,7 @@ import { UserWithRolesDto } from './dto/user-with-roles.dto';
 import { RoleEnum } from 'src/common/enums/user-role.enum';
 import { AuthGuard } from 'src/common/guards/auth/auth.guard';
 
+//@UseGuards(AuthGuard)
 @ApiTags('Users')
 @Controller('user')
 export class UserController {

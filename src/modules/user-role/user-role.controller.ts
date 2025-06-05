@@ -1,8 +1,10 @@
-import { Controller, Post, Body, Get, Param, Delete, HttpCode } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Delete, HttpCode, UseGuards } from '@nestjs/common';
 import { UserRoleService } from './user-role.service';
 import { AssignRoleDto } from './dto/assign-role.dto';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { AuthGuard } from 'src/common/guards/auth/auth.guard';
 
+//@UseGuards(AuthGuard)
 @Controller('user-role')
 export class UserRoleController {
   constructor(private readonly userRoleService: UserRoleService) {}

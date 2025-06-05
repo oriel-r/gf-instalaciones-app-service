@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UploadedFiles, UseInterceptors, UsePipes, HttpStatus, HttpCode, Query, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UploadedFiles, UseInterceptors, UsePipes, HttpStatus, HttpCode, Query, Req, UseGuards } from '@nestjs/common';
 import { InstallationsService } from './installations.service';
 import { UpdateInstallationDto } from './dto/update-installation.dto';
 import { Installation } from './entities/installation.entity';
@@ -10,7 +10,9 @@ import { QueryOptionsPipe } from 'src/common/pipes/query-options/query-options.p
 import { InstallationQueryOptionsDto } from './dto/installation-query-options.dto';
 import { Request } from 'express';
 import { Roles } from 'src/common/decorators/roles/roles.decorator';
+import { AuthGuard } from 'src/common/guards/auth/auth.guard';
 
+//@UseGuards(AuthGuard)
 @Controller('installations')
 export class InstallationsController {
   constructor(private readonly installationsService: InstallationsService) {}
@@ -68,7 +70,6 @@ export class InstallationsController {
   @HttpCode(HttpStatus.INTERNAL_SERVER_ERROR)
   @Patch(':id')
   async update(@Param('id') id: string, @Body() data: UpdateInstallationDto , @Req() req: Request){
-    const datalog = req.body
     return await this.installationsService.update(id, data);
   }
 

@@ -22,6 +22,7 @@ import { UserRoleModule } from './modules/user-role/user-role.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { SheetssyncModule } from './modules/sheetssync/sheetssync.module';
 
 
 @Module({
@@ -70,6 +71,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
     ImagesModule,
     UserRoleModule,
     NotificationsModule,
+    SheetssyncModule,
   ],
   controllers: [AppController],
   providers: [AppService],

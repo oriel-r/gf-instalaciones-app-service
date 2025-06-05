@@ -3,7 +3,7 @@ import { Order } from "../entities/order.entity";
 import { Installation } from "src/modules/operations/installations/entities/installation.entity";
 import { CreateInstallationDto } from "src/modules/operations/installations/dto/create-installation.dto";
 import { ApiProperty } from "@nestjs/swagger";
-import { IsArray, IsNotEmpty, IsOptional, IsString } from "class-validator";
+import { IsArray, IsEmail, IsNotEmpty, IsOptional, IsString } from "class-validator";
 import { IsInstance, IsUUID, ValidateNested } from "class-validator";
 import { Type } from "class-transformer";
 import { InstallationDataRequesDto } from "./installation-data.request.dto";
@@ -23,8 +23,8 @@ export class CreateOrderRequestDto extends BaseDto {
         description: 'Send userRole where role is client'
     })
     @IsUUID()
-    @IsNotEmpty()
-    clientId: string;
+    @IsOptional()
+    clientsIds?: string[];
 
     @ApiProperty({
         title: 'title',
@@ -42,4 +42,7 @@ export class CreateOrderRequestDto extends BaseDto {
     @IsNotEmpty()
     description: string;
 
+    @IsEmail()
+    @IsOptional()
+    clientsEmails?: string[]
 }
