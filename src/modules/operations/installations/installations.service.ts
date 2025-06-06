@@ -171,39 +171,11 @@ async createFromOrder(createInstallationDto: CreateInstallationDto) {
 
     const result = await this.installationsRepository.update(id, updateData);
     if (!result) throw new InternalServerErrorException('No se pudo actualizar el estado de la instalación');
-/*
+
     if (result.status !== installation.status) {
-      switch (result.status) {
-        case InstallationStatus.IN_PROCESS:
-          if (result.order?.client && result.coordinator?.id && result.address) {
-            this.emitGeneralUpdate(result.order.client.id, result.coordinator.id, result.address);
-          }
-          break;
-        case InstallationStatus.POSTPONED:
-          if (result.coordinator?.id && result.address) {
-            this.emitPostponedUpdate(result.coordinator.id, result.address);
-          }
-          break;
-        case InstallationStatus.CANCEL:
-          if (result.order?.client && result.installers) {
-            this.emitCancelledUpdate(result.order.client.id, result.installers);
-            this.emitRecalculateOrderProgress({ orderId: result.order.id });
-          }
-          break;
-        case InstallationStatus.FINISHED:
-          if (result.order?.client && result.installers && result.address && result.images) {
-            this.emitApprovedUpdate(result.order.client.id, result.installers, result.address, result.order.id, result.images);
-            this.emitRecalculateOrderProgress({ orderId: result.order.id });
-          }
-          break;
-        default:
-          if (result.order?.client && result.installers && result.address && result.images) {
-            this.emitApprovedUpdate(result.order.client.id, result.installers, result.address, result.order.id, result.images);
-            this.emitRecalculateOrderProgress({ orderId: result.order.id });
-          }
-      }
+      await this.eventsSweit(result, result.status)
     }
-    */
+    
     return await this.installationsRepository.getById(id);
   
   }
@@ -234,12 +206,13 @@ async createFromOrder(createInstallationDto: CreateInstallationDto) {
     if(!imagesUrls.length ) throw new ServiceUnavailableException('Hubo un problema al subir las imagenes')
     const result = await this.installationsRepository.update(id, {status: InstallationStatus.TO_REVIEW, images: imagesUrls, submittedForReviewAt: new Date()})
     if(!result) throw new InternalServerErrorException('No se pudo cambiar el estado')
-    /*
-    if(installation.order.client?.id && installation.coordinator?.id) {
-      this.emitToReviewUpdate(installation.order.client.id, installation.coordinator.id, installation.address, imagesUrls)
-    }*/
+    
+    if(installation.order.client?.length && installation.coordinator?.length) {
+      await this.eventsSweit(installation, InstallationStatus.TO_REVIEW)
+    }
     return result
-  }
+  }Z
+
 
   async remove(id: string) {
     const installation = await this.installationsRepository.getById(id)
@@ -250,24 +223,56 @@ async createFromOrder(createInstallationDto: CreateInstallationDto) {
       return new DeleteResponse('instalación', id)
   }
 
-  private emitGeneralUpdate(clientId: string, coordinatorId: string, address: Address) {
+  private eventsSweit(result: Installation, status: InstallationStatus) {
+          switch (status) {
+        case InstallationStatus.IN_PROCESS:
+          if (result.order && result.coordinator && result.address) {
+            this.emitGeneralUpdate(result);
+          }
+          break;
+        case InstallationStatus.POSTPONED:
+          if (result.coordinator && result.address) {
+            this.emitPostponedUpdate(result);
+          }
+          break;
+        case InstallationStatus.CANCEL:
+          if (result.order?.client && result.installers) {
+            this.emitCancelledUpdate(result);
+            this.emitRecalculateOrderProgress({ orderId: result.order.id });
+          }
+          break;
+        case InstallationStatus.FINISHED:
+          if (result.order?.client && result.installers && result.address && result.images) {
+            this.emitApprovedUpdate(result);
+            this.emitRecalculateOrderProgress({ orderId: result.order.id });
+          }
+          break;
+        default:
+          if (result.order?.client && result.installers && result.address && result.images) {
+            this.emitApprovedUpdate(result);
+            this.emitRecalculateOrderProgress({ orderId: result.order.id });
+          }
+      }
+  }
+
+  private emitGeneralUpdate(result: Installation) {
     this.eventEmitter.emit(
       NotifyEvents.INSTALLATION_GENERAL_UPDATE,
-      new InstallationGeneralUpdate(clientId, coordinatorId, address)
+      new InstallationGeneralUpdate(result)
     )
   }
   
-  private emitPostponedUpdate(coordinatorId: string, address: Address) {
+  private emitPostponedUpdate(result: Installation) {
     this.eventEmitter.emit(
       NotifyEvents.INSTALLATION_POSTPONED,
-      new InstallationPostponedDto(coordinatorId, address)
+      new InstallationPostponedDto(result)
     )
   }
   
-  private emitApprovedUpdate(clientId: string, installers: any, address: Address, orderId: string, images: string[]) {
+  private emitApprovedUpdate(result: Installation) {
     this.eventEmitter.emit(
       NotifyEvents.INSTALLATION_APROVE,
-      new InstallationApprovedDto(clientId, installers, address, orderId, images)
+      new InstallationApprovedDto(result)
     )
   }
 
@@ -278,10 +283,10 @@ async createFromOrder(createInstallationDto: CreateInstallationDto) {
     )
   }
 
-  private emitCancelledUpdate(clientId: string, installers: any) {
+  private emitCancelledUpdate(result: Installation) {
     this.eventEmitter.emit(
       NotifyEvents.INSTALLATION_CANCELLED,
-      new InstallationCancelDto(clientId, installers)
+      new InstallationCancelDto(result)
     )
   }
 

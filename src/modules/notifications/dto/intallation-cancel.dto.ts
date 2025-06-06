@@ -1,20 +1,22 @@
 import { IsString, ValidateNested } from "class-validator";
+import { getIdsFromAraay } from "src/common/helpers/get-ids-from-array";
 import { Installer } from "src/modules/installer/entities/installer.entity";
+import { Installation } from "src/modules/operations/installations/entities/installation.entity";
 
 export class InstallationCancelDto {
 
     @IsString()
-    clientId?: string
+    clientId?: string[]
 
     @IsString()
-    coordinatorId: string
+    coordinatorId: string[]
 
     @ValidateNested({each:true})
     installers: Installer[]
 
-    constructor(coordinatorId: string, installers: Installer[], clientId?: string) {
-        this.coordinatorId = coordinatorId,
-        this.installers = installers,
-        this.clientId = clientId
+    constructor({coordinator, installers, order:{client}}: Installation) {
+        this.coordinatorId = getIdsFromAraay(coordinator),
+        this.installers = installers as Installer[],
+        this.clientId = getIdsFromAraay(client)
     }
 }

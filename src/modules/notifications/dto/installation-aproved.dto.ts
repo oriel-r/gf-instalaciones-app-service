@@ -3,10 +3,12 @@ import { CreateNotificationDto } from "./create-notification.dto";
 import { ValidateNested } from "class-validator";
 import { Installer } from "src/modules/installer/entities/installer.entity";
 import { Address } from "src/modules/locations/address/entities/address.entity";
+import { Installation } from "src/modules/operations/installations/entities/installation.entity";
+import { getIdsFromAraay } from "src/common/helpers/get-ids-from-array";
 
 export class InstallationApprovedDto {
     @IsUUID()
-    clientId: string
+    clientId: string[]
 
     @IsArray()
     @ValidateNested({each: true})
@@ -23,11 +25,11 @@ export class InstallationApprovedDto {
     @IsArray()
     images?: string[]
 
-    constructor(client: string, installers: Installer[], address: Address, orderId: string, images: string[]) {
-        this.clientId = client
-        this.installers = installers
+    constructor({order:{id, client}, installers, address, images}: Installation) {
+        this.clientId = getIdsFromAraay(client)
+        this.installers = installers as Installer[]
         this.address = address
-        this.orderId = orderId
-        this.images = images
+        this.orderId = id
+        this.images = images as string[]
 }
 }
