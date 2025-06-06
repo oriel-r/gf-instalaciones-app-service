@@ -15,7 +15,7 @@ import { Installer } from "src/modules/installer/entities/installer.entity";
 import { UserRole } from "src/modules/user-role/entities/user-role.entity";
 import { UserRoleModule } from "src/modules/user-role/user-role.module";
 import { LocationsSeeder } from "./locations/locations.seeds";
-import { OrdersSeeder } from "./orders/orders.seeds";
+/* import { OrdersSeeder } from "./orders/orders.seeds"; */
 import { Admin } from "src/modules/admins/entities/admins.entity";
 import { Coordinator } from "src/modules/coordinators/entities/coordinator.entity";
 
@@ -25,8 +25,8 @@ import { Coordinator } from "src/modules/coordinators/entities/coordinator.entit
     JwtModule,
     BlogModule,
 ],
-    providers: [UserSeeds, BlogCategoriesSeeder, BlogTemplatesSeeder, BlogPostsSeeder, LocationsSeeder, OrdersSeeder],
-    exports: [UserSeeds, BlogCategoriesSeeder, BlogTemplatesSeeder, LocationsSeeder, BlogPostsSeeder, OrdersSeeder],
+    providers: [UserSeeds, BlogCategoriesSeeder, BlogTemplatesSeeder, BlogPostsSeeder, LocationsSeeder/* , OrdersSeeder */],
+    exports: [UserSeeds, BlogCategoriesSeeder, BlogTemplatesSeeder, LocationsSeeder, BlogPostsSeeder/* , OrdersSeeder */],
 })
 
 export class SeedersModule {}
