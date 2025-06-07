@@ -22,7 +22,7 @@ export class GetInstallationsDto extends BaseDto {
         this.startDate = data.startDate
         this.endDate = data.endDate
         this.status = data.status
-        this.coordinator = (data.coordinator && data.coordinator.user)
+        this.coordinator = (data.coordinator && data.coordinator)
         this.installers = (data.installers && data.installers.map(installer => installer.user))
         this.address = new AddressResponseDto(data.address)
     }
