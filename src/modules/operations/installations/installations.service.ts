@@ -31,6 +31,8 @@ import { RecalculateProgressDto } from '../orders/dto/recalculate-progress.dto';
 import { StatusInstaller } from 'src/common/enums/status-installer';
 import { usersData } from 'src/seeders/users/users.mock';
 import { FileUploadService } from 'src/services/file-upload/file-upload.service';
+import { datacatalog } from 'googleapis/build/src/apis/datacatalog';
+import { ImagesRejectedEvent } from 'src/modules/notifications/dto/images-rejected-event.dto';
 
 
 @Injectable()
@@ -46,12 +48,12 @@ export class InstallationsService {
   ){}
   
 async createFromOrder(createInstallationDto: CreateInstallationDto) {
+  console.log(createInstallationDto)
   const { installation, order } = createInstallationDto;
   const { address, coordinatorsIds, installersIds, installersEmails, coordinatorsEmails, ...otherData } = installation;
-
-  const coordinators = await this.getValidCoordinator({coordinatorsIds, coordinatorsEmails});
-  
-  const installers = await this.getValidInstallers({installersIds, installersEmails});
+  console.log({installersIds: installersIds})
+  const coordinators = await this.getValidCoordinator({coordinatorsIds: coordinatorsIds, coordinatorsEmails: undefined});
+  const installers = await this.getValidInstallers({installersIds: installersIds, installersEmails: undefined});
 
   const installationAddress = await this.addressService.create(address);
 
@@ -168,11 +170,15 @@ async createFromOrder(createInstallationDto: CreateInstallationDto) {
       updateData.endDate = now;
     }
 
+    if(dto.status === InstallationStatus.IMAGES_REJECTED) {
+      updateData.status = InstallationStatus.IN_PROCESS
+    }
+
     const result = await this.installationsRepository.update(id, updateData);
     if (!result) throw new InternalServerErrorException('No se pudo actualizar el estado de la instalación');
 
     if (result.status !== installation.status) {
-      await this.eventsSweit(result, result.status)
+      await this.eventsSweit(result, dto.status)
     }
     
     return await this.installationsRepository.getById(id);
@@ -210,7 +216,7 @@ async createFromOrder(createInstallationDto: CreateInstallationDto) {
       await this.eventsSweit(installation, InstallationStatus.TO_REVIEW)
     }
     return result
-  }Z
+  }
 
 
   async remove(id: string) {
@@ -234,10 +240,20 @@ async createFromOrder(createInstallationDto: CreateInstallationDto) {
             this.emitPostponedUpdate(result);
           }
           break;
+        case InstallationStatus.IMAGES_REJECTED:
+          if (result.installers && result.address) {
+            this.emitPostponedUpdate(result);
+          }
+          break;
         case InstallationStatus.CANCEL:
           if (result.order?.client && result.installers) {
             this.emitCancelledUpdate(result);
             this.emitRecalculateOrderProgress({ orderId: result.order.id });
+          }
+          break;
+        case InstallationStatus.TO_REVIEW:
+          if (result.coordinator && result.address) {
+            this.emitToReviewUpdate(result);
           }
           break;
         case InstallationStatus.FINISHED:
@@ -275,10 +291,10 @@ async createFromOrder(createInstallationDto: CreateInstallationDto) {
     )
   }
 
-  private emitToReviewUpdate(clientId: string, coordinatorId: string , address: Address, images: string[]) {
+  private emitToReviewUpdate(result: Installation) {
     this.eventEmitter.emit(
       NotifyEvents.INSTALLATION_TO_REVIEW,
-      new InstallationToReviewDto(clientId, coordinatorId, address, images)
+      new InstallationToReviewDto(result)
     )
   }
 
@@ -293,48 +309,80 @@ async createFromOrder(createInstallationDto: CreateInstallationDto) {
     this.eventEmitter.emit(OrderEvent.RECALCULATE,data)
   }
 
-
-
-  private async getValidCoordinator({coordinatorsIds, coordinatorsEmails}: Record< 'coordinatorsIds'| 'coordinatorsEmails', string[] | undefined>): Promise<UserRole[]> {
-  let found: Array<UserRole | null> | void[] = []
-  
-  if(coordinatorsIds)
-    found = await Promise.all(
-    coordinatorsIds.map((id) => this.userRoleService.getByIdWhenRole(id, RoleEnum.COORDINATOR))
-  ); else if(coordinatorsEmails) {
-    found = await Promise.all(
-      coordinatorsEmails.map((email) => this.userRoleService.getByUserEmail(email, RoleEnum.COORDINATOR))
+  private emitRejectedImagesUpdate (data: Installation) {
+    this.eventEmitter.emit(NotifyEvents.IMAGES_REJECTED, 
+      new ImagesRejectedEvent(data)
     )
   }
 
 
-  const coordinators = found.filter((i) => i != null);
-  if (coordinators.length === 0) {
-    throw new BadRequestException('No se encontraron los instaladores');
-  }
-  
-    return coordinators;
-  }
+    private async getValidCoordinator(
+      { coordinatorsIds, coordinatorsEmails }: {
+        coordinatorsIds?: string[];
+        coordinatorsEmails?: string[];
+      }
+    ): Promise<UserRole[]> {
+      console.log({coordinatorsIds, coordinatorsEmails})
+      if (!coordinatorsIds?.length && !coordinatorsEmails?.length) {
+        throw new BadRequestException('Debes indicar IDs o e-mails de coordinadores');
+      }
 
-    private async getValidInstallers({installersIds, installersEmails}: Record<'installersIds' | 'installersEmails', string[] | undefined>): Promise<Installer[]>{
-    let found: Installer[] | void[] = []
+      const found: Array<UserRole | null> = coordinatorsIds?.length
+        ? await Promise.all(
+            coordinatorsIds.map((id) =>
+              this.userRoleService.getByIdWhenRole(id, RoleEnum.COORDINATOR),
+            ),
+          )
+        : await Promise.all(
+            (coordinatorsEmails ?? []).map((email) =>
+              this.userRoleService.getByUserEmail(email, RoleEnum.COORDINATOR),
+            ),
+          );
 
-    if(installersIds)
-      found = await Promise.all(
-      installersIds.map((id) => this.installerService.findById(id))
-    ); else if(installersEmails) {
-      found = await Promise.all(
-        installersEmails.map((email) => this.installerService.findByEmail(email, true) as unknown as Installer)
-      )
+      const coordinators = found.filter((u): u is UserRole => u !== null);
+      if (!coordinators.length)
+        throw new BadRequestException('No se encontraron los coordinadores');
+
+      return coordinators;
     }
 
 
-    const installers = found.filter((i): i is Installer => i != null);
-    if (installers.length === 0) {
+    private async getValidInstallers(
+    {
+      installersIds,
+      installersEmails,
+    }: {
+      installersIds?: string[];
+      installersEmails?: string[];
+    },
+  ): Promise<Installer[]> {
+    if (!installersIds?.length && !installersEmails?.length) {
+      throw new BadRequestException(
+        'Debes indicar IDs o e-mails de instaladores',
+      );
+    }
+
+    const found: Array<Installer | null> = installersIds?.length
+      ? await Promise.all(
+          installersIds.map((id) => this.installerService.findById(id)),
+        )
+      : await Promise.all(
+          (installersEmails ?? []).map((email) =>
+            this.installerService.findByEmail(email, true) as Promise<Installer | null>,
+          ),
+        );
+
+    const installers = found.filter(
+      (i): i is Installer => i !== null,
+    );
+
+    if (!installers.length) {
       throw new BadRequestException('No se encontraron los instaladores');
     }
 
-    const invalid = installers.find((i) => i.status !== StatusInstaller.Approved);
+    const invalid = installers.find(
+      (i) => i.status !== StatusInstaller.Approved,
+    );
     if (invalid) {
       throw new HttpException(
         'Estás intentando asignar instaladores no aprobados',
@@ -344,4 +392,5 @@ async createFromOrder(createInstallationDto: CreateInstallationDto) {
 
     return installers;
   }
+
 }

@@ -158,7 +158,6 @@ export class UserService {
     queryBuilder
     .leftJoinAndSelect('users.userRoles', 'userRole' )
     .leftJoinAndSelect('userRole.role', 'role')
-    .leftJoinAndSelect(Order, 'orders', 'orders.client = userRole.id')
 
     queryBuilder.where('role.name = :name', {name: queryOptions.role})
 

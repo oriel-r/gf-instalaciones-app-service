@@ -33,7 +33,7 @@ export class OrdersService {
     const { clientsIds, clientsEmails, ...orderData } = createOrderDto;
   
     const existOrder = await this.ordersRepository.getByNumber(orderData.orderNumber);
-    const clients = await this.getValidClients({clientsIds, clientsEmails})
+    const clients = await this.getValidClients({clientsIds: clientsIds, clientsEmails: undefined})
     
     if (existOrder) throw new BadRequestException('Ya existe una orden con este número de referencia')  
     
@@ -150,6 +150,7 @@ export class OrdersService {
 
     const order = await this.findOne(id as string)
     if (!order) throw new NotFoundException('orden no encontrada o numero invalido');
+    console.log({addInstallationFunc: data})
     const newInstallation = await this.installationsService.createFromOrder({order, installation: data})
     if(!newInstallation) throw new InternalServerErrorException('No se crearon las instalaciónes')
     const fraction = calculateProgressFraction((await this.findOne(id as string)).installations)
@@ -161,19 +162,26 @@ export class OrdersService {
   private async getValidClients({clientsIds, clientsEmails}: Record<'clientsIds' | 'clientsEmails' , string[] | undefined>) {
    let found: Array<UserRole | null> = []
 
+  console.log({getClients:{ids: clientsIds, emails: clientsEmails}})
+
   if(clientsIds)
     found = await Promise.all(
-    clientsIds.map((id) => this.userRoleService.getByIdWhenRole(id, RoleEnum.USER))
+    clientsIds.map(async (id) => {
+     const pepe = await this.userRoleService.getByIdWhenRole(id, RoleEnum.USER)
+     console.log({pepe: pepe})
+     return pepe
+    })
   ); else if(clientsEmails) {
     found = await Promise.all(
-      clientsEmails.map((email) => this.userRoleService.getByUserEmail(email, RoleEnum.USER))
+      clientsEmails.map(async (email) => await this.userRoleService.getByUserEmail(email, RoleEnum.USER))
     )
   }
 
+  console.log({found:{clients: found}})
 
   const clients = found.filter((UserRole) => UserRole != null);
   if (clients.length === 0) {
-    throw new BadRequestException('No se encontraron los instaladores');
+    throw new BadRequestException('No se encontraron clientes');
   }
 
     return clients
