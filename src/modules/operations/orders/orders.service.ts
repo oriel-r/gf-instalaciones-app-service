@@ -33,7 +33,7 @@ export class OrdersService {
     const { clientsIds, clientsEmails, ...orderData } = createOrderDto;
   
     const existOrder = await this.ordersRepository.getByNumber(orderData.orderNumber);
-    const clients = await this.getValidClients({clientsIds: clientsIds, clientsEmails: undefined})
+    const clients = clientsIds ? await this.getValidClients({clientsIds: clientsIds, clientsEmails: undefined}) : await this.getValidClients({clientsIds: undefined, clientsEmails: clientsEmails})
     
     if (existOrder) throw new BadRequestException('Ya existe una orden con este número de referencia')  
     

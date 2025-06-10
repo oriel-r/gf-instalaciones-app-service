@@ -52,8 +52,8 @@ async createFromOrder(createInstallationDto: CreateInstallationDto) {
   const { installation, order } = createInstallationDto;
   const { address, coordinatorsIds, installersIds, installersEmails, coordinatorsEmails, ...otherData } = installation;
   console.log({installersIds: installersIds})
-  const coordinators = await this.getValidCoordinator({coordinatorsIds: coordinatorsIds, coordinatorsEmails: undefined});
-  const installers = await this.getValidInstallers({installersIds: installersIds, installersEmails: undefined});
+  const coordinators = await this.getValidCoordinator({coordinatorsIds: coordinatorsIds, coordinatorsEmails: coordinatorsEmails});
+  const installers = await this.getValidInstallers({installersIds: installersIds, installersEmails: installersEmails});
 
   const installationAddress = await this.addressService.create(address);
 
@@ -117,7 +117,8 @@ async createFromOrder(createInstallationDto: CreateInstallationDto) {
         const newStartDate = new Date(data.startDate);
         const currentStartDate = installation.startDate;
         if (newStartDate <= currentStartDate) {
-          throw new BadRequestException("La nueva fecha de inicio debe ser posterior a la fecha actual de la instalación");
+          const currentString = currentStartDate.toISOString().slice(0, 10)
+          throw new BadRequestException(`La nueva fecha de inicio debe ser posterior a ${currentString}`);
         }
       }
 
