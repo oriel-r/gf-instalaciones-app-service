@@ -69,7 +69,7 @@ async createFromOrder(createInstallationDto: CreateInstallationDto) {
 
   await this.eventEmitter.emitAsync(
     NotifyEvents.INSTALLATION_CREATED,
-    new InstallationCreatedEvent(newInstallation),
+    new InstallationCreatedEvent(newInstallation as Installation),
   );
 
   return newInstallation;

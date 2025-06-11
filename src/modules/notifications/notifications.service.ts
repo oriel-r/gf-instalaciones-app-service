@@ -292,6 +292,7 @@ export class NotificationsService {
       if (!clients.length) throw new BadRequestException('Cliente no encontrado');
       if (!installersUsers || !installersUsers.length)
         throw new BadRequestException('Cliente no encontrado');
+      if(!order) throw new BadRequestException('No se encontro la orden')
 
       const finished = order.installations.filter(i => i.status === InstallationStatus.FINISHED);
       const pending = finished.slice(order.notifiedInstallations || 0);

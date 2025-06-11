@@ -1,11 +1,13 @@
+import { Order } from "src/modules/operations/orders/entities/order.entity";
+
 export class OrderCreatedEvent {
   orderId: string;
   orderNumber: string;
   clientsIds: string[];
 
-  constructor(order: { id: string; orderNumber: string; client: { id: string }[] }) {
-    this.orderId = order.id;
-    this.orderNumber = order.orderNumber;
-    this.clientsIds = order.client ? order.client.map(c => c.id) : [];
+  constructor({ id, orderNumber, client }: Order) {
+    this.orderId = id;
+    this.orderNumber = orderNumber;
+    this.clientsIds = client ? client.map(c => c.id) : [];
   }
 }
