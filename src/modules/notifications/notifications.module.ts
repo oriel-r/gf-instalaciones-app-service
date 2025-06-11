@@ -6,12 +6,14 @@ import { UserRoleModule } from '../user-role/user-role.module';
 import { Notification } from './entities/notification.entity';
 import { NotificationsRepository } from './notifications.repository';
 import { EmailModule } from '../email/email.module';
+import { OrdersModule } from '../operations/orders/orders.module';
 
 @Module({
   imports:[
     TypeOrmModule.forFeature([Notification]),
     UserRoleModule,
-    EmailModule
+    EmailModule,
+    OrdersModule
   ],
   controllers: [NotificationsController],
   providers: [NotificationsService, NotificationsRepository],

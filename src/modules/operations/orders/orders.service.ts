@@ -19,6 +19,8 @@ import { OrderEvent } from 'src/common/enums/orders-event.enum';
 import { RecalculateProgressDto } from './dto/recalculate-progress.dto';
 import { RolePayload } from 'src/common/entities/role-payload.dto';
 import { UserRole } from 'src/modules/user-role/entities/user-role.entity';
+import { NotifyEvents } from 'src/common/enums/notifications-events.enum';
+import { OrderCreatedEvent } from 'src/modules/notifications/dto/order.created.event';
 
 @Injectable()
 export class OrdersService {
@@ -39,10 +41,12 @@ export class OrdersService {
     
     if(!clients.length) throw new BadRequestException('Cliente no encontrado')
 
-    const newOrder = await this.ordersRepository.create({...orderData, client: clients});
-  
+    const newOrder = await this.ordersRepository.create({ ...orderData, client: clients });
+
     if(!newOrder) throw new InternalServerErrorException('Hubo un problema al crear la orden')
-  
+
+    await this.eventEmiiter.emitAsync(NotifyEvents.ORDER_CREATED, new OrderCreatedEvent(newOrder))
+
     return await this.findOne(newOrder.id)
   }
 

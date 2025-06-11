@@ -21,8 +21,11 @@ import { EmailService } from '../email/email.service';
 import { InstallationToReviewDto } from './dto/installation-to-review.dto';
 import { InstallationCreatedEvent } from './dto/installation.created.event';
 import { OrderCompletedEvent } from './dto/order.completed.event';
+import { OrderCreatedEvent } from './dto/order.created.event';
 import { ImagesRejectedEvent } from './dto/images-rejected-event.dto';
 import { UserRole } from '../user-role/entities/user-role.entity';
+import { OrdersRepository } from '../operations/orders/orders.repository';
+import { InstallationStatus } from 'src/common/enums/installations-status.enum';
 
 
 @Injectable()
@@ -32,7 +35,10 @@ export class NotificationsService {
     private readonly userRoleService: UserRoleService,
     private readonly eventEmitter: EventEmitter2,
     private readonly emailService: EmailService,
+    private readonly ordersRepository: OrdersRepository,
   ) {}
+
+  private readonly BATCH_SIZE = 5;
 
   async create(createNotificationDto: CreateNotificationDto) {
     const result = await this.notificationsRepository.create(
@@ -77,6 +83,30 @@ export class NotificationsService {
         title: 'Nueva instalación asignada',
         message: `Se ha creado una instalación en ${address.street} ${address.number}, ${address.city.name} (${address.city.province.name})`,
         receivers,
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
+  @OnEvent(NotifyEvents.ORDER_CREATED)
+  async onOrderCreated(data: OrderCreatedEvent) {
+    const { clientsIds, orderNumber } = data;
+
+    try {
+      const clients = await this.getValidClients({ clientsIds, clientsEmails: undefined });
+      const emails = await this.emailService.sendEmail({
+        to: clients.map(c => c.user.email),
+        subject: 'Nueva orden creada',
+        html: `<h2>Se ha creado la orden ${orderNumber}</h2>`,
+      });
+
+      if (!emails) throw new ServiceUnavailableException('No se pudo enviar los emails');
+
+      return await this.create({
+        title: 'Orden creada',
+        message: `Se ha creado la orden ${orderNumber}`,
+        receivers: clients,
       });
     } catch (err) {
       console.log(err);
@@ -250,33 +280,53 @@ export class NotificationsService {
 
   @OnEvent(NotifyEvents.INSTALLATION_APROVE)
   async installationFinished(data: InstallationApprovedDto) {
-    const { clientId, installers, address, images } = data;
+    const { clientId, installers, address, images, orderId } = data;
     try {
-      const clients = await this.getValidClients({clientsIds: clientId, clientsEmails: undefined})
+      const order = await this.ordersRepository.getById(orderId);
+      const clients = await this.getValidClients({ clientsIds: clientId, clientsEmails: undefined });
       const rawInstallersUsers = await Promise.all(
-        installers.map((inst) =>
-          this.userRoleService.getByInstallerId(inst.id),
-        ),
+        installers.map((inst) => this.userRoleService.getByInstallerId(inst.id)),
       );
 
-      const installersUsers = rawInstallersUsers.filter(
-        (user) => user !== null,
-      );
+      const installersUsers = rawInstallersUsers.filter((user) => user !== null);
       if (!clients.length) throw new BadRequestException('Cliente no encontrado');
       if (!installersUsers || !installersUsers.length)
         throw new BadRequestException('Cliente no encontrado');
+
+      const finished = order.installations.filter(i => i.status === InstallationStatus.FINISHED);
+      const pending = finished.slice(order.notifiedInstallations || 0);
+
+      let html: string;
+      let subject: string;
+
+      if (order.installations.length > this.BATCH_SIZE && pending.length < this.BATCH_SIZE && finished.length !== order.installations.length) {
+        await this.ordersRepository.update(orderId, { notifiedInstallations: finished.length });
+        return;
+      }
+
+      if (order.installations.length > this.BATCH_SIZE && pending.length >= this.BATCH_SIZE) {
+        const addresses = pending.map(inst => `${inst.address.street} ${inst.address.number}`);
+        html = `<h2>Se finalizaron las instalaciones en:</h2><ul>${addresses.map(a => `<li>${a}</li>`).join('')}</ul>`;
+        subject = 'Instalaciones finalizadas';
+      } else {
+        html = this.generateSimpleInstallationEmail(images as string[]);
+        subject = 'La instalación a finalizado!';
+      }
+
       const installersEmails = installersUsers.map((inst) => inst.user.email);
-      const emails = await this.emailService.sendEmail({
-        to: [...(clients.map(client => client.user.email)), ...installersEmails],
-        subject: 'La instalación a finalizado!',
-        html: this.generateSimpleInstallationEmail(images as string[]),
+      await this.emailService.sendEmail({
+        to: [...clients.map(client => client.user.email), ...installersEmails],
+        subject,
+        html,
       });
-      const newNotification = await this.create({
-        title: 'La instalación a finalizado!',
-        message: `Se envian las fotos`,
+
+      await this.create({
+        title: subject,
+        message: subject,
         receivers: [...clients, ...installersUsers],
       });
-      return newNotification;
+
+      await this.ordersRepository.update(orderId, { notifiedInstallations: finished.length });
     } catch (err) {
       return console.log(err);
     }
