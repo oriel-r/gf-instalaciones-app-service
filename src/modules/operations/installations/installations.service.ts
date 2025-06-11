@@ -323,12 +323,11 @@ async createFromOrder(createInstallationDto: CreateInstallationDto) {
         coordinatorsEmails?: string[];
       }
     ): Promise<UserRole[]> {
-      console.log({coordinatorsIds, coordinatorsEmails})
       if (!coordinatorsIds?.length && !coordinatorsEmails?.length) {
         throw new BadRequestException('Debes indicar IDs o e-mails de coordinadores');
       }
 
-      const found: Array<UserRole | null> = coordinatorsIds?.length
+      const found = coordinatorsIds?.length
         ? await Promise.all(
             coordinatorsIds.map((id) =>
               this.userRoleService.getByIdWhenRole(id, RoleEnum.COORDINATOR),
@@ -339,7 +338,6 @@ async createFromOrder(createInstallationDto: CreateInstallationDto) {
               this.userRoleService.getByUserEmail(email, RoleEnum.COORDINATOR),
             ),
           );
-
       const coordinators = found.filter((u): u is UserRole => u !== null);
       if (!coordinators.length)
         throw new BadRequestException('No se encontraron los coordinadores');
