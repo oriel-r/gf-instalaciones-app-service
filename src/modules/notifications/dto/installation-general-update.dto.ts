@@ -1,17 +1,19 @@
 import { ApiProperty } from "@nestjs/swagger";
+import { getIdsFromAraay } from "src/common/helpers/get-ids-from-array";
 import { Address } from "src/modules/locations/address/entities/address.entity";
+import { Installation } from "src/modules/operations/installations/entities/installation.entity";
 
 export class InstallationGeneralUpdate {
 
     @ApiProperty({
         description: 'The fully order updated'
     })
-    clientId: string
+    clientId: string[]
 
     @ApiProperty({
         description: 'The fully order updated'
     })
-    coordinatorId: string
+    coordinatorId: string[]
 
     @ApiProperty({
         description: 'The fully order updated'
@@ -19,9 +21,9 @@ export class InstallationGeneralUpdate {
     address: Address
 
 
-    constructor(clientId: string, coordinatorId: string, address: Address) {
-        this.clientId = clientId
-        this.coordinatorId = coordinatorId
+    constructor({order: {client}, coordinator, address}: Installation) {
+        this.clientId = getIdsFromAraay(client)
+        this.coordinatorId = getIdsFromAraay(coordinator)
         this.address = address
     }
 }

@@ -98,6 +98,7 @@ export class UserRoleService {
       where: { id: id, role: { name: roleName } },
       relations: { role: true, user: true },
     });
+    console.log(role)
     return role;
   }
 

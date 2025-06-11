@@ -20,8 +20,8 @@ export class UpdateInstallationDto {
   @IsArray()
   installersIds?: string[];
 
-  @IsUUID()
   @IsOptional()
+  @IsArray()
   coordinatorsIds?: string[];
 
   @IsUUID()

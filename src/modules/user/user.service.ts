@@ -119,7 +119,11 @@ export class UserService {
       );
     }
 
-    this.eventEmiiter.emit(SyncWithSheetsEnum.APPEND_ROW, {sheet: 'CLIENTES', values: [fullUser.fullName, fullUser.email, fullUser.id]})
+    const userRoleId = fullUser.userRoles.find(ur => ur.role.name !== RoleEnum.USER)
+
+    if(fullUser && userRoleId) {
+      this.eventEmiiter.emit(SyncWithSheetsEnum.APPEND_ROW, {sheet: 'CLIENTES', values: [fullUser.fullName, fullUser.email, userRoleId.id]})
+    }
 
     return plainToInstance(UserWithRolesDto, fullUser, { excludeExtraneousValues: true });
   }
@@ -158,7 +162,6 @@ export class UserService {
     queryBuilder
     .leftJoinAndSelect('users.userRoles', 'userRole' )
     .leftJoinAndSelect('userRole.role', 'role')
-    .leftJoinAndSelect(Order, 'orders', 'orders.client = userRole.id')
 
     queryBuilder.where('role.name = :name', {name: queryOptions.role})
 

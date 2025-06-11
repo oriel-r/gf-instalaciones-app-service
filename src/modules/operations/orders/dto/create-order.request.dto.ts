@@ -22,8 +22,8 @@ export class CreateOrderRequestDto extends BaseDto {
         title: 'client',
         description: 'Send userRole where role is client'
     })
-    @IsUUID()
     @IsOptional()
+    @IsArray()
     clientsIds?: string[];
 
     @ApiProperty({
@@ -42,7 +42,9 @@ export class CreateOrderRequestDto extends BaseDto {
     @IsNotEmpty()
     description: string;
 
-    @IsEmail()
     @IsOptional()
+    @IsArray()
+    @IsEmail()
+    @ValidateNested({each: true})
     clientsEmails?: string[]
 }
