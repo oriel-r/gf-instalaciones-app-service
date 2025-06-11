@@ -6,6 +6,7 @@ export enum NotifyEvents {
     INSTALLATION_APROVE = "notify.installation.approved",
     INSTALLATION_CANCELLED = "notify.installation.cancelled",
     INSTALLATION_CREATED = "notify.installation.created",
+    ORDER_CREATED = "notify.order.created",
     ORDER_COMPLETED = "notify.order.completed",
     IMAGES_REJECTED = "notify.installation.imagesRejected"
 }
