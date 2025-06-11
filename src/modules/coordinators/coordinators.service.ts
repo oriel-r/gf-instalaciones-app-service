@@ -48,7 +48,7 @@ export class CoordinatorsService {
       newCoordinator,
     );
 
-    this.eventEmiiter.emit(SyncWithSheetsEnum.APPEND_ROW, {sheet: 'COORDINADORES', values: [user.fullName, user.email]})
+    await this.eventEmiiter.emitAsync(SyncWithSheetsEnum.APPEND_ROW, {sheet: 'COORDINADORES', values: [user.fullName, user.email]})
 
     return cordinator;
   }

@@ -112,7 +112,7 @@ export class InstallerService {
     const installer = await this.findById(installerId);
     installer.status = status;
     await this.installerRepository.save(installer);
-    this.eventEmitter.emit(SyncWithSheetsEnum.APPEND_ROW, {sheet: 'INSTALADORES', values: [installer.user.fullName, installer.user.email]})
+    await this.eventEmitter.emitAsync(SyncWithSheetsEnum.APPEND_ROW, {sheet: 'INSTALADORES', values: [installer.user.fullName, installer.user.email]})
 
     return {message: 'Estado actualizado correctamente'}
   }

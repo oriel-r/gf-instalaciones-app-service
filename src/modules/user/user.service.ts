@@ -122,7 +122,7 @@ export class UserService {
     const userRoleId = fullUser.userRoles.find(ur => ur.role.name !== RoleEnum.USER)
 
     if(fullUser && userRoleId) {
-      this.eventEmiiter.emit(SyncWithSheetsEnum.APPEND_ROW, {sheet: 'CLIENTES', values: [fullUser.fullName, fullUser.email, userRoleId.id]})
+      await this.eventEmiiter.emitAsync(SyncWithSheetsEnum.APPEND_ROW, {sheet: 'CLIENTES', values: [fullUser.fullName, fullUser.email, userRoleId.id]})
     }
 
     return plainToInstance(UserWithRolesDto, fullUser, { excludeExtraneousValues: true });

@@ -33,6 +33,7 @@ import { usersData } from 'src/seeders/users/users.mock';
 import { FileUploadService } from 'src/services/file-upload/file-upload.service';
 import { datacatalog } from 'googleapis/build/src/apis/datacatalog';
 import { ImagesRejectedEvent } from 'src/modules/notifications/dto/images-rejected-event.dto';
+import { InstallationCreatedEvent } from 'src/modules/notifications/dto/installation.created.event';
 
 
 @Injectable()
@@ -65,6 +66,11 @@ async createFromOrder(createInstallationDto: CreateInstallationDto) {
     order,
     address: installationAddress,
   });
+
+  await this.eventEmitter.emitAsync(
+    NotifyEvents.INSTALLATION_CREATED,
+    new InstallationCreatedEvent(newInstallation),
+  );
 
   return newInstallation;
 }
@@ -225,93 +231,93 @@ async createFromOrder(createInstallationDto: CreateInstallationDto) {
     if(!installation) throw new NotFoundException('Instalación no encontrada, id incorrecto o inexistente')
     const result = await this.installationsRepository.softDelete(id)
     if(!result.affected) throw new InternalServerErrorException('No se pudo eliminar la isntlación')
-    if(installation.order.id) this.emitRecalculateOrderProgress({orderId: installation.order.id})
+    if(installation.order.id) await this.emitRecalculateOrderProgress({orderId: installation.order.id})
       return new DeleteResponse('instalación', id)
   }
 
-  private eventsSweit(result: Installation, status: InstallationStatus) {
+  private async eventsSweit(result: Installation, status: InstallationStatus) {
           switch (status) {
         case InstallationStatus.IN_PROCESS:
           if (result.order && result.coordinator && result.address) {
-            this.emitGeneralUpdate(result);
+            await this.emitGeneralUpdate(result);
           }
           break;
         case InstallationStatus.POSTPONED:
           if (result.coordinator && result.address) {
-            this.emitPostponedUpdate(result);
+            await this.emitPostponedUpdate(result);
           }
           break;
         case InstallationStatus.IMAGES_REJECTED:
           if (result.installers && result.address) {
-            this.emitPostponedUpdate(result);
+            await this.emitPostponedUpdate(result);
           }
           break;
         case InstallationStatus.CANCEL:
           if (result.order?.client && result.installers) {
-            this.emitCancelledUpdate(result);
-            this.emitRecalculateOrderProgress({ orderId: result.order.id });
+            await this.emitCancelledUpdate(result);
+            await this.emitRecalculateOrderProgress({ orderId: result.order.id });
           }
           break;
         case InstallationStatus.TO_REVIEW:
           if (result.coordinator && result.address) {
-            this.emitToReviewUpdate(result);
+            await this.emitToReviewUpdate(result);
           }
           break;
         case InstallationStatus.FINISHED:
           if (result.order?.client && result.installers && result.address && result.images) {
-            this.emitApprovedUpdate(result);
-            this.emitRecalculateOrderProgress({ orderId: result.order.id });
+            await this.emitApprovedUpdate(result);
+            await this.emitRecalculateOrderProgress({ orderId: result.order.id });
           }
           break;
         default:
           if (result.order?.client && result.installers && result.address && result.images) {
-            this.emitApprovedUpdate(result);
-            this.emitRecalculateOrderProgress({ orderId: result.order.id });
+            await this.emitApprovedUpdate(result);
+            await this.emitRecalculateOrderProgress({ orderId: result.order.id });
           }
       }
   }
 
-  private emitGeneralUpdate(result: Installation) {
-    this.eventEmitter.emit(
+  private async emitGeneralUpdate(result: Installation) {
+    await this.eventEmitter.emitAsync(
       NotifyEvents.INSTALLATION_GENERAL_UPDATE,
       new InstallationGeneralUpdate(result)
     )
   }
   
-  private emitPostponedUpdate(result: Installation) {
-    this.eventEmitter.emit(
+  private async emitPostponedUpdate(result: Installation) {
+    await this.eventEmitter.emitAsync(
       NotifyEvents.INSTALLATION_POSTPONED,
       new InstallationPostponedDto(result)
     )
   }
   
-  private emitApprovedUpdate(result: Installation) {
-    this.eventEmitter.emit(
+  private async emitApprovedUpdate(result: Installation) {
+    await this.eventEmitter.emitAsync(
       NotifyEvents.INSTALLATION_APROVE,
       new InstallationApprovedDto(result)
     )
   }
 
-  private emitToReviewUpdate(result: Installation) {
-    this.eventEmitter.emit(
+  private async emitToReviewUpdate(result: Installation) {
+    await this.eventEmitter.emitAsync(
       NotifyEvents.INSTALLATION_TO_REVIEW,
       new InstallationToReviewDto(result)
     )
   }
 
-  private emitCancelledUpdate(result: Installation) {
-    this.eventEmitter.emit(
+  private async emitCancelledUpdate(result: Installation) {
+    await this.eventEmitter.emitAsync(
       NotifyEvents.INSTALLATION_CANCELLED,
       new InstallationCancelDto(result)
     )
   }
 
-  private emitRecalculateOrderProgress(data: RecalculateProgressDto) {
-    this.eventEmitter.emit(OrderEvent.RECALCULATE,data)
+  private async emitRecalculateOrderProgress(data: RecalculateProgressDto) {
+    await this.eventEmitter.emitAsync(OrderEvent.RECALCULATE,data)
   }
 
-  private emitRejectedImagesUpdate (data: Installation) {
-    this.eventEmitter.emit(NotifyEvents.IMAGES_REJECTED, 
+  private async emitRejectedImagesUpdate (data: Installation) {
+    await this.eventEmitter.emitAsync(NotifyEvents.IMAGES_REJECTED,
       new ImagesRejectedEvent(data)
     )
   }

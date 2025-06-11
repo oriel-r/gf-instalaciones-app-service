@@ -75,6 +75,9 @@ export class Order extends BaseEntity {
     })
     @Column('decimal', {precision: 5, scale: 2, default: 0.00})
     progress: number
+
+    @Column('int', { default: 0 })
+    notifiedInstallations: number
     
     @ApiProperty({
         title: 'installations',
