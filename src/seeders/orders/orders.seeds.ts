@@ -1,4 +1,4 @@
-import { appDataSource } from 'src/config/data-source';
+/* import { appDataSource } from 'src/config/data-source';
 import { Order } from 'src/modules/operations/orders/entities/order.entity';
 import { Installation } from 'src/modules/operations/installations/entities/installation.entity';
 import { Address } from 'src/modules/locations/address/entities/address.entity';
@@ -113,4 +113,4 @@ export class OrdersSeeder {
       console.log('Seeding de Orders e Installations completo');
     });
   }
-}
+} */

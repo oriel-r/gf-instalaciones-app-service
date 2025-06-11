@@ -7,7 +7,7 @@ import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { UserSeeds } from './seeders/users/user.seeds';
 import { LocationsSeeder } from './seeders/locations/locations.seeds';
- import { OrdersSeeder } from './seeders/orders/orders.seeds'; 
+import { OrdersSeeder } from './seeders/orders/orders.seeds'; 
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -41,6 +41,7 @@ async function bootstrap() {
 
   const ordersSeeder = app.get(OrdersSeeder)
   await ordersSeeder.seed()   
+
 
   const documentation = () => SwaggerModule.createDocument(app, swaggerConfig)
   SwaggerModule.setup('docs', app, documentation)

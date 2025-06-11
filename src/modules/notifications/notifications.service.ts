@@ -24,6 +24,7 @@ import { OrderCompletedEvent } from './dto/order.completed.event';
 import { ImagesRejectedEvent } from './dto/images-rejected-event.dto';
 import { UserRole } from '../user-role/entities/user-role.entity';
 
+
 @Injectable()
 export class NotificationsService {
   constructor(
@@ -295,7 +296,6 @@ export class NotificationsService {
     const result = await this.notificationsRepository.delete();
     return `This action adds a new notification ${result}`;
   }
-
 
   private async getValidClients({clientsIds, clientsEmails}: Record<'clientsIds' | 'clientsEmails' , string[] | undefined>) {
      let found: Array<UserRole | null> = []
