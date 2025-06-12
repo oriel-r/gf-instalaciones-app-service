@@ -8,8 +8,13 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { UserSeeds } from './seeders/users/user.seeds';
 import { LocationsSeeder } from './seeders/locations/locations.seeds';
 import { OrdersSeeder } from './seeders/orders/orders.seeds';
+import { appDataSource } from './config/data-source';
 
 async function bootstrap() {
+
+  await appDataSource.initialize()
+  await appDataSource.runMigrations()
+
   const app = await NestFactory.create(AppModule, {
     logger: ['log', 'error', 'warn', 'debug'],
   });

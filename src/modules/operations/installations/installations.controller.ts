@@ -12,7 +12,7 @@ import { Request } from 'express';
 import { Roles } from 'src/common/decorators/roles/roles.decorator';
 import { AuthGuard } from 'src/common/guards/auth/auth.guard';
 
-//@UseGuards(AuthGuard)
+@UseGuards(AuthGuard)
 @Controller('installations')
 export class InstallationsController {
   constructor(private readonly installationsService: InstallationsService) {}
@@ -101,7 +101,7 @@ export class InstallationsController {
   @Post(':id/images')
   async loadImages(
     @Param('id') id: string, 
-    @UploadedFiles( new FilesPipe(1000, 10000000, ['image/png','image/jpeg',])) files: Express.Multer.File[]) {
+    @UploadedFiles( new FilesPipe(1000, 15000000, ['image/png','image/jpeg',])) files: Express.Multer.File[]) {
     return await this.installationsService.sendToReview(id, files);
   }
 

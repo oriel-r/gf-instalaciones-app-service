@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { MailerModule } from '@nestjs-modules/mailer';
-import { EmailController } from './email.controller';
 import { EmailService } from './email.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ContactMessage } from './entities/contact-message.entity';
@@ -31,7 +30,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       inject: [ConfigService],
     }),
   ],
-  controllers: [EmailController],
   providers: [EmailService],
   exports: [EmailService],
 })
