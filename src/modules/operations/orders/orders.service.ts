@@ -21,6 +21,8 @@ import { RolePayload } from 'src/common/entities/role-payload.dto';
 import { UserRole } from 'src/modules/user-role/entities/user-role.entity';
 import { NotifyEvents } from 'src/common/enums/notifications-events.enum';
 import { OrderCreatedEvent } from 'src/modules/notifications/dto/order.created.event';
+import { OrderCompletedEvent } from 'src/modules/notifications/dto/order.completed.event';
+import { title } from 'process';
 
 @Injectable()
 export class OrdersService {
@@ -93,16 +95,32 @@ export class OrdersService {
       return order
   }
 
-  async update(id: string, updateOrderDto: DeepPartial<Order>) {
-    const order = await this.findOne(id)
-    if(!order) throw new NotFoundException('No se encontro la orden')
-    if(updateOrderDto.completed && order.progress < 100) {
-      throw new BadRequestException(
-        `No se puede marcar la orden ${order.orderNumber} como completada, quedan instalciones a Finalizar`
-      )
-    }
-      return this.ordersRepository.update(id, updateOrderDto)
+async update(id: string, updateOrderDto: DeepPartial<Order>) {
+  const order = await this.findOne(id);
+  if (!order) throw new NotFoundException('No se encontro la orden');
+
+  if (updateOrderDto.completed && order.progress < 100) {
+    throw new BadRequestException(
+      `No se puede marcar la orden ${order.orderNumber} como completada, quedan instalaciones a Finalizar`
+    );
   }
+
+  const payload: DeepPartial<Order> = updateOrderDto.completed
+    ? { ...updateOrderDto, endDate: new Date() }
+    : updateOrderDto;
+
+  const { affected } = await this.ordersRepository.update(id, payload);
+  if (!affected) throw new InternalServerErrorException('No se pudo actualizar la orden');
+
+  if (updateOrderDto.completed) {
+    await this.eventEmiiter.emitAsync(
+      NotifyEvents.ORDER_COMPLETED,
+      new OrderCompletedEvent(order)
+    );
+  }
+
+  return this.findOne(id);
+}
 
   async remove(id: string) {
     const order = await this.findOne(id)

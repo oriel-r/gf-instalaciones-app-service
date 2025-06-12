@@ -115,20 +115,17 @@ export class NotificationsService {
 
   @OnEvent(NotifyEvents.ORDER_COMPLETED)
   async onOrderCompleted(data: OrderCompletedEvent) {
-    const { orderId, clientId } = data;
+    const { orderNumber, clientId, date } = data;
 
     try {
-      const client = await this.userRoleService.getByIdWhenRole(
-        clientId,
-        RoleEnum.USER,
-      );
+      const client = await this.getValidClients({clientsIds: clientId, clientsEmails: undefined})
       if (!client) throw new BadRequestException('No se encontró el cliente');
 
       const emailSent = await this.emailService.sendEmail({
-        to: [client.user.email],
+        to: [...client.map(c => c.user.email)],
         subject: 'Tu orden ha sido finalizada',
         html: `<h2>¡Orden completada!</h2>
-        <p>Tu orden con ID <strong>${orderId}</strong> ha sido finalizada con éxito.</p>`,
+        <p>Tu orden con ID <strong>${orderNumber}</strong> ha sido finalizada con éxito.</p>`,
       });
 
       if (!emailSent)
@@ -136,8 +133,8 @@ export class NotificationsService {
 
       return await this.create({
         title: 'Orden finalizada',
-        message: `Tu orden ${orderId} ha sido completada con éxito`,
-        receivers: [client],
+        message: `Tu orden ${orderNumber} ha sido completada con éxito`,
+        receivers: [...client],
       });
     } catch (err) {
       console.log(err);

@@ -185,7 +185,7 @@ async createFromOrder(createInstallationDto: CreateInstallationDto) {
     if (!result) throw new InternalServerErrorException('No se pudo actualizar el estado de la instalación');
 
     if (result.status !== installation.status) {
-      await this.eventsSweit(result, dto.status)
+      await this.eventsSwitch(result, dto.status)
     }
     
     return await this.installationsRepository.getById(id);
@@ -220,7 +220,7 @@ async createFromOrder(createInstallationDto: CreateInstallationDto) {
     if(!result) throw new InternalServerErrorException('No se pudo cambiar el estado')
     
     if(installation.order.client?.length && installation.coordinator?.length) {
-      await this.eventsSweit(installation, InstallationStatus.TO_REVIEW)
+      await this.eventsSwitch(installation, InstallationStatus.TO_REVIEW)
     }
     return result
   }
@@ -235,7 +235,7 @@ async createFromOrder(createInstallationDto: CreateInstallationDto) {
       return new DeleteResponse('instalación', id)
   }
 
-  private async eventsSweit(result: Installation, status: InstallationStatus) {
+  private async eventsSwitch(result: Installation, status: InstallationStatus) {
           switch (status) {
         case InstallationStatus.IN_PROCESS:
           if (result.order && result.coordinator && result.address) {
@@ -249,7 +249,7 @@ async createFromOrder(createInstallationDto: CreateInstallationDto) {
           break;
         case InstallationStatus.IMAGES_REJECTED:
           if (result.installers && result.address) {
-            await this.emitPostponedUpdate(result);
+            await this.emitRejectedImagesUpdate(result);
           }
           break;
         case InstallationStatus.CANCEL:

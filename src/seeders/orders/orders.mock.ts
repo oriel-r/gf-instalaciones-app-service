@@ -32,38 +32,22 @@ export const createInstallationMocks = (orderTitle: string, count: number) => {
   ];
 
   return Array.from({ length: count }, (_, i) => {
-    // Fecha aleatoria entre mayo (05) y agosto (08) de 2025
-    const randomMonth = Math.floor(Math.random() * (8 - 5 + 1)) + 5; // 5..8
-    const randomDay = Math.floor(Math.random() * 28) + 1;           // 1..28
-    const monthStr = String(randomMonth).padStart(2, '0');
-    const dayStr   = String(randomDay).padStart(2, '0');
-
-    // Hora aleatoria entre 08:00 y 18:45 en múltiplos de 15 minutos
-    const hour      = Math.floor(Math.random() * 11) + 8; // 8..18
-    const minuteArr = [0, 15, 30, 45];
-    const minute    = minuteArr[Math.floor(Math.random() * minuteArr.length)];
-    const hourStr   = String(hour).padStart(2, '0');
-    const minStr    = String(minute).padStart(2, '0');
-
-    // Componer el ISO 8601 con offset -03:00
-    const startIso = `2025-${monthStr}-${dayStr}T${hourStr}:${minStr}:00-03:00`;
-
-    // Para algunos índices pares, asignar endDate 3 días después al mismo horario
-    const dayEnd    = Math.min(randomDay + 3, 28);
-    const dayEndStr = String(dayEnd).padStart(2, '0');
-    const endIso    = (i % 2 === 0)
-      ? `2025-${monthStr}-${dayEndStr}T${hourStr}:${minStr}:00-03:00`
-      : undefined;
+    // Fecha aleatoria mayo (5)–agosto (8) de 2025
+    const month  = String(Math.floor(Math.random() * 4) + 5).padStart(2,'0');   // '05'..'08'
+    const day    = String(Math.floor(Math.random() * 28) + 1).padStart(2,'0');  // '01'..'28'
+    const hour   = String(Math.floor(Math.random() * 11) + 8).padStart(2,'0');  // '08'..'18'
+    const minArr = [0,15,30,45];
+    const min    = String(minArr[Math.floor(Math.random()*minArr.length)]).padStart(2,'0');
+    const startIso = `2025-${month}-${day}T${hour}:${min}:00-03:00`;
 
     return {
       startDate: startIso,
-      notes:     `Instalación ${i + 1} para ${orderTitle}`,
-      endDate:   endIso ? new Date(endIso) : undefined,
+      notes:     `Instalación ${i+1} para ${orderTitle}`,
       status:    statuses[i % statuses.length],
       images: [
-        `https://res.cloudinary.com/ddhx1kogg/image/upload/v.../img1.png`,
-        `https://res.cloudinary.com/ddhx1kogg/image/upload/v.../img2.png`,
-        `https://res.cloudinary.com/ddhx1kogg/image/upload/v.../img3.png`,
+        `https://res.cloudinary.com/.../img1.png`,
+        `https://res.cloudinary.com/.../img2.png`,
+        `https://res.cloudinary.com/.../img3.png`,
       ],
     };
   });
