@@ -58,4 +58,3 @@ export class InstallerResponseDto {
   @ApiProperty({ type: () => InstallerUserBasicDto })
   user: InstallerUserBasicDto;
 }
-

@@ -11,9 +11,10 @@ import { UserRoleModule } from 'src/modules/user-role/user-role.module';
   imports: [
     TypeOrmModule.forFeature([Order]),
     InstallationsModule,
-    UserRoleModule
+    UserRoleModule,
   ],
   controllers: [OrdersController],
   providers: [OrdersService, OrdersRepository],
+  exports: [OrdersService, OrdersRepository],
 })
 export class OrdersModule {}

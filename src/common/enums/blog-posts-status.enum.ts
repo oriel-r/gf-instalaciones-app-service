@@ -1,4 +1,4 @@
 export enum BlogPostStatus {
-    Draf = 'BORRADOR',
-    Published = 'PUBLICADO'
+  Draf = 'BORRADOR',
+  Published = 'PUBLICADO',
 }

@@ -1,5 +1,3 @@
-import { CreateUserDto } from "src/modules/user/dto/create-user.dto";
+import { CreateUserDto } from 'src/modules/user/dto/create-user.dto';
 
-export class CreateCoordinatorDto extends CreateUserDto {
-    
-}
+export class CreateCoordinatorDto extends CreateUserDto {}

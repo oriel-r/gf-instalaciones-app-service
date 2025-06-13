@@ -26,5 +26,5 @@ export class AdminController {
   @Delete('removeAdmin/:id')
   removeAdminRole(@Param('id') adminId: string) {
     return this.adminService.removeAdminRole(adminId);
-  } 
+  }
 }

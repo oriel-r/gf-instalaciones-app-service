@@ -13,6 +13,8 @@ import { Coordinator } from './entities/coordinator.entity';
 import { Admin, QueryRunner, Repository } from 'typeorm';
 import { UserService } from '../user/user.service';
 import { User } from '../user/entities/user.entity';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { SyncWithSheetsEnum } from 'src/common/enums/sync-with-sheets-event.enum';
 
 @ApiTags('Coordinators')
 @Injectable()
@@ -22,6 +24,7 @@ export class CoordinatorsService {
     private readonly coordinatorRepository: Repository<Coordinator>,
     @Inject(forwardRef(() => UserService))
     private readonly userService: UserService,
+    private readonly eventEmiiter: EventEmitter2,
   ) {}
 
   async createCoordinatorTransactional(
@@ -44,6 +47,11 @@ export class CoordinatorsService {
       Coordinator,
       newCoordinator,
     );
+
+    await this.eventEmiiter.emitAsync(SyncWithSheetsEnum.APPEND_ROW, {
+      sheet: 'COORDINADORES',
+      values: [user.fullName, user.email],
+    });
 
     return cordinator;
   }
@@ -80,7 +88,7 @@ export class CoordinatorsService {
     if (coordinator.disabledAt) {
       throw new BadRequestException('Este coordinador ya está deshabilitado');
     }
-  
+
     coordinator.disabledAt = new Date();
     await this.coordinatorRepository.save(coordinator);
     return { message: 'Coordinador desactivado correctamente' };

@@ -30,7 +30,7 @@ export class UserRoleService {
   ) {}
 
   async findAll() {
-    return await this.userRoleRepository.find()
+    return await this.userRoleRepository.find();
   }
 
   async assignRole(userId: string, roleId: string): Promise<UserRole> {
@@ -96,10 +96,26 @@ export class UserRoleService {
   async getByIdWhenRole(id: string, roleName: RoleEnum) {
     const role = await this.userRoleRepository.findOne({
       where: { id: id, role: { name: roleName } },
-      relations: { role: true },
+      relations: { role: true, user: true },
     });
-
+    console.log(role);
     return role;
+  }
+
+  async getByUserEmail(email: string, roleName: RoleEnum) {
+    const role = await this.userRoleRepository.findOne({
+      where: { user: { email: email }, role: { name: roleName } },
+      relations: { role: true, user: true },
+    });
+    return role;
+  }
+
+  async getByInstallerId(id: string) {
+    const installer = await this.userRoleRepository.findOne({
+      where: { user: { installer: { id: id } } },
+      relations: { user: { installer: true } },
+    });
+    return installer;
   }
 
   async getByUserIdAndRole(userId: string, roleId: string) {
@@ -146,20 +162,26 @@ export class UserRoleService {
   }
 
   async restoreUserRoles(userId: string) {
-  const userRoles = await this.userRoleRepository.find({
-    where: { user: { id: userId } },
-    relations: ['user', 'role'],
-  });
+    const userRoles = await this.userRoleRepository.find({
+      where: { user: { id: userId } },
+      relations: ['user', 'role'],
+    });
 
-  if (!userRoles.length) {
-    throw new NotFoundException('No se encontraron roles para este usuario');
+    if (!userRoles.length) {
+      throw new NotFoundException('No se encontraron roles para este usuario');
+    }
+
+    for (const userRole of userRoles) {
+      userRole.isActive = true;
+    }
+
+    await this.userRoleRepository.save(userRoles);
   }
 
-  for (const userRole of userRoles) {
-    userRole.isActive = true;
+  async getAllByRole(roleName: RoleEnum): Promise<UserRole[]> {
+    return await this.userRoleRepository.find({
+      where: { role: { name: roleName } },
+      relations: ['user', 'role'],
+    });
   }
-
-  await this.userRoleRepository.save(userRoles);
-}
-
 }

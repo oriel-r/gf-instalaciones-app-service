@@ -1,52 +1,69 @@
-import { BaseDto } from "src/common/entities/base.dto";
-import { CreateAddressDto } from "src/modules/locations/address/dto/create-address.dto";
-import { IsArray, IsInstance, IsNotEmpty, IsOptional, IsString, IsUppercase, isUUID, IsUUID } from "class-validator";
-import { ApiProperty } from "@nestjs/swagger";
-import { Transform, Type } from "class-transformer";
-import { IsISO8601, ValidateNested } from "class-validator";
-import { Installer } from "src/modules/installer/entities/installer.entity";
-import { Coordinator } from "src/modules/coordinators/entities/coordinator.entity";
-import { UserRole } from "src/modules/user-role/entities/user-role.entity";
-import { UUID } from "crypto";
+import { CreateAddressDto } from 'src/modules/locations/address/dto/create-address.dto';
+import {
+  IsArray,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUUID,
+} from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsISO8601 } from 'class-validator';
+import { IsTodayOrAffterToday } from 'src/common/decorators/is-affter-today.valitaion';
+import { Type } from 'class-transformer';
 
-export class InstallationDataRequesDto extends BaseDto{
-    
-    @ApiProperty({
-        title: "startDate",
-        description: "An date string to indicate the date will doing the installation"
-    })
-    @IsNotEmpty()
-    @IsISO8601()
-    @Transform(({ value }) => new Date(value))
-    startDate: Date;
-    
-    @ApiProperty({
-        title: "Address",
-        description: "instalrion's Address, if no exist it created"
-    })
-    @IsNotEmpty()
-    @Type(() => CreateAddressDto)
-    address: CreateAddressDto;
+export class InstallationDataRequesDto {
+  @ApiProperty({
+    title: 'startDate',
+    description: 'Fecha en la que se realizará la instalación',
+  })
+  @IsNotEmpty()
+  @IsTodayOrAffterToday({ message: 'La fecha debe ser posterior a la actual.' })
+  @IsISO8601()
+  startDate: string;
 
-    @ApiProperty({
-        title: 'installers',
-        description: 'am installers array'
-    })
-    @IsOptional()
-    @IsArray()
-    @ValidateNested({each: true})
-    installersIds: UUID[]
+  @ApiProperty({
+    title: 'Address',
+    description: 'Dirección de la instalación',
+  })
+  @IsNotEmpty()
+  @Type(() => CreateAddressDto)
+  address: CreateAddressDto;
 
-    @ApiProperty()
-    @IsOptional()
-    @IsUUID()
-    coordinatorId: string
+  @ApiProperty({
+    title: 'installers',
+    description: 'Lista de IDs de instaladores',
+  })
+  @IsOptional()
+  @IsArray()
+  @IsUUID('4', { each: true })
+  installersIds?: string[] | undefined;
 
-    @ApiProperty({
-        title: 'notes',
-        description: "notes for installers"
-    })
-    @IsString()
-    @IsOptional()
-    notes?: string
+  @IsOptional()
+  @IsArray()
+  @IsUUID('4', { each: true })
+  coordinatorsIds?: string[] | undefined;
+
+  @ApiProperty({
+    title: 'notes',
+    description: 'Notas para los instaladores',
+  })
+  @IsString()
+  @IsOptional()
+  notes?: string;
+
+  @IsString()
+  @IsOptional()
+  referenceId?: string;
+
+  @IsString()
+  @IsOptional()
+  orderNumber?: string;
+
+  @IsOptional()
+  @IsArray()
+  coordinatorsEmails?: string[];
+
+  @IsOptional()
+  @IsArray()
+  installersEmails?: string[];
 }

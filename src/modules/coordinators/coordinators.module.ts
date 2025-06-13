@@ -7,11 +7,12 @@ import { Coordinator } from './entities/coordinator.entity';
 import { UserModule } from '../user/user.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Coordinator]), 
-  forwardRef(() => UserModule),
-],
-  controllers: [ CoordinatorsController ],
-  providers: [ CoordinatorsService ],
-  exports: [ CoordinatorsService ]
+  imports: [
+    TypeOrmModule.forFeature([User, Coordinator]),
+    forwardRef(() => UserModule),
+  ],
+  controllers: [CoordinatorsController],
+  providers: [CoordinatorsService],
+  exports: [CoordinatorsService],
 })
 export class CoordinatorsModule {}

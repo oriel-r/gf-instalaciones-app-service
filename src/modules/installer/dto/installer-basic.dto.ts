@@ -14,5 +14,5 @@ export class InstallerBasicDto {
 
   @Expose()
   @ApiProperty()
-  status: StatusInstaller
+  status: StatusInstaller;
 }

@@ -6,25 +6,22 @@ import {
   Param,
   Patch,
   Post,
-  UseGuards
+  UseGuards,
 } from '@nestjs/common';
 import { InstallerService } from './installer.service';
 import { CreateInstallerDto } from './dto/create-installer.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Installer } from './entities/installer.entity';
 import { UpdateInstallerDto } from './dto/update-installer';
-import { StatusInstaller } from 'src/common/enums/status-installer';
 import { StatusInstallerDto } from './dto/status-update-installer.dto';
-import { Roles } from 'src/common/decorators/roles/roles.decorator';
-import { RoleEnum } from 'src/common/enums/user-role.enum';
 import { AuthGuard } from 'src/common/guards/auth/auth.guard';
-import { RolesGuard } from 'src/common/guards/roles/roles.guard';
 
+@UseGuards(AuthGuard)
 @ApiTags('Installer')
 @Controller('installer')
 export class InstallerController {
   constructor(private readonly installerService: InstallerService) {}
- 
+
   @ApiOperation({ summary: 'Obtener todos los instaladores' })
   @ApiResponse({
     status: 200,
@@ -105,12 +102,12 @@ export class InstallerController {
   @ApiOperation({ summary: 'Cambiar el estado del instalador' })
   @ApiResponse({
     status: 200,
-    description: 'El estado del instalador ha sifo actualizado correctamente',
+    description: 'El estado del instalador ha sido actualizado correctamente',
   })
   @Patch(':id/status')
   async updateStatus(
     @Body() dto: StatusInstallerDto,
-    @Param('id') installerId: string, 
+    @Param('id') installerId: string,
   ) {
     return await this.installerService.updateStatus(installerId, dto.status);
   }

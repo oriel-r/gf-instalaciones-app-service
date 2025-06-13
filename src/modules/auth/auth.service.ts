@@ -29,6 +29,7 @@ import { addHours } from 'date-fns';
 import { RecoveryChangePasswordDto } from './dto/recovery-change-password.dto';
 import { RolePayload } from 'src/common/entities/role-payload.dto';
 import { StatusInstaller } from 'src/common/enums/status-installer';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @ApiTags('Auth')
 @Injectable()
@@ -70,10 +71,16 @@ export class AuthService {
       );
     }
 
-    const anUser = await this.userRepository.findOne({
-      where: { email: credentials.emailSignIn },
-      relations: ['userRoles', 'userRoles.role', 'installer', 'coordinator', 'admin'],
-    });
+    const anUser = await this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.userRoles', 'userRoles')
+      .leftJoinAndSelect('userRoles.role', 'role')
+      .leftJoinAndSelect('user.installer', 'installer')
+      .leftJoinAndSelect('user.coordinator', 'coordinator')
+      .leftJoinAndSelect('user.admin', 'admin')
+      .where('user.email = :email', { email: credentials.emailSignIn })
+      .orderBy('role.name', 'DESC')
+      .getOne();
 
     if (!anUser) {
       throw new HttpException('Usuario, contraseña incorrecta', 404);
@@ -91,9 +98,11 @@ export class AuthService {
       );
     }
 
-    const roles = anUser.userRoles.filter((ur) => ur.isActive)
+    const roles = anUser.userRoles.filter((ur) => ur.isActive);
 
-    const isInstaller = roles.some((userRole) => userRole.role.name === RoleEnum.INSTALLER)
+    const isInstaller = roles.some(
+      (userRole) => userRole.role.name === RoleEnum.INSTALLER,
+    );
 
     if (isInstaller && anUser.installer) {
       if (
@@ -110,11 +119,8 @@ export class AuthService {
     const userPayload = {
       id: anUser.id,
       email: anUser.email,
-      roles: roles.map(ur => new RolePayload(ur)),
-      installerId:
-        isInstaller && anUser.installer
-          ? anUser.installer.id
-          : null,
+      roles: roles.map((ur) => new RolePayload(ur)),
+      installerId: isInstaller && anUser.installer ? anUser.installer.id : null,
     };
 
     const token = this.jwtService.sign(userPayload);
@@ -179,7 +185,7 @@ export class AuthService {
 
     await this.passwordResetTokenRepositoy.save(recovery);
 
-    const recoveryLink = `http://localhost:3000/recovery-password?token=${token}`;
+    const recoveryLink = `https://gfrecursosgraficos.com.ar/recovery-password?token=${token}`;
 
     await this.emailService.sendPasswordRecoveryEmail(user.email, recoveryLink);
   }

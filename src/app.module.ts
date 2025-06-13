@@ -22,7 +22,7 @@ import { UserRoleModule } from './modules/user-role/user-role.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { NotificationsModule } from './modules/notifications/notifications.module';
-
+import { SheetssyncModule } from './modules/sheetssync/sheetssync.module';
 
 @Module({
   imports: [
@@ -38,9 +38,8 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService): TypeOrmModuleOptions => {
-        
-        const config = configService.get<TypeOrmModuleOptions>('postgres')
-         
+        const config = configService.get<TypeOrmModuleOptions>('postgres');
+
         if (!config) {
           throw new Error('Database configuration not found');
         }
@@ -49,7 +48,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
       },
     }),
     EventEmitterModule.forRoot({
-      wildcard: true
+      wildcard: true,
     }),
     UserModule,
     SeedersModule,
@@ -70,9 +69,9 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
     ImagesModule,
     UserRoleModule,
     NotificationsModule,
+    SheetssyncModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule {}
-

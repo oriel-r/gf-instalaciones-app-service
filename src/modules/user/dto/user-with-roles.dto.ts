@@ -39,6 +39,14 @@ export class UserWithRolesDto {
   @Expose()
   location: string;
 
+  @ApiProperty()
+  @Expose()
+  locality: string;
+
+  @ApiProperty()
+  @Expose()
+  postalCode: string;
+
   @ApiProperty({ required: false })
   @Expose()
   coverage?: string;
