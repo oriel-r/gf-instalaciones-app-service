@@ -8,7 +8,7 @@ const isCloud = process.env.ENVIRONMENT === 'CLOUD';
 
 const dataSourceConfig: DataSourceOptions = {
   type: 'postgres',
-  host: isCloud ? process.env.DB_HOST_CLOUD : process.env.DB_HOST_LOCAL,
+  host: isCloud ? `/cloudsql/${process.env.INSTANCE_CONNECTION_NAME}` : process.env.DB_HOST_LOCAL,
   port: parseInt(isCloud ? process.env.DB_PORT_CLOUD! : process.env.DB_PORT_LOCAL!),
   username: isCloud ? process.env.DB_USERNAME_CLOUD : process.env.DB_USERNAME_LOCAL,
   password: isCloud ? process.env.DB_PASSWORD_CLOUD : process.env.DB_PASSWORD_LOCAL,
