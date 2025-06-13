@@ -24,12 +24,12 @@ export function generateInstallationHTML({
 }: InstallationTemplateOptions): string {
   return `
     <div style="font-family: Arial, sans-serif; padding: 16px;">
-      ${title ? `<h2>${title}</h2>` : ""}
-      ${intro ? `<p>${intro}</p>` : ""}
+      ${title ? `<h2>${title}</h2>` : ''}
+      ${intro ? `<p>${intro}</p>` : ''}
       <p><strong>Dirección:</strong> ${address.street} ${address.number}</p>
       <p><strong>Ciudad:</strong> ${address.city.name}</p>
       <p><strong>Provincia:</strong> ${address.city.province.name}</p>
-      ${extraMessage ? `<p>${extraMessage}</p>` : ""}
+      ${extraMessage ? `<p>${extraMessage}</p>` : ''}
       ${
         imageLinks.length
           ? `
@@ -37,11 +37,11 @@ export function generateInstallationHTML({
             ${imageLinks
               .map(
                 (url) =>
-                  `<img src="${url}" alt="Imagen de instalación" style="max-width: 100%; margin-bottom: 12px;" />`
+                  `<img src="${url}" alt="Imagen de instalación" style="max-width: 100%; margin-bottom: 12px;" />`,
               )
-              .join("")}
+              .join('')}
           `
-          : ""
+          : ''
       }
     </div>
   `;

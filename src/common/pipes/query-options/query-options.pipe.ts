@@ -1,13 +1,18 @@
 import { validateSync } from 'class-validator';
-import { ArgumentMetadata, HttpException, HttpStatus, Injectable, PipeTransform } from '@nestjs/common';
+import {
+  ArgumentMetadata,
+  HttpException,
+  HttpStatus,
+  Injectable,
+  PipeTransform,
+} from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { Sort } from 'src/common/enums/sort.dto';
 
 @Injectable()
-export class QueryOptionsPipe <Dto extends object> implements PipeTransform {
+export class QueryOptionsPipe<Dto extends object> implements PipeTransform {
   constructor(private readonly dto: new () => Dto) {}
   transform(value: any, metadata: ArgumentMetadata) {
-   
     const object = plainToInstance(this.dto, value);
 
     if (object['page'] === undefined) {
@@ -22,16 +27,16 @@ export class QueryOptionsPipe <Dto extends object> implements PipeTransform {
     if (object['updatedAt'] === undefined) {
       object['updatedAt'] = Sort.DESC;
     }
-   
-    const errors =  validateSync(object)
-    
-    if(errors.length > 0) {
+
+    const errors = validateSync(object);
+
+    if (errors.length > 0) {
       throw new HttpException(
-        {message: 'Erros in queries', errors: {...errors}},
+        { message: 'Erros in queries', errors: { ...errors } },
         HttpStatus.BAD_REQUEST,
-      )
+      );
     }
-    
+
     return object;
   }
 }

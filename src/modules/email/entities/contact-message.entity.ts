@@ -1,6 +1,11 @@
-import { Column, Entity, PrimaryGeneratedColumn, CreateDateColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+} from 'typeorm';
 
-@Entity({name: 'contact_message'})
+@Entity({ name: 'contact_message' })
 export class ContactMessage {
   @PrimaryGeneratedColumn('uuid')
   id: string;

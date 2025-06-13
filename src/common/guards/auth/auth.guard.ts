@@ -18,8 +18,11 @@ export class AuthGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const isPublic = this.reflector.get<boolean>('isPublic', context.getHandler());
-    if (isPublic) return true;   
+    const isPublic = this.reflector.get<boolean>(
+      'isPublic',
+      context.getHandler(),
+    );
+    if (isPublic) return true;
 
     const request: Request = context.switchToHttp().getRequest();
     const token = this.extractTokenFromHeader(request);
@@ -32,11 +35,10 @@ export class AuthGuard implements CanActivate {
       const payload = await this.jwtService.verifyAsync(token, {
         secret: this.configService.get<string>('JWT_SECRET'),
       });
-      
+
       request['user'] = payload;
 
       return true;
-
     } catch (error) {
       throw new UnauthorizedException('Token no válido.');
     }
@@ -46,12 +48,12 @@ export class AuthGuard implements CanActivate {
     const authorizationHeader = request.headers['authorization'];
     const [type, token] = authorizationHeader?.split(' ') ?? [];
 
-    console.log(type, token)
+    console.log(type, token);
 
     if (type === 'Bearer' && token) {
       const aToken = token.replace(/^['"]|['"]$/g, '');
-      console.log(aToken)
-      return aToken
+      console.log(aToken);
+      return aToken;
     }
 
     return undefined;

@@ -71,16 +71,16 @@ export class AuthService {
       );
     }
 
-      const anUser = await this.userRepository
-        .createQueryBuilder('user')
-        .leftJoinAndSelect('user.userRoles', 'userRoles')
-        .leftJoinAndSelect('userRoles.role', 'role')
-        .leftJoinAndSelect('user.installer', 'installer')
-        .leftJoinAndSelect('user.coordinator', 'coordinator')
-        .leftJoinAndSelect('user.admin', 'admin')
-        .where('user.email = :email', { email: credentials.emailSignIn })
-        .orderBy('role.name', 'DESC')
-        .getOne();
+    const anUser = await this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.userRoles', 'userRoles')
+      .leftJoinAndSelect('userRoles.role', 'role')
+      .leftJoinAndSelect('user.installer', 'installer')
+      .leftJoinAndSelect('user.coordinator', 'coordinator')
+      .leftJoinAndSelect('user.admin', 'admin')
+      .where('user.email = :email', { email: credentials.emailSignIn })
+      .orderBy('role.name', 'DESC')
+      .getOne();
 
     if (!anUser) {
       throw new HttpException('Usuario, contraseña incorrecta', 404);
@@ -98,9 +98,11 @@ export class AuthService {
       );
     }
 
-    const roles = anUser.userRoles.filter((ur) => ur.isActive)
+    const roles = anUser.userRoles.filter((ur) => ur.isActive);
 
-    const isInstaller = roles.some((userRole) => userRole.role.name === RoleEnum.INSTALLER)
+    const isInstaller = roles.some(
+      (userRole) => userRole.role.name === RoleEnum.INSTALLER,
+    );
 
     if (isInstaller && anUser.installer) {
       if (
@@ -117,11 +119,8 @@ export class AuthService {
     const userPayload = {
       id: anUser.id,
       email: anUser.email,
-      roles: roles.map(ur => new RolePayload(ur)),
-      installerId:
-        isInstaller && anUser.installer
-          ? anUser.installer.id
-          : null,
+      roles: roles.map((ur) => new RolePayload(ur)),
+      installerId: isInstaller && anUser.installer ? anUser.installer.id : null,
     };
 
     const token = this.jwtService.sign(userPayload);

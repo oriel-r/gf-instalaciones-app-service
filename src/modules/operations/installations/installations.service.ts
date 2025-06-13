@@ -1,4 +1,12 @@
-import { BadRequestException, HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { CreateInstallationDto } from './dto/create-installation.dto';
 import { InstallationsRepository } from './installations.repository';
 import { DeepPartial } from 'typeorm';
@@ -33,7 +41,7 @@ import { usersData } from 'src/seeders/users/users.mock';
 import { FileUploadService } from 'src/services/file-upload/file-upload.service';
 import { datacatalog } from 'googleapis/build/src/apis/datacatalog';
 import { ImagesRejectedEvent } from 'src/modules/notifications/dto/images-rejected-event.dto';
-
+import { InstallationCreatedEvent } from 'src/modules/notifications/dto/installation.created.event';
 
 @Injectable()
 export class InstallationsService {
@@ -45,119 +53,180 @@ export class InstallationsService {
     private readonly userRoleService: UserRoleService,
     private readonly installerService: InstallerService,
     private eventEmitter: EventEmitter2,
-  ){}
-  
-async createFromOrder(createInstallationDto: CreateInstallationDto) {
-  console.log(createInstallationDto)
-  const { installation, order } = createInstallationDto;
-  const { address, coordinatorsIds, installersIds, installersEmails, coordinatorsEmails, ...otherData } = installation;
-  console.log({installersIds: installersIds})
-  const coordinators = await this.getValidCoordinator({coordinatorsIds: coordinatorsIds, coordinatorsEmails: coordinatorsEmails});
-  const installers = await this.getValidInstallers({installersIds: installersIds, installersEmails: installersEmails});
+  ) {}
 
-  const installationAddress = await this.addressService.create(address);
+  async createFromOrder(createInstallationDto: CreateInstallationDto) {
+    console.log(createInstallationDto);
+    const { installation, order } = createInstallationDto;
+    const {
+      address,
+      coordinatorsIds,
+      installersIds,
+      installersEmails,
+      coordinatorsEmails,
+      ...otherData
+    } = installation;
+    console.log({ installersIds: installersIds });
+    const coordinators = await this.getValidCoordinator({
+      coordinatorsIds: coordinatorsIds,
+      coordinatorsEmails: coordinatorsEmails,
+    });
+    const installers = await this.getValidInstallers({
+      installersIds: installersIds,
+      installersEmails: installersEmails,
+    });
 
+    const installationAddress = await this.addressService.create(address);
 
-  const newInstallation = await this.installationsRepository.create({
-    ...otherData,
-    installers,
-    coordinator: coordinators,
-    order,
-    address: installationAddress,
-  });
+    const newInstallation = await this.installationsRepository.create({
+      ...otherData,
+      installers,
+      coordinator: coordinators,
+      order,
+      address: installationAddress,
+    });
 
-  return newInstallation;
-}
-  
-  async create(data) {
-    return {newData: data}
+    await this.eventEmitter.emitAsync(
+      NotifyEvents.INSTALLATION_CREATED,
+      new InstallationCreatedEvent(newInstallation as Installation),
+    );
+
+    return newInstallation;
   }
 
-  async findAll( query: InstallationQueryOptionsDto, coordinatorId?: string, installerId?: string) {
-      
-    const result = await this.installationsRepository.getAllByOrder(query, undefined, coordinatorId, installerId)
-     return new PaginatedResponseDto<Installation>(result, query.page, query.limit)
+  async create(data) {
+    return { newData: data };
+  }
 
+  async findAll(
+    query: InstallationQueryOptionsDto,
+    coordinatorId?: string,
+    installerId?: string,
+  ) {
+    const result = await this.installationsRepository.getAllByOrder(
+      query,
+      undefined,
+      coordinatorId,
+      installerId,
+    );
+    return new PaginatedResponseDto<Installation>(
+      result,
+      query.page,
+      query.limit,
+    );
   }
 
   async getAll() {
-    return await this,this.installationsRepository.get()
+    return await this, this.installationsRepository.get();
   }
 
   async filterFromOrder(orderId: string, query: InstallationQueryOptionsDto) {
-      const result: PaginationResult<Installation> = await this.installationsRepository.getAllByOrder(query, orderId)
-      return new PaginatedResponseDto<Installation>(result, query.page, query.limit)
+    const result: PaginationResult<Installation> =
+      await this.installationsRepository.getAllByOrder(query, orderId);
+    return new PaginatedResponseDto<Installation>(
+      result,
+      query.page,
+      query.limit,
+    );
   }
 
   async findOne(id: string) {
-    const installation = await this.installationsRepository.getById(id)
-    if(!installation) throw new NotFoundException('Instalación no encontrada, id incorrecto o inexistente')
-      return installation  
+    const installation = await this.installationsRepository.getById(id);
+    if (!installation)
+      throw new NotFoundException(
+        'Instalación no encontrada, id incorrecto o inexistente',
+      );
+    return installation;
   }
 
   async update(id: string, data: UpdateInstallationDto) {
-      const installation = await this.installationsRepository.getById(id);
-      
-      if (!installation) {
-        throw new NotFoundException("No se encontró la instalación");
-      }
-      if (![InstallationStatus.PENDING, InstallationStatus.POSTPONED].includes(installation.status)) {
-        throw new BadRequestException(`No se puede modificar una instalación con estado ${installation.status}`);
-      }
-    
-      let installers: Installer[] | null = null;
-      let newCoordinators: UserRole[] | null = null
-      let newAddress: Address | null = null
+    const installation = await this.installationsRepository.getById(id);
 
-      if (data.installersIds && data.installersIds.length > 0) {
-        installers = await this.getValidInstallers({installersIds: data.installersIds, installersEmails: undefined})
-      }
-      
-      if (installation.status === InstallationStatus.POSTPONED && data.startDate) {
-        const newStartDate = new Date(data.startDate);
-        const currentStartDate = installation.startDate;
-        if (newStartDate <= currentStartDate) {
-          const currentString = currentStartDate.toISOString().slice(0, 10)
-          throw new BadRequestException(`La nueva fecha de inicio debe ser posterior a ${currentString}`);
-        }
-      }
+    if (!installation) {
+      throw new NotFoundException('No se encontró la instalación');
+    }
+    if (
+      ![InstallationStatus.PENDING, InstallationStatus.POSTPONED].includes(
+        installation.status,
+      )
+    ) {
+      throw new BadRequestException(
+        `No se puede modificar una instalación con estado ${installation.status}`,
+      );
+    }
 
-      if(data.coordinatorsIds) {
-        newCoordinators = await this.getValidCoordinator({coordinatorsIds: data.coordinatorsIds, coordinatorsEmails: undefined})
-      }
+    let installers: Installer[] | null = null;
+    let newCoordinators: UserRole[] | null = null;
+    let newAddress: Address | null = null;
 
-      if(data.addressId && data.addressData) {
-        newAddress = await this.addressService.update(data.addressId, data.addressData )
-      }
+    if (data.installersIds && data.installersIds.length > 0) {
+      installers = await this.getValidInstallers({
+        installersIds: data.installersIds,
+        installersEmails: undefined,
+      });
+    }
 
-    
-      const updateData: Partial<Installation> = {};
-      if (data.startDate) {
-        updateData.startDate = new Date(data.startDate);
+    if (
+      installation.status === InstallationStatus.POSTPONED &&
+      data.startDate
+    ) {
+      const newStartDate = new Date(data.startDate);
+      const currentStartDate = installation.startDate;
+      if (newStartDate <= currentStartDate) {
+        const currentString = currentStartDate.toISOString().slice(0, 10);
+        throw new BadRequestException(
+          `La nueva fecha de inicio debe ser posterior a ${currentString}`,
+        );
       }
-      if (installers?.length) {
-        updateData.installers = installers;
-      }
-      if(newAddress) {
-        updateData.address = newAddress
-      }
-      if(newCoordinators) {
-        updateData.coordinator = newCoordinators
-      }
+    }
 
-      updateData.status = InstallationStatus.PENDING
+    if (data.coordinatorsIds) {
+      newCoordinators = await this.getValidCoordinator({
+        coordinatorsIds: data.coordinatorsIds,
+        coordinatorsEmails: undefined,
+      });
+    }
 
-      const updatedInstallation = await this.installationsRepository.update(id, updateData);
-      return updatedInstallation
+    if (data.addressId && data.addressData) {
+      newAddress = await this.addressService.update(
+        data.addressId,
+        data.addressData,
+      );
+    }
 
+    const updateData: Partial<Installation> = {};
+    if (data.startDate) {
+      updateData.startDate = new Date(data.startDate);
+    }
+    if (installers?.length) {
+      updateData.installers = installers;
+    }
+    if (newAddress) {
+      updateData.address = newAddress;
+    }
+    if (newCoordinators) {
+      updateData.coordinator = newCoordinators;
+    }
+
+    updateData.status = InstallationStatus.PENDING;
+
+    const updatedInstallation = await this.installationsRepository.update(
+      id,
+      updateData,
+    );
+    return updatedInstallation;
   }
-    
 
   async statusChange(id: string, dto: StatusChangeDto) {
     const installation = await this.installationsRepository.getById(id);
-    if (!installation) throw new NotFoundException('Instalación no encontrada, id incorrecto o inexistente');
+    if (!installation)
+      throw new NotFoundException(
+        'Instalación no encontrada, id incorrecto o inexistente',
+      );
     if (!allowedTransitions[installation.status]?.includes(dto.status)) {
-      throw new BadRequestException(`Transición de estado no permitida: ${installation.status} -> ${dto.status}`);
+      throw new BadRequestException(
+        `Transición de estado no permitida: ${installation.status} -> ${dto.status}`,
+      );
     }
 
     const updateData: Partial<Installation> = { ...dto };
@@ -167,35 +236,42 @@ async createFromOrder(createInstallationDto: CreateInstallationDto) {
       updateData.startedAt = now;
     }
 
-    if ([InstallationStatus.CANCEL, InstallationStatus.FINISHED].includes(dto.status)) {
+    if (
+      [InstallationStatus.CANCEL, InstallationStatus.FINISHED].includes(
+        dto.status,
+      )
+    ) {
       updateData.endDate = now;
     }
 
-    if(dto.status === InstallationStatus.IMAGES_REJECTED) {
-      updateData.status = InstallationStatus.IN_PROCESS
+    if (dto.status === InstallationStatus.IMAGES_REJECTED) {
+      updateData.status = InstallationStatus.IN_PROCESS;
     }
 
     const result = await this.installationsRepository.update(id, updateData);
-    if (!result) throw new InternalServerErrorException('No se pudo actualizar el estado de la instalación');
+    if (!result)
+      throw new InternalServerErrorException(
+        'No se pudo actualizar el estado de la instalación',
+      );
 
     if (result.status !== installation.status) {
-      await this.eventsSweit(result, dto.status)
+      await this.eventsSwitch(result, dto.status);
     }
-    
+
     return await this.installationsRepository.getById(id);
-  
   }
 
   async sendToReview(id: string, files: Express.Multer.File[]) {
-    const installation = await this.installationsRepository.getById(id)
+    const installation = await this.installationsRepository.getById(id);
 
-    if(!installation) throw new NotFoundException('No se encontro la isntalción')
+    if (!installation)
+      throw new NotFoundException('No se encontro la isntalción');
 
-    if(installation.status !== InstallationStatus.IN_PROCESS) {
+    if (installation.status !== InstallationStatus.IN_PROCESS) {
       throw new BadRequestException(
         `Transición de estado no permitida:
-         ${installation.status} -> ${InstallationStatus.TO_REVIEW}`
-      )
+         ${installation.status} -> ${InstallationStatus.TO_REVIEW}`,
+      );
     }
 
     const imagesUrls: string[] = await Promise.all(
@@ -205,158 +281,182 @@ async createFromOrder(createInstallationDto: CreateInstallationDto) {
           url: fileUrl,
           mimetype: file.mimetype,
         });
-        return fileUrl
-       }),
+        return fileUrl;
+      }),
     );
 
-    if(!imagesUrls.length ) throw new ServiceUnavailableException('Hubo un problema al subir las imagenes')
-    const result = await this.installationsRepository.update(id, {status: InstallationStatus.TO_REVIEW, images: imagesUrls, submittedForReviewAt: new Date()})
-    if(!result) throw new InternalServerErrorException('No se pudo cambiar el estado')
-    
-    if(installation.order.client?.length && installation.coordinator?.length) {
-      await this.eventsSweit(installation, InstallationStatus.TO_REVIEW)
-    }
-    return result
-  }
+    if (!imagesUrls.length)
+      throw new ServiceUnavailableException(
+        'Hubo un problema al subir las imagenes',
+      );
+    const result = await this.installationsRepository.update(id, {
+      status: InstallationStatus.TO_REVIEW,
+      images: imagesUrls,
+      submittedForReviewAt: new Date(),
+    });
+    if (!result)
+      throw new InternalServerErrorException('No se pudo cambiar el estado');
 
+    if (installation.order.client?.length && installation.coordinator?.length) {
+      await this.eventsSwitch(installation, InstallationStatus.TO_REVIEW);
+    }
+    return result;
+  }
 
   async remove(id: string) {
-    const installation = await this.installationsRepository.getById(id)
-    if(!installation) throw new NotFoundException('Instalación no encontrada, id incorrecto o inexistente')
-    const result = await this.installationsRepository.softDelete(id)
-    if(!result.affected) throw new InternalServerErrorException('No se pudo eliminar la isntlación')
-    if(installation.order.id) this.emitRecalculateOrderProgress({orderId: installation.order.id})
-      return new DeleteResponse('instalación', id)
+    const installation = await this.installationsRepository.getById(id);
+    if (!installation)
+      throw new NotFoundException(
+        'Instalación no encontrada, id incorrecto o inexistente',
+      );
+    const result = await this.installationsRepository.softDelete(id);
+    if (!result.affected)
+      throw new InternalServerErrorException(
+        'No se pudo eliminar la isntlación',
+      );
+    if (installation.order.id)
+      await this.emitRecalculateOrderProgress({
+        orderId: installation.order.id,
+      });
+    return new DeleteResponse('instalación', id);
   }
 
-  private eventsSweit(result: Installation, status: InstallationStatus) {
-          switch (status) {
-        case InstallationStatus.IN_PROCESS:
-          if (result.order && result.coordinator && result.address) {
-            this.emitGeneralUpdate(result);
-          }
-          break;
-        case InstallationStatus.POSTPONED:
-          if (result.coordinator && result.address) {
-            this.emitPostponedUpdate(result);
-          }
-          break;
-        case InstallationStatus.IMAGES_REJECTED:
-          if (result.installers && result.address) {
-            this.emitPostponedUpdate(result);
-          }
-          break;
-        case InstallationStatus.CANCEL:
-          if (result.order?.client && result.installers) {
-            this.emitCancelledUpdate(result);
-            this.emitRecalculateOrderProgress({ orderId: result.order.id });
-          }
-          break;
-        case InstallationStatus.TO_REVIEW:
-          if (result.coordinator && result.address) {
-            this.emitToReviewUpdate(result);
-          }
-          break;
-        case InstallationStatus.FINISHED:
-          if (result.order?.client && result.installers && result.address && result.images) {
-            this.emitApprovedUpdate(result);
-            this.emitRecalculateOrderProgress({ orderId: result.order.id });
-          }
-          break;
-        default:
-          if (result.order?.client && result.installers && result.address && result.images) {
-            this.emitApprovedUpdate(result);
-            this.emitRecalculateOrderProgress({ orderId: result.order.id });
-          }
-      }
+  private async eventsSwitch(result: Installation, status: InstallationStatus) {
+    switch (status) {
+      case InstallationStatus.IN_PROCESS:
+        if (result.order && result.coordinator && result.address) {
+          await this.emitGeneralUpdate(result);
+        }
+        break;
+      case InstallationStatus.POSTPONED:
+        if (result.coordinator && result.address) {
+          await this.emitPostponedUpdate(result);
+        }
+        break;
+      case InstallationStatus.IMAGES_REJECTED:
+        if (result.installers && result.address) {
+          await this.emitRejectedImagesUpdate(result);
+        }
+        break;
+      case InstallationStatus.CANCEL:
+        if (result.order?.client && result.installers) {
+          await this.emitCancelledUpdate(result);
+          await this.emitRecalculateOrderProgress({ orderId: result.order.id });
+        }
+        break;
+      case InstallationStatus.TO_REVIEW:
+        if (result.coordinator && result.address) {
+          await this.emitToReviewUpdate(result);
+        }
+        break;
+      case InstallationStatus.FINISHED:
+        if (
+          result.order?.client &&
+          result.installers &&
+          result.address &&
+          result.images
+        ) {
+          await this.emitApprovedUpdate(result);
+          await this.emitRecalculateOrderProgress({ orderId: result.order.id });
+        }
+        break;
+      default:
+        if (
+          result.order?.client &&
+          result.installers &&
+          result.address &&
+          result.images
+        ) {
+          await this.emitApprovedUpdate(result);
+          await this.emitRecalculateOrderProgress({ orderId: result.order.id });
+        }
+    }
   }
 
-  private emitGeneralUpdate(result: Installation) {
-    this.eventEmitter.emit(
+  private async emitGeneralUpdate(result: Installation) {
+    await this.eventEmitter.emitAsync(
       NotifyEvents.INSTALLATION_GENERAL_UPDATE,
-      new InstallationGeneralUpdate(result)
-    )
+      new InstallationGeneralUpdate(result),
+    );
   }
-  
-  private emitPostponedUpdate(result: Installation) {
-    this.eventEmitter.emit(
+
+  private async emitPostponedUpdate(result: Installation) {
+    await this.eventEmitter.emitAsync(
       NotifyEvents.INSTALLATION_POSTPONED,
-      new InstallationPostponedDto(result)
-    )
+      new InstallationPostponedDto(result),
+    );
   }
-  
-  private emitApprovedUpdate(result: Installation) {
-    this.eventEmitter.emit(
+
+  private async emitApprovedUpdate(result: Installation) {
+    await this.eventEmitter.emitAsync(
       NotifyEvents.INSTALLATION_APROVE,
-      new InstallationApprovedDto(result)
-    )
+      new InstallationApprovedDto(result),
+    );
   }
 
-  private emitToReviewUpdate(result: Installation) {
-    this.eventEmitter.emit(
+  private async emitToReviewUpdate(result: Installation) {
+    await this.eventEmitter.emitAsync(
       NotifyEvents.INSTALLATION_TO_REVIEW,
-      new InstallationToReviewDto(result)
-    )
+      new InstallationToReviewDto(result),
+    );
   }
 
-  private emitCancelledUpdate(result: Installation) {
-    this.eventEmitter.emit(
+  private async emitCancelledUpdate(result: Installation) {
+    await this.eventEmitter.emitAsync(
       NotifyEvents.INSTALLATION_CANCELLED,
-      new InstallationCancelDto(result)
-    )
+      new InstallationCancelDto(result),
+    );
   }
 
-  private emitRecalculateOrderProgress(data: RecalculateProgressDto) {
-    this.eventEmitter.emit(OrderEvent.RECALCULATE,data)
+  private async emitRecalculateOrderProgress(data: RecalculateProgressDto) {
+    await this.eventEmitter.emitAsync(OrderEvent.RECALCULATE, data);
   }
 
-  private emitRejectedImagesUpdate (data: Installation) {
-    this.eventEmitter.emit(NotifyEvents.IMAGES_REJECTED, 
-      new ImagesRejectedEvent(data)
-    )
+  private async emitRejectedImagesUpdate(data: Installation) {
+    await this.eventEmitter.emitAsync(
+      NotifyEvents.IMAGES_REJECTED,
+      new ImagesRejectedEvent(data),
+    );
   }
 
-
-    private async getValidCoordinator(
-      { coordinatorsIds, coordinatorsEmails }: {
-        coordinatorsIds?: string[];
-        coordinatorsEmails?: string[];
-      }
-    ): Promise<UserRole[]> {
-      console.log({coordinatorsIds, coordinatorsEmails})
-      if (!coordinatorsIds?.length && !coordinatorsEmails?.length) {
-        throw new BadRequestException('Debes indicar IDs o e-mails de coordinadores');
-      }
-
-      const found: Array<UserRole | null> = coordinatorsIds?.length
-        ? await Promise.all(
-            coordinatorsIds.map((id) =>
-              this.userRoleService.getByIdWhenRole(id, RoleEnum.COORDINATOR),
-            ),
-          )
-        : await Promise.all(
-            (coordinatorsEmails ?? []).map((email) =>
-              this.userRoleService.getByUserEmail(email, RoleEnum.COORDINATOR),
-            ),
-          );
-
-      const coordinators = found.filter((u): u is UserRole => u !== null);
-      if (!coordinators.length)
-        throw new BadRequestException('No se encontraron los coordinadores');
-
-      return coordinators;
+  private async getValidCoordinator({
+    coordinatorsIds,
+    coordinatorsEmails,
+  }: {
+    coordinatorsIds?: string[];
+    coordinatorsEmails?: string[];
+  }): Promise<UserRole[]> {
+    if (!coordinatorsIds?.length && !coordinatorsEmails?.length) {
+      throw new BadRequestException(
+        'Debes indicar IDs o e-mails de coordinadores',
+      );
     }
 
+    const found = coordinatorsIds?.length
+      ? await Promise.all(
+          coordinatorsIds.map((id) =>
+            this.userRoleService.getByIdWhenRole(id, RoleEnum.COORDINATOR),
+          ),
+        )
+      : await Promise.all(
+          (coordinatorsEmails ?? []).map((email) =>
+            this.userRoleService.getByUserEmail(email, RoleEnum.COORDINATOR),
+          ),
+        );
+    const coordinators = found.filter((u): u is UserRole => u !== null);
+    if (!coordinators.length)
+      throw new BadRequestException('No se encontraron los coordinadores');
 
-    private async getValidInstallers(
-    {
-      installersIds,
-      installersEmails,
-    }: {
-      installersIds?: string[];
-      installersEmails?: string[];
-    },
-  ): Promise<Installer[]> {
+    return coordinators;
+  }
+
+  private async getValidInstallers({
+    installersIds,
+    installersEmails,
+  }: {
+    installersIds?: string[];
+    installersEmails?: string[];
+  }): Promise<Installer[]> {
     if (!installersIds?.length && !installersEmails?.length) {
       throw new BadRequestException(
         'Debes indicar IDs o e-mails de instaladores',
@@ -368,14 +468,16 @@ async createFromOrder(createInstallationDto: CreateInstallationDto) {
           installersIds.map((id) => this.installerService.findById(id)),
         )
       : await Promise.all(
-          (installersEmails ?? []).map((email) =>
-            this.installerService.findByEmail(email, true) as Promise<Installer | null>,
+          (installersEmails ?? []).map(
+            (email) =>
+              this.installerService.findByEmail(
+                email,
+                true,
+              ) as Promise<Installer | null>,
           ),
         );
 
-    const installers = found.filter(
-      (i): i is Installer => i !== null,
-    );
+    const installers = found.filter((i): i is Installer => i !== null);
 
     if (!installers.length) {
       throw new BadRequestException('No se encontraron los instaladores');

@@ -33,8 +33,8 @@ export class NewsletterController {
 
   @Post('send')
   async sendNewsletter(@Body() sendEmailDto: SendEmailDto) {
-    const {to, subject, message } = sendEmailDto;
-    return this.newsletterService.sendNewsletter({to, subject, message});
+    const { to, subject, message } = sendEmailDto;
+    return this.newsletterService.sendNewsletter({ to, subject, message });
   }
 
   @Get()

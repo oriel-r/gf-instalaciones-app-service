@@ -11,7 +11,7 @@ export class FileUploadService {
 
   constructor(private configService: ConfigService) {
     this.bucketName = this.configService.get<string>('GCLOUD_STORAGE_BUCKET')!;
-    
+
     // Ya no es necesario pasar credenciales, las toma de GOOGLE_APPLICATION_CREDENTIALS
     this.storage = new Storage();
     this.bucket = this.storage.bucket(this.bucketName);
@@ -26,12 +26,16 @@ export class FileUploadService {
       const blob = this.bucket.file(filename);
       const blobStream = blob.createWriteStream({
         resumable: false,
-        contentType: file.mimetype
+        contentType: file.mimetype,
       });
 
       return new Promise<string>((resolve, reject) => {
         blobStream.on('error', (err) => {
-          reject(new InternalServerErrorException('Error subiendo archivo a GCS: ' + err.message));
+          reject(
+            new InternalServerErrorException(
+              'Error subiendo archivo a GCS: ' + err.message,
+            ),
+          );
         });
 
         blobStream.on('finish', () => {
@@ -42,18 +46,21 @@ export class FileUploadService {
         blobStream.end(file.buffer);
       });
     } catch (error) {
-      throw new InternalServerErrorException('Error en uploadFile: ' + error.message);
+      throw new InternalServerErrorException(
+        'Error en uploadFile: ' + error.message,
+      );
     }
   }
 
   async listFiles(): Promise<string[]> {
-  try {
-    const [files] = await this.bucket.getFiles();
-    // files es un array de objetos File, vamos a devolver solo los nombres
-    return files.map(file => file.name);
-  } catch (error) {
-    throw new InternalServerErrorException('Error listando archivos: ' + error.message);
+    try {
+      const [files] = await this.bucket.getFiles();
+      // files es un array de objetos File, vamos a devolver solo los nombres
+      return files.map((file) => file.name);
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Error listando archivos: ' + error.message,
+      );
+    }
   }
 }
-}
-

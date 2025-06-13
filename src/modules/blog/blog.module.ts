@@ -4,6 +4,6 @@ import { BlogPostTamplatesModule } from 'src/modules/blog/blog-post-tamplates/bl
 import { BlogPostsModule } from 'src/modules/blog/blog-posts/blog-posts.module';
 
 @Module({
-    imports: [BlogPostsModule, BlogCategoriesModule, BlogPostTamplatesModule]
+  imports: [BlogPostsModule, BlogCategoriesModule, BlogPostTamplatesModule],
 })
 export class BlogModule {}

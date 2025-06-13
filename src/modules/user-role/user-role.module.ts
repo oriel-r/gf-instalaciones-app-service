@@ -16,14 +16,22 @@ import { CoordinatorsService } from '../coordinators/coordinators.service';
 import { Coordinator } from '../coordinators/entities/coordinator.entity';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([UserRole, Role, User, Installer, Admin, Coordinator]),
+  imports: [
+    TypeOrmModule.forFeature([
+      UserRole,
+      Role,
+      User,
+      Installer,
+      Admin,
+      Coordinator,
+    ]),
     forwardRef(() => UserModule),
-    forwardRef(() => AdminModule), 
-    forwardRef(() => InstallerModule), 
+    forwardRef(() => AdminModule),
+    forwardRef(() => InstallerModule),
     forwardRef(() => CoordinatorsModule),
-    ],
+  ],
   providers: [UserRoleService],
   controllers: [UserRoleController],
-  exports: [UserRoleService]
+  exports: [UserRoleService],
 })
 export class UserRoleModule {}

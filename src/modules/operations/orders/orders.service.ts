@@ -1,4 +1,12 @@
-import { BadRequestException, ConflictException, HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateOrderRequestDto } from './dto/create-order.request.dto';
 import { OrdersRepository } from './orders.repository';
 import { InstallationsService } from '../installations/installations.service';
@@ -19,6 +27,10 @@ import { OrderEvent } from 'src/common/enums/orders-event.enum';
 import { RecalculateProgressDto } from './dto/recalculate-progress.dto';
 import { RolePayload } from 'src/common/entities/role-payload.dto';
 import { UserRole } from 'src/modules/user-role/entities/user-role.entity';
+import { NotifyEvents } from 'src/common/enums/notifications-events.enum';
+import { OrderCreatedEvent } from 'src/modules/notifications/dto/order.created.event';
+import { OrderCompletedEvent } from 'src/modules/notifications/dto/order.completed.event';
+import { title } from 'process';
 
 @Injectable()
 export class OrdersService {
@@ -26,190 +38,263 @@ export class OrdersService {
     private readonly ordersRepository: OrdersRepository,
     private readonly installationsService: InstallationsService,
     private readonly eventEmiiter: EventEmitter2,
-    private readonly userRoleService: UserRoleService
+    private readonly userRoleService: UserRoleService,
   ) {}
-  
+
   async create(createOrderDto: CreateOrderRequestDto) {
     const { clientsIds, clientsEmails, ...orderData } = createOrderDto;
-  
-    const existOrder = await this.ordersRepository.getByNumber(orderData.orderNumber);
-    const clients = clientsIds ? await this.getValidClients({clientsIds: clientsIds, clientsEmails: undefined}) : await this.getValidClients({clientsIds: undefined, clientsEmails: clientsEmails})
-    
-    if (existOrder) throw new BadRequestException('Ya existe una orden con este número de referencia')  
-    
-    if(!clients.length) throw new BadRequestException('Cliente no encontrado')
 
-    const newOrder = await this.ordersRepository.create({...orderData, client: clients});
-  
-    if(!newOrder) throw new InternalServerErrorException('Hubo un problema al crear la orden')
-  
-    return await this.findOne(newOrder.id)
+    const existOrder = await this.ordersRepository.getByNumber(
+      orderData.orderNumber,
+    );
+    const clients = clientsIds
+      ? await this.getValidClients({
+          clientsIds: clientsIds,
+          clientsEmails: undefined,
+        })
+      : await this.getValidClients({
+          clientsIds: undefined,
+          clientsEmails: clientsEmails,
+        });
+
+    if (existOrder)
+      throw new BadRequestException(
+        'Ya existe una orden con este número de referencia',
+      );
+
+    if (!clients.length) throw new BadRequestException('Cliente no encontrado');
+
+    const newOrder = await this.ordersRepository.create({
+      ...orderData,
+      client: clients,
+    });
+
+    if (!newOrder)
+      throw new InternalServerErrorException(
+        'Hubo un problema al crear la orden',
+      );
+
+    await this.eventEmiiter.emitAsync(
+      NotifyEvents.ORDER_CREATED,
+      new OrderCreatedEvent(newOrder),
+    );
+
+    return await this.findOne(newOrder.id);
   }
 
-  async addInstallations(data: InstallationDataRequesDto | InstallationDataRequesDto[], id?: string) {
-    let order: Order | null = null
+  async addInstallations(
+    data: InstallationDataRequesDto | InstallationDataRequesDto[],
+    id?: string,
+  ) {
+    let order: Order | null = null;
 
-    if(!id && Array.isArray(data) && data.every(item => item.orderNumber)) return this.addinstallationsFromBatch(data)
+    if (!id && Array.isArray(data) && data.every((item) => item.orderNumber))
+      return this.addinstallationsFromBatch(data);
 
-   return this.addInstallation(id as string, data as unknown as InstallationDataRequesDto)
-  } 
+    return this.addInstallation(
+      id as string,
+      data as unknown as InstallationDataRequesDto,
+    );
+  }
 
   async findAll(query: OrderQueryOptionsDto, roles: any[]) {
-    const isUser = roles.every(role => role.name !== RoleEnum.ADMIN)
-    const clientId = isUser ? roles[0].id : null
+    const isUser = roles.every((role) => role.name !== RoleEnum.ADMIN);
+    const clientId = isUser ? roles[0].id : null;
 
-    const orders = await this.ordersRepository.get(query, clientId)
+    const orders = await this.ordersRepository.get(query, clientId);
 
-      const result: PaginationResult<GetOrderResponseDto> = [orders[0].map(order => new GetOrderResponseDto(order)),orders[1]]
-      return result
+    const result: PaginationResult<GetOrderResponseDto> = [
+      orders[0].map((order) => new GetOrderResponseDto(order)),
+      orders[1],
+    ];
+    return result;
   }
 
   async findOne(id: string, roles?: RolePayload[]) {
-    const isUser = roles && roles.every(role => role.name !== RoleEnum.ADMIN)
-    const clientId = isUser ? roles[0].id : null
+    const isUser = roles && roles.every((role) => role.name !== RoleEnum.ADMIN);
+    const clientId = isUser ? roles[0].id : null;
 
-    const order = await this.ordersRepository.getById(id)
-    if(!order) throw new NotFoundException('No se encontro la orden')
-      return order
+    const order = await this.ordersRepository.getById(id);
+    if (!order) throw new NotFoundException('No se encontro la orden');
+    return order;
   }
 
-  async getInstallationsFromId (id: string, query: InstallationQueryOptionsDto, roles?: RolePayload[]) {
-        const isUser = roles && roles.every(role => role.name !== RoleEnum.ADMIN)
-    const clientId = isUser ? roles[0].id : null
+  async getInstallationsFromId(
+    id: string,
+    query: InstallationQueryOptionsDto,
+    roles?: RolePayload[],
+  ) {
+    const isUser = roles && roles.every((role) => role.name !== RoleEnum.ADMIN);
+    const clientId = isUser ? roles[0].id : null;
 
-    const order = await this.ordersRepository.getById(id)
-    if(!order) throw new NotFoundException('No se encontro la orden')
-    const installations = await this.installationsService.filterFromOrder(id, query)
-      return installations
+    const order = await this.ordersRepository.getById(id);
+    if (!order) throw new NotFoundException('No se encontro la orden');
+    const installations = await this.installationsService.filterFromOrder(
+      id,
+      query,
+    );
+    return installations;
   }
 
   async findByOrderNumber(orderNumber: string) {
-    const order = await this.ordersRepository.getByNumber(orderNumber)
-    if(!order) throw new NotFoundException('No se encontro la orden')
-      return order
+    const order = await this.ordersRepository.getByNumber(orderNumber);
+    if (!order) throw new NotFoundException('No se encontro la orden');
+    return order;
   }
 
   async update(id: string, updateOrderDto: DeepPartial<Order>) {
-    const order = await this.findOne(id)
-    if(!order) throw new NotFoundException('No se encontro la orden')
-    if(updateOrderDto.completed && order.progress < 100) {
+    const order = await this.findOne(id);
+    if (!order) throw new NotFoundException('No se encontro la orden');
+
+    if (updateOrderDto.completed && order.progress < 100) {
       throw new BadRequestException(
-        `No se puede marcar la orden ${order.orderNumber} como completada, quedan instalciones a Finalizar`
-      )
+        `No se puede marcar la orden ${order.orderNumber} como completada, quedan instalaciones a Finalizar`,
+      );
     }
-      return this.ordersRepository.update(id, updateOrderDto)
+
+    const payload: DeepPartial<Order> = updateOrderDto.completed
+      ? { ...updateOrderDto, endDate: new Date() }
+      : updateOrderDto;
+
+    const { affected } = await this.ordersRepository.update(id, payload);
+    if (!affected)
+      throw new InternalServerErrorException('No se pudo actualizar la orden');
+
+    if (updateOrderDto.completed) {
+      await this.eventEmiiter.emitAsync(
+        NotifyEvents.ORDER_COMPLETED,
+        new OrderCompletedEvent(order),
+      );
+    }
+
+    return this.findOne(id);
   }
 
   async remove(id: string) {
-    const order = await this.findOne(id)
-    let result: DeleteResult | null = null
-    if(order) {
-      result = await this.ordersRepository.softDelete(id)
+    const order = await this.findOne(id);
+    let result: DeleteResult | null = null;
+    if (order) {
+      result = await this.ordersRepository.softDelete(id);
     }
-    if(!result) throw new HttpException('Hubo un problema al borrar la orden', HttpStatus.INTERNAL_SERVER_ERROR)
-      return new DeleteResponse('orden', id) 
+    if (!result)
+      throw new HttpException(
+        'Hubo un problema al borrar la orden',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    return new DeleteResponse('orden', id);
   }
 
   private async addinstallationsFromBatch(data: InstallationDataRequesDto[]) {
-     const formattedData: Array<{ order: Order; installation: any }> = [];
+    const formattedData: Array<{ order: Order; installation: any }> = [];
     for (const item of data) {
       const { orderNumber, ...installationData } = item;
       const order = await this.findByOrderNumber(orderNumber!);
       formattedData.push({ order, installation: installationData });
     }
 
-    const creationPromises = formattedData.map(item =>
+    const creationPromises = formattedData.map((item) =>
       this.installationsService
         .createFromOrder(item)
-        .then(response =>
-          ({
+        .then((response) => ({
           status: 'fulfilled' as const,
           referenceId: response!.referenceId,
-          orderId: item.order.id
+          orderId: item.order.id,
         }))
-        .catch(err => ({
+        .catch((err) => ({
           status: 'reject' as const,
           referenceId: item.installation.referenceId,
           reason: err['response']['message'],
-        }))
+        })),
     );
 
     const newInstallationsResult = await Promise.all(creationPromises);
 
     const ordersIds = newInstallationsResult.reduce((acc: string[], item) => {
-      if(item['status'] === 'fulfilled') acc.push(item.orderId)
-        return acc
-      }, [])
+      if (item['status'] === 'fulfilled') acc.push(item.orderId);
+      return acc;
+    }, []);
 
-    this.updateProgress({orderId: ordersIds})
+    this.updateProgress({ orderId: ordersIds });
 
     return newInstallationsResult;
   }
 
   private async addInstallation(id: string, data: InstallationDataRequesDto) {
+    const order = await this.findOne(id as string);
+    if (!order)
+      throw new NotFoundException('orden no encontrada o numero invalido');
+    console.log({ addInstallationFunc: data });
+    const newInstallation = await this.installationsService.createFromOrder({
+      order,
+      installation: data,
+    });
+    if (!newInstallation)
+      throw new InternalServerErrorException('No se crearon las instalaciónes');
+    const fraction = calculateProgressFraction(
+      (await this.findOne(id as string)).installations,
+    );
+    await this.update(order.id, { installationsFinished: fraction });
 
-    const order = await this.findOne(id as string)
-    if (!order) throw new NotFoundException('orden no encontrada o numero invalido');
-    console.log({addInstallationFunc: data})
-    const newInstallation = await this.installationsService.createFromOrder({order, installation: data})
-    if(!newInstallation) throw new InternalServerErrorException('No se crearon las instalaciónes')
-    const fraction = calculateProgressFraction((await this.findOne(id as string)).installations)
-    await this.update(order.id, {installationsFinished: fraction})
-
-    return newInstallation
+    return newInstallation;
   }
 
-  private async getValidClients({clientsIds, clientsEmails}: Record<'clientsIds' | 'clientsEmails' , string[] | undefined>) {
-   let found: Array<UserRole | null> = []
+  private async getValidClients({
+    clientsIds,
+    clientsEmails,
+  }: Record<'clientsIds' | 'clientsEmails', string[] | undefined>) {
+    let found: Array<UserRole | null> = [];
 
-  console.log({getClients:{ids: clientsIds, emails: clientsEmails}})
+    console.log({ getClients: { ids: clientsIds, emails: clientsEmails } });
 
-  if(clientsIds)
-    found = await Promise.all(
-    clientsIds.map(async (id) => {
-     const pepe = await this.userRoleService.getByIdWhenRole(id, RoleEnum.USER)
-     console.log({pepe: pepe})
-     return pepe
-    })
-  ); else if(clientsEmails) {
-    found = await Promise.all(
-      clientsEmails.map(async (email) => await this.userRoleService.getByUserEmail(email, RoleEnum.USER))
-    )
-  }
+    if (clientsIds)
+      found = await Promise.all(
+        clientsIds.map(async (id) => {
+          const pepe = await this.userRoleService.getByIdWhenRole(
+            id,
+            RoleEnum.USER,
+          );
+          console.log({ pepe: pepe });
+          return pepe;
+        }),
+      );
+    else if (clientsEmails) {
+      found = await Promise.all(
+        clientsEmails.map(
+          async (email) =>
+            await this.userRoleService.getByUserEmail(email, RoleEnum.USER),
+        ),
+      );
+    }
 
-  console.log({found:{clients: found}})
+    console.log({ found: { clients: found } });
 
-  const clients = found.filter((UserRole) => UserRole != null);
-  if (clients.length === 0) {
-    throw new BadRequestException('No se encontraron clientes');
-  }
+    const clients = found.filter((UserRole) => UserRole != null);
+    if (clients.length === 0) {
+      throw new BadRequestException('No se encontraron clientes');
+    }
 
-    return clients
+    return clients;
   }
 
   @OnEvent(OrderEvent.RECALCULATE)
   async updateProgress({ orderId }: RecalculateProgressDto) {
+    const isArray = Array.isArray(orderId);
 
-    const isArray = Array.isArray(orderId)
+    if (!isArray) {
+      const installations = (await this.findOne(orderId)).installations;
+      const progress = calculateProgress(installations);
+      const installationsFinished = calculateProgressFraction(installations);
 
-    if(!isArray) {
-
-      const installations = (await this.findOne(orderId)).installations
-      const progress = calculateProgress(installations)
-      const installationsFinished = calculateProgressFraction(installations)
-  
-      return await this.update(orderId, {progress, installationsFinished})
+      return await this.update(orderId, { progress, installationsFinished });
     }
 
-    const updatePromises = orderId.map( async (order) => {
-        const installations = (await this.findOne(order)).installations
-        const progress = calculateProgress(installations)
-        const installationsFinished = calculateProgressFraction(installations)
-        this.update(order, {progress, installationsFinished})
-        
-      })
+    const updatePromises = orderId.map(async (order) => {
+      const installations = (await this.findOne(order)).installations;
+      const progress = calculateProgress(installations);
+      const installationsFinished = calculateProgressFraction(installations);
+      this.update(order, { progress, installationsFinished });
+    });
 
-      return await Promise.all(updatePromises)      
-      
-    }
+    return await Promise.all(updatePromises);
   }
+}
