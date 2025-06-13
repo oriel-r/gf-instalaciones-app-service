@@ -33,19 +33,22 @@ export class AdminService {
     private readonly userRoleRepository: Repository<UserRole>,
   ) {}
 
-  async createAdminTransactional(userId: string, queryRunner: QueryRunner): Promise<Admin> {
+  async createAdminTransactional(
+    userId: string,
+    queryRunner: QueryRunner,
+  ): Promise<Admin> {
     const user = await queryRunner.manager.findOne(User, {
       where: { id: userId },
       relations: ['admin'],
     });
-  
+
     if (!user) throw new NotFoundException('Usuario no encontrado');
     if (user.admin) throw new ConflictException('Ya es admin');
-  
+
     const newAdmin = queryRunner.manager.create(Admin, { user });
     return await queryRunner.manager.save(Admin, newAdmin);
   }
-   
+
   async findAll() {
     return await this.adminRepository.find();
   }
@@ -108,25 +111,28 @@ export class AdminService {
       where: { user: { id: userId } },
       relations: ['user'],
     });
-    
+
     if (!admin) {
-      throw new HttpException('Entidad Admin no encontrada', HttpStatus.NOT_FOUND);
+      throw new HttpException(
+        'Entidad Admin no encontrada',
+        HttpStatus.NOT_FOUND,
+      );
     }
-    
+
     await this.adminRepository.remove(admin);
-    
+
     return { message: 'Rol de administrador eliminado correctamente' };
   }
 
   async disable(id: string) {
-      const admin = await this.findOne(id);
-      if (admin.disabledAt) {
-        throw new BadRequestException('Este admin ya está deshabilitado');
-      }
-    
-      admin.disabledAt = new Date();
-      await this.adminRepository.save(admin);
-      return { message: 'admin desactivado correctamente' };
+    const admin = await this.findOne(id);
+    if (admin.disabledAt) {
+      throw new BadRequestException('Este admin ya está deshabilitado');
+    }
+
+    admin.disabledAt = new Date();
+    await this.adminRepository.save(admin);
+    return { message: 'admin desactivado correctamente' };
   }
 
   async restore(id: string) {
@@ -134,9 +140,9 @@ export class AdminService {
     if (!admin.disabledAt) {
       throw new BadRequestException('Este admin ya está activo');
     }
-  
+
     admin.disabledAt = null;
     await this.adminRepository.save(admin);
     return { message: 'admin restaurado correctamente' };
-  } 
+  }
 }

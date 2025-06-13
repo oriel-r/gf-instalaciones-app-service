@@ -1,13 +1,11 @@
 export function transformDates(obj: unknown): unknown {
   if (obj instanceof Date) return toIsoArt(obj);
 
-  if (Array.isArray(obj))
-    return obj.map(transformDates);
+  if (Array.isArray(obj)) return obj.map(transformDates);
 
   if (obj && typeof obj === 'object') {
     const cloned: any = {};
-    for (const [k, v] of Object.entries(obj))
-      cloned[k] = transformDates(v);
+    for (const [k, v] of Object.entries(obj)) cloned[k] = transformDates(v);
     return cloned;
   }
   return obj;

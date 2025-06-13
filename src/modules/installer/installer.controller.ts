@@ -6,7 +6,7 @@ import {
   Param,
   Patch,
   Post,
-  UseGuards
+  UseGuards,
 } from '@nestjs/common';
 import { InstallerService } from './installer.service';
 import { CreateInstallerDto } from './dto/create-installer.dto';
@@ -21,7 +21,7 @@ import { AuthGuard } from 'src/common/guards/auth/auth.guard';
 @Controller('installer')
 export class InstallerController {
   constructor(private readonly installerService: InstallerService) {}
- 
+
   @ApiOperation({ summary: 'Obtener todos los instaladores' })
   @ApiResponse({
     status: 200,
@@ -107,7 +107,7 @@ export class InstallerController {
   @Patch(':id/status')
   async updateStatus(
     @Body() dto: StatusInstallerDto,
-    @Param('id') installerId: string, 
+    @Param('id') installerId: string,
   ) {
     return await this.installerService.updateStatus(installerId, dto.status);
   }

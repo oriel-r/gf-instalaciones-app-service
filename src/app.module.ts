@@ -24,7 +24,6 @@ import { join } from 'path';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { SheetssyncModule } from './modules/sheetssync/sheetssync.module';
 
-
 @Module({
   imports: [
     ServeStaticModule.forRoot({
@@ -39,9 +38,8 @@ import { SheetssyncModule } from './modules/sheetssync/sheetssync.module';
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService): TypeOrmModuleOptions => {
-        
-        const config = configService.get<TypeOrmModuleOptions>('postgres')
-         
+        const config = configService.get<TypeOrmModuleOptions>('postgres');
+
         if (!config) {
           throw new Error('Database configuration not found');
         }
@@ -50,7 +48,7 @@ import { SheetssyncModule } from './modules/sheetssync/sheetssync.module';
       },
     }),
     EventEmitterModule.forRoot({
-      wildcard: true
+      wildcard: true,
     }),
     UserModule,
     SeedersModule,
@@ -77,4 +75,3 @@ import { SheetssyncModule } from './modules/sheetssync/sheetssync.module';
   providers: [AppService],
 })
 export class AppModule {}
-

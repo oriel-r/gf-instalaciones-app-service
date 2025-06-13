@@ -1,7 +1,7 @@
-import { DeepPartial } from "typeorm";
+import { DeepPartial } from 'typeorm';
 
 export abstract class BaseDto {
-    constructor(partial: DeepPartial<BaseDto>) {
-        Object.assign(this, partial)
-    }
+  constructor(partial: DeepPartial<BaseDto>) {
+    Object.assign(this, partial);
+  }
 }

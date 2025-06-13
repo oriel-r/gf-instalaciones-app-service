@@ -1,4 +1,13 @@
-import { Controller, Post, Body, Get, Param, Delete, HttpCode, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  Param,
+  Delete,
+  HttpCode,
+  UseGuards,
+} from '@nestjs/common';
 import { UserRoleService } from './user-role.service';
 import { AssignRoleDto } from './dto/assign-role.dto';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
@@ -9,9 +18,9 @@ import { AuthGuard } from 'src/common/guards/auth/auth.guard';
 export class UserRoleController {
   constructor(private readonly userRoleService: UserRoleService) {}
 
-  @Get() 
+  @Get()
   async getAll() {
-    return await this.userRoleService.findAll()
+    return await this.userRoleService.findAll();
   }
 
   @Post('assign-role')
@@ -21,11 +30,11 @@ export class UserRoleController {
   }
 
   @ApiOperation({ summary: 'Buscar usuario por ID' })
-  @ApiResponse({ status: 200, description: 'Usuario encontrado.'})
+  @ApiResponse({ status: 200, description: 'Usuario encontrado.' })
   @ApiResponse({ status: 404, description: 'Usuario no encontrado.' })
   @Get(':id')
   async findUserRoleById(@Param('id') id: string) {
-    return await this.userRoleService.findUserRoleById(id)
+    return await this.userRoleService.findUserRoleById(id);
   }
 
   @Delete(':userId/:roleId')

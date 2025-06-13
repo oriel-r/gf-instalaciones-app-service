@@ -1,7 +1,17 @@
-import { Body, Controller, Get, HttpCode, HttpException, HttpStatus, InternalServerErrorException, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpException,
+  HttpStatus,
+  InternalServerErrorException,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { EmailService } from './email.service';
 import { SendEmailDto } from './dto/send-email.dto';
-import { FormContactDto} from './dto/form-contact.dto';
+import { FormContactDto } from './dto/form-contact.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from 'src/common/guards/auth/auth.guard';
 
@@ -16,7 +26,10 @@ export class EmailController {
       const { from, to, subject, message } = sendEmailDto;
       return await this.emailService.sendEmail({ from, to, subject, message });
     } catch (error) {
-      throw new HttpException(`Error al enviar el correo: ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(
+        `Error al enviar el correo: ${error.message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
@@ -26,12 +39,14 @@ export class EmailController {
       const { surname, from, subject, message } = formContactDto;
       return this.emailService.formContact({ surname, from, subject, message });
     } catch (error) {
-      throw new InternalServerErrorException(`Error enviando el formulario: ${error.message}`);
+      throw new InternalServerErrorException(
+        `Error enviando el formulario: ${error.message}`,
+      );
     }
   }
 
   @Get()
   async getAllInfoContact() {
-    return await this.emailService.getAllInfoContact()
+    return await this.emailService.getAllInfoContact();
   }
 }

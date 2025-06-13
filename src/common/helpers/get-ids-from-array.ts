@@ -1,1 +1,2 @@
-export const getIdsFromAraay = (entities) => entities.map(entity => entity['id'])
+export const getIdsFromAraay = (entities) =>
+  entities.map((entity) => entity['id']);

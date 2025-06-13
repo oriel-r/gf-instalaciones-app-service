@@ -16,10 +16,10 @@ import { FileUploadService } from 'src/services/file-upload/file-upload.service'
     AddressModule,
     UserRoleModule,
     InstallerModule,
-    ImagesModule
+    ImagesModule,
   ],
   controllers: [InstallationsController],
   providers: [InstallationsService, InstallationsRepository, FileUploadService],
-  exports: [InstallationsService, InstallationsRepository]
+  exports: [InstallationsService, InstallationsRepository],
 })
 export class InstallationsModule {}

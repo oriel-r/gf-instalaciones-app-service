@@ -38,5 +38,5 @@ export class SendEmailDto {
   message?: string;
 
   @IsOptional()
-  html?: string
+  html?: string;
 }

@@ -14,7 +14,7 @@ import { UserRole } from '../user-role/entities/user-role.entity';
     forwardRef(() => UserModule),
   ],
   controllers: [AdminController],
-  providers: [AdminService], 
+  providers: [AdminService],
   exports: [AdminService],
 })
 export class AdminModule {}

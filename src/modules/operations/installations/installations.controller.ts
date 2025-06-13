@@ -1,8 +1,30 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UploadedFiles, UseInterceptors, UsePipes, HttpStatus, HttpCode, Query, Req, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UploadedFiles,
+  UseInterceptors,
+  UsePipes,
+  HttpStatus,
+  HttpCode,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { InstallationsService } from './installations.service';
 import { UpdateInstallationDto } from './dto/update-installation.dto';
 import { Installation } from './entities/installation.entity';
-import { ApiBody, ApiOperation, ApiProperty, ApiQuery, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiOperation,
+  ApiProperty,
+  ApiQuery,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { StatusChangeDto } from './dto/change-status.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { FilesPipe } from 'src/common/pipes/file/files-pipe';
@@ -19,36 +41,42 @@ export class InstallationsController {
 
   @ApiOperation({
     summary: 'taerse todas las intalaciones',
-    description: 'no hay que pasarle nada'
+    description: 'no hay que pasarle nada',
   })
   @ApiResponse({
-    status: HttpStatus.OK, type: [Installation]
+    status: HttpStatus.OK,
+    type: [Installation],
   })
   @HttpCode(HttpStatus.OK)
   @HttpCode(HttpStatus.BAD_REQUEST)
   @Get()
   async getAll() {
-    return await this.installationsService.getAll()
+    return await this.installationsService.getAll();
   }
 
   @ApiOperation({
     summary: 'Traer y filtrar instalaciones',
-    description: 'este si acepta querys y devuelve resultados paginados'
+    description: 'este si acepta querys y devuelve resultados paginados',
   })
   @ApiQuery({
-    type: InstallationQueryOptionsDto
+    type: InstallationQueryOptionsDto,
   })
   @ApiResponse({
-    status: HttpStatus.OK, type: [Installation]
+    status: HttpStatus.OK,
+    type: [Installation],
   })
   @HttpCode(HttpStatus.OK)
   @HttpCode(HttpStatus.BAD_REQUEST)
   @Get('filter')
   async findAll(
-    @Query(new QueryOptionsPipe(InstallationQueryOptionsDto)) query: InstallationQueryOptionsDto,
-    @Req() req: Request
+    @Query(new QueryOptionsPipe(InstallationQueryOptionsDto))
+    query: InstallationQueryOptionsDto,
+    @Req() req: Request,
   ) {
-     const baseUrl = `${req.protocol}://${req.host}${req.path}` + "?" + `${new URLSearchParams(Object.entries(query).map(([k, v]) => [k, String(v)])).toString()}`
+    const baseUrl =
+      `${req.protocol}://${req.host}${req.path}` +
+      '?' +
+      `${new URLSearchParams(Object.entries(query).map(([k, v]) => [k, String(v)])).toString()}`;
     return await this.installationsService.findAll(query, undefined);
   }
 
@@ -63,13 +91,18 @@ export class InstallationsController {
                   solo si la instalación esta pendiente o pospuesta`,
   })
   @ApiResponse({
-    status: HttpStatus.OK, type: Installation,
+    status: HttpStatus.OK,
+    type: Installation,
   })
   @HttpCode(HttpStatus.OK)
   @HttpCode(HttpStatus.NOT_FOUND)
   @HttpCode(HttpStatus.INTERNAL_SERVER_ERROR)
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() data: UpdateInstallationDto , @Req() req: Request){
+  async update(
+    @Param('id') id: string,
+    @Body() data: UpdateInstallationDto,
+    @Req() req: Request,
+  ) {
     return await this.installationsService.update(id, data);
   }
 
@@ -85,12 +118,12 @@ export class InstallationsController {
                   Para transicionar de En proceso => A revsiar se debe hacer un 
                   POST installations/id/images, con las imagenes correspondinetes
                   y este maneja por si solo el cambio de estado
-                 `
+                 `,
   })
   @HttpCode(HttpStatus.OK)
   @HttpCode(HttpStatus.BAD_REQUEST)
   @Patch(':id/status')
-  async changeStatus(@Param('id') id: string, @Body() data: StatusChangeDto ) {
+  async changeStatus(@Param('id') id: string, @Body() data: StatusChangeDto) {
     return await this.installationsService.statusChange(id, data);
   }
 
@@ -100,8 +133,10 @@ export class InstallationsController {
   @UseInterceptors(FilesInterceptor('files', 10))
   @Post(':id/images')
   async loadImages(
-    @Param('id') id: string, 
-    @UploadedFiles( new FilesPipe(1000, 15000000, ['image/png','image/jpeg',])) files: Express.Multer.File[]) {
+    @Param('id') id: string,
+    @UploadedFiles(new FilesPipe(1000, 15000000, ['image/png', 'image/jpeg']))
+    files: Express.Multer.File[],
+  ) {
     return await this.installationsService.sendToReview(id, files);
   }
 

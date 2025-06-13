@@ -24,7 +24,7 @@ export class CoordinatorsService {
     private readonly coordinatorRepository: Repository<Coordinator>,
     @Inject(forwardRef(() => UserService))
     private readonly userService: UserService,
-    private readonly eventEmiiter: EventEmitter2
+    private readonly eventEmiiter: EventEmitter2,
   ) {}
 
   async createCoordinatorTransactional(
@@ -48,7 +48,10 @@ export class CoordinatorsService {
       newCoordinator,
     );
 
-    await this.eventEmiiter.emitAsync(SyncWithSheetsEnum.APPEND_ROW, {sheet: 'COORDINADORES', values: [user.fullName, user.email]})
+    await this.eventEmiiter.emitAsync(SyncWithSheetsEnum.APPEND_ROW, {
+      sheet: 'COORDINADORES',
+      values: [user.fullName, user.email],
+    });
 
     return cordinator;
   }
@@ -85,7 +88,7 @@ export class CoordinatorsService {
     if (coordinator.disabledAt) {
       throw new BadRequestException('Este coordinador ya está deshabilitado');
     }
-  
+
     coordinator.disabledAt = new Date();
     await this.coordinatorRepository.save(coordinator);
     return { message: 'Coordinador desactivado correctamente' };

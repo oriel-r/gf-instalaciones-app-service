@@ -37,23 +37,25 @@ export class InstallerService {
     private readonly userRoleService: UserRoleService,
     @InjectRepository(Role)
     private readonly roleRepository: Repository<Role>,
-    private readonly eventEmitter: EventEmitter2
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async findAll() {
     const installers = await this.installerRepository.find({
-      relations: ['user','coordinator'],
+      relations: ['user', 'coordinator'],
     });
-    
+
     if (!installers) throw new NotFoundException('Usuarios no encontrados');
 
     return plainToInstance(InstallerResponseDto, installers, {
-          excludeExtraneousValues: true,
-        });
+      excludeExtraneousValues: true,
+    });
   }
 
   async createInstaller(createInstallerDto: CreateInstallerDto) {
-    const user = await this.userRepository.findOne({where: {id: createInstallerDto.userId}});
+    const user = await this.userRepository.findOne({
+      where: { id: createInstallerDto.userId },
+    });
     if (!user) throw new NotFoundException('Usuario no encontrado');
 
     const existingInstaller = await this.installerRepository.findOne({
@@ -63,7 +65,9 @@ export class InstallerService {
       throw new ConflictException('Este usuario ya es instalador');
     }
 
-    let role = await this.roleRepository.findOneBy({ name: RoleEnum.INSTALLER});
+    let role = await this.roleRepository.findOneBy({
+      name: RoleEnum.INSTALLER,
+    });
     if (!role) {
       role = this.roleRepository.create({ name: RoleEnum.INSTALLER });
       role = await this.roleRepository.save(role);
@@ -77,21 +81,23 @@ export class InstallerService {
       status: createInstallerDto.status ?? StatusInstaller.InProcess,
     });
 
-     const savedInstaller = await this.installerRepository.save(newInstaller);
+    const savedInstaller = await this.installerRepository.save(newInstaller);
 
-     const fullUser = await this.userRepository.findOne({
+    const fullUser = await this.userRepository.findOne({
       where: { id: user.id },
       relations: ['userRoles', 'userRoles.role'],
     });
-  
+
     if (!fullUser) {
-      throw new InternalServerErrorException('Error al cargar el usuario completo');
+      throw new InternalServerErrorException(
+        'Error al cargar el usuario completo',
+      );
     }
-  
+
     return plainToInstance(
       InstallerResponseDto,
       { ...savedInstaller, user: fullUser },
-      { excludeExtraneousValues: true }
+      { excludeExtraneousValues: true },
     );
   }
 
@@ -112,66 +118,69 @@ export class InstallerService {
     const installer = await this.findById(installerId);
     installer.status = status;
     await this.installerRepository.save(installer);
-    await this.eventEmitter.emitAsync(SyncWithSheetsEnum.APPEND_ROW, {sheet: 'INSTALADORES', values: [installer.user.fullName, installer.user.email]})
+    await this.eventEmitter.emitAsync(SyncWithSheetsEnum.APPEND_ROW, {
+      sheet: 'INSTALADORES',
+      values: [installer.user.fullName, installer.user.email],
+    });
 
-    return {message: 'Estado actualizado correctamente'}
+    return { message: 'Estado actualizado correctamente' };
   }
 
   async disable(id: string) {
-    const installer = await this.installerRepository.findOne({where: {id}});
+    const installer = await this.installerRepository.findOne({ where: { id } });
 
     if (!installer) throw new NotFoundException('Instalador no encontrado');
 
     if (installer.disabledAt) {
       throw new BadRequestException('Este instalador ya está deshabilitado');
     }
-  
+
     installer.disabledAt = new Date();
     await this.installerRepository.save(installer);
     return { message: 'Instalador desactivado correctamente' };
   }
-  
+
   async restore(id: string) {
-    const installer = await this.installerRepository.findOne({where: {id}});
+    const installer = await this.installerRepository.findOne({ where: { id } });
 
     if (!installer) throw new NotFoundException('Instalador no encontrado');
 
     if (!installer.disabledAt) {
       throw new BadRequestException('Este instalador ya está activo');
     }
-  
+
     installer.disabledAt = null;
     await this.installerRepository.save(installer);
     return { message: 'Instalador restaurado correctamente' };
-  } 
+  }
 
   async findById(id: string) {
-    const installer = await this.installerRepository.findOne({ 
-      where: {id},
-      relations: ['user']
+    const installer = await this.installerRepository.findOne({
+      where: { id },
+      relations: ['user'],
     });
 
     if (!installer) throw new NotFoundException('Instalador no encontrado');
     return installer;
   }
 
-  async findByEmail(email: string, raw?: boolean)  {
+  async findByEmail(email: string, raw?: boolean) {
     const installer = await this.installerRepository.findOne({
       where: { user: { email } },
       relations: ['user'],
     });
-  
+
     if (!installer) throw new NotFoundException('Instalador no encontrado');
-    if(raw) return installer
-    
+    if (raw) return installer;
+
     return plainToInstance(InstallerResponseDto, installer, {
       excludeExtraneousValues: true,
     });
-  } 
+  }
 
   async delete(userId: string) {
     const installer = await this.installerRepository.findOne({
-      where: { user: { id: userId } }
+      where: { user: { id: userId } },
     });
 
     if (!installer) {

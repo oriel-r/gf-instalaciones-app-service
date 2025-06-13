@@ -1,4 +1,4 @@
 export interface UpdateUsersDataEvent {
-    sheet: string,
-    values: any[]
+  sheet: string;
+  values: any[];
 }

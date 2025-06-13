@@ -9,13 +9,12 @@ import { EmailModule } from '../email/email.module';
 import { OrdersModule } from '../operations/orders/orders.module';
 
 @Module({
-  imports:[
+  imports: [
     TypeOrmModule.forFeature([Notification]),
     UserRoleModule,
     EmailModule,
-    OrdersModule
+    OrdersModule,
   ],
-  controllers: [NotificationsController],
   providers: [NotificationsService, NotificationsRepository],
 })
 export class NotificationsModule {}

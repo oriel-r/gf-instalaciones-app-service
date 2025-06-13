@@ -1,3 +1,3 @@
 export enum OrderEvent {
-    RECALCULATE = 'orders.recalculateProgress'
+  RECALCULATE = 'orders.recalculateProgress',
 }

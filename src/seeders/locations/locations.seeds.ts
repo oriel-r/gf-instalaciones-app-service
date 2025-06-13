@@ -10,7 +10,7 @@ export class LocationsSeeder {
   async seed(): Promise<void> {
     if (!appDataSource.isInitialized) await appDataSource.initialize();
 
-    await appDataSource.transaction(async manager => {
+    await appDataSource.transaction(async (manager) => {
       // Si ya existen provincias, asumimos que todo está cargado
       if (await manager.count(Province)) {
         console.log('Locations already seeded');
@@ -18,7 +18,7 @@ export class LocationsSeeder {
       }
 
       // 1) Provincias
-      const provinces = provincesWithCitiesAndAddressesMock.map(p =>
+      const provinces = provincesWithCitiesAndAddressesMock.map((p) =>
         manager.create(Province, { name: p.name }),
       );
       const savedProvinces = await manager.save(provinces);
@@ -28,7 +28,7 @@ export class LocationsSeeder {
       const cities: City[] = [];
       provincesWithCitiesAndAddressesMock.forEach((pMock, idx) => {
         const prov = savedProvinces[idx];
-        pMock.cities.forEach(c =>
+        pMock.cities.forEach((c) =>
           cities.push(manager.create(City, { name: c.name, province: prov })),
         );
       });
@@ -38,10 +38,10 @@ export class LocationsSeeder {
       // 3) Direcciones
       const addresses: Address[] = [];
       let cityIdx = 0;
-      provincesWithCitiesAndAddressesMock.forEach(p =>
-        p.cities.forEach(c => {
+      provincesWithCitiesAndAddressesMock.forEach((p) =>
+        p.cities.forEach((c) => {
           const city = savedCities[cityIdx++];
-          c.addresses.forEach(a =>
+          c.addresses.forEach((a) =>
             addresses.push(manager.create(Address, { ...a, city })),
           );
         }),

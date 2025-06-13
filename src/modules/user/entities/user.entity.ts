@@ -19,7 +19,7 @@ export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({nullable: false})
+  @Column({ nullable: false })
   fullName: string;
 
   @Column()
@@ -53,7 +53,7 @@ export class User {
   @Column()
   password: string;
 
-  @Column({default: '+54'})
+  @Column({ default: '+54' })
   coverage: string;
 
   @Column({ default: true })
@@ -65,18 +65,24 @@ export class User {
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 
-  @OneToOne(() => Installer, installer => installer.user, { cascade: true })
+  @OneToOne(() => Installer, (installer) => installer.user, { cascade: true })
   installer?: Installer;
 
-  @OneToOne(() => Coordinator, coordinator => coordinator.user, { cascade: true })
+  @OneToOne(() => Coordinator, (coordinator) => coordinator.user, {
+    cascade: true,
+  })
   coordinator?: Coordinator;
 
-  @OneToOne(() => Admin, admin => admin.user, { cascade: true })
+  @OneToOne(() => Admin, (admin) => admin.user, { cascade: true })
   admin?: Admin;
 
-  @OneToMany(() => UserRole, (userRole) => userRole.user,  { cascade: true})
+  @OneToMany(() => UserRole, (userRole) => userRole.user, { cascade: true })
   userRoles: UserRole[];
 
-  @OneToMany(() => PasswordResetToken, (passwordResetToken) => passwordResetToken.user, {cascade: true})
+  @OneToMany(
+    () => PasswordResetToken,
+    (passwordResetToken) => passwordResetToken.user,
+    { cascade: true },
+  )
   passwordResetToken: PasswordResetToken[];
 }

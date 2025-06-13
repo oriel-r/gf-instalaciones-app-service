@@ -8,6 +8,6 @@ import { UserModule } from '../user/user.module';
 @Module({
   imports: [TypeOrmModule.forFeature([Image]), UserModule],
   providers: [ImagesService, FileUploadService],
-  exports: [ImagesService]
+  exports: [ImagesService],
 })
 export class ImagesModule {}

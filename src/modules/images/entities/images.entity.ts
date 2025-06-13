@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  CreateDateColumn,
+} from 'typeorm';
 import { v4 as uuid } from 'uuid';
 
 @Entity()
@@ -7,7 +13,7 @@ export class Image {
   id: string = uuid();
 
   @Column()
-  url: string; 
+  url: string;
 
   @Column()
   mimetype: string;

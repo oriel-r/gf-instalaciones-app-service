@@ -7,6 +7,6 @@ import { BlogCategoriesRepository } from './blog-categories.repository';
 @Module({
   imports: [TypeOrmModule.forFeature([BlogCategory])],
   providers: [BlogCategoriesRepository, BlogCategoriesService],
-  exports: [BlogCategoriesService]
+  exports: [BlogCategoriesService],
 })
 export class BlogCategoriesModule {}

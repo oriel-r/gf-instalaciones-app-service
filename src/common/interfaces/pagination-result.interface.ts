@@ -1,2 +1,1 @@
-export type PaginationResult<Entity> = [Entity[], number]
-  
+export type PaginationResult<Entity> = [Entity[], number];

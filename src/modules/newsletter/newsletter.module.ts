@@ -5,7 +5,7 @@ import { User } from '../user/entities/user.entity';
 import { UserModule } from '../user/user.module';
 
 @Module({
-  imports:[TypeOrmModule.forFeature([User]), forwardRef(() => UserModule)],
+  imports: [TypeOrmModule.forFeature([User]), forwardRef(() => UserModule)],
   providers: [NewsletterService],
 })
 export class NewsletterModule {}

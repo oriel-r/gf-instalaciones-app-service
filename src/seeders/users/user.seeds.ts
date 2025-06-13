@@ -7,7 +7,7 @@ import { UserRole } from 'src/modules/user-role/entities/user-role.entity';
 import { Installer } from 'src/modules/installer/entities/installer.entity';
 import { Admin } from 'src/modules/admins/entities/admins.entity';
 import { Coordinator } from 'src/modules/coordinators/entities/coordinator.entity';
-import { usersData }  from './users.mock';
+import { usersData } from './users.mock';
 import { StatusInstaller } from 'src/common/enums/status-installer';
 
 @Injectable()
@@ -15,7 +15,7 @@ export class UserSeeds {
   async seed(): Promise<void> {
     if (!appDataSource.isInitialized) await appDataSource.initialize();
 
-    await appDataSource.transaction(async manager => {
+    await appDataSource.transaction(async (manager) => {
       // 1) Roles (crea los que falten)
       const roleNames = ['Admin', 'Coordinador', 'Instalador', 'Usuario'];
       const roles: Record<string, Role> = {};
