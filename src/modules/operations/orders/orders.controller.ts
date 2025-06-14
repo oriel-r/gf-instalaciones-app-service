@@ -76,7 +76,6 @@ export class OrdersController {
     @Param('id') id: string,
     @Body() data: InstallationDataRequesDto,
   ) {
-    console.log(data);
     const orderWithNewInstallation = await this.ordersService.addInstallations(
       data,
       id,

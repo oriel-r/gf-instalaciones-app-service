@@ -102,7 +102,6 @@ export class AdminService {
 
     await this.userRoleRepository.save(newUserRole);
 
-    console.log('Usuario actualizado:', user);
     return user;
   }
 

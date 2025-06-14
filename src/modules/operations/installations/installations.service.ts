@@ -56,7 +56,6 @@ export class InstallationsService {
   ) {}
 
   async createFromOrder(createInstallationDto: CreateInstallationDto) {
-    console.log(createInstallationDto);
     const { installation, order } = createInstallationDto;
     const {
       address,
@@ -66,7 +65,6 @@ export class InstallationsService {
       coordinatorsEmails,
       ...otherData
     } = installation;
-    console.log({ installersIds: installersIds });
     const coordinators = await this.getValidCoordinator({
       coordinatorsIds: coordinatorsIds,
       coordinatorsEmails: coordinatorsEmails,
@@ -298,7 +296,7 @@ export class InstallationsService {
       throw new InternalServerErrorException('No se pudo cambiar el estado');
 
     if (installation.order.client?.length && installation.coordinator?.length) {
-      await this.eventsSwitch(installation, InstallationStatus.TO_REVIEW);
+      await this.eventsSwitch(result, InstallationStatus.TO_REVIEW);
     }
     return result;
   }
@@ -345,7 +343,7 @@ export class InstallationsService {
         }
         break;
       case InstallationStatus.TO_REVIEW:
-        if (result.coordinator && result.address) {
+        if (result.coordinator && result.address && result.images) {
           await this.emitToReviewUpdate(result);
         }
         break;
