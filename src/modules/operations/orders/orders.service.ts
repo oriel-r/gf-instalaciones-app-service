@@ -223,7 +223,6 @@ export class OrdersService {
     const order = await this.findOne(id as string);
     if (!order)
       throw new NotFoundException('orden no encontrada o numero invalido');
-    console.log({ addInstallationFunc: data });
     const newInstallation = await this.installationsService.createFromOrder({
       order,
       installation: data,
@@ -244,7 +243,6 @@ export class OrdersService {
   }: Record<'clientsIds' | 'clientsEmails', string[] | undefined>) {
     let found: Array<UserRole | null> = [];
 
-    console.log({ getClients: { ids: clientsIds, emails: clientsEmails } });
 
     if (clientsIds)
       found = await Promise.all(
@@ -253,7 +251,6 @@ export class OrdersService {
             id,
             RoleEnum.USER,
           );
-          console.log({ pepe: pepe });
           return pepe;
         }),
       );
@@ -266,7 +263,6 @@ export class OrdersService {
       );
     }
 
-    console.log({ found: { clients: found } });
 
     const clients = found.filter((UserRole) => UserRole != null);
     if (clients.length === 0) {
