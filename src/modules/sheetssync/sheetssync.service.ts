@@ -14,9 +14,6 @@ export class SheetssyncService implements OnModuleInit {
 
   async onModuleInit() {
     const keyFilePath = process.env.GOOGLE_APPLICATION_CREDENTIALS as string;
-     if (!this.spreadsheetId || !keyFilePath) {
-      throw new Error('GOOGLE_SHEET_ID o GOOGLE_APPLICATION_CREDENTIALS faltan');
-    } 
 
     const auth = new GoogleAuth({
       ...(keyFilePath ? {keyFile: path.resolve(process.cwd(), keyFilePath)} : {}),

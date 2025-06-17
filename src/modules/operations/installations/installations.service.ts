@@ -114,8 +114,19 @@ export class InstallationsService {
     );
   }
 
-  async getAll() {
-    return await this, this.installationsRepository.get();
+  async getAll(roles?: [{name: string, id: string}]) {
+  
+  let rolesByName: Record<string, string> | null = null
+   
+  if( roles) {
+      rolesByName = Object.fromEntries(roles?.map(({name, id}) => [name, id]))
+    }
+    
+    console.log(rolesByName)
+
+
+    const installations = await this.installationsRepository.get();
+    return installations
   }
 
   async filterFromOrder(orderId: string, query: InstallationQueryOptionsDto) {

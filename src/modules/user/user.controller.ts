@@ -24,8 +24,10 @@ import { Role } from './entities/roles.entity';
 import { UserWithRolesDto } from './dto/user-with-roles.dto';
 import { RoleEnum } from 'src/common/enums/user-role.enum';
 import { AuthGuard } from 'src/common/guards/auth/auth.guard';
+import { RolesGuard } from 'src/common/guards/roles/roles.guard';
+import { Roles } from 'src/common/decorators/roles/roles.decorator';
 
-//@UseGuards(AuthGuard)
+@UseGuards(AuthGuard)
 @ApiTags('Users')
 @Controller('user')
 export class UserController {
@@ -138,6 +140,8 @@ export class UserController {
     return await this.userService.disableUser(id);
   }
 
+  @Roles(RoleEnum.ADMIN)
+  @UseGuards(AuthGuard, RolesGuard)
   @ApiOperation({ summary: 'Restaurar usuario desactivado' })
   @ApiResponse({
     status: 200,

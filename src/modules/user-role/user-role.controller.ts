@@ -13,7 +13,7 @@ import { AssignRoleDto } from './dto/assign-role.dto';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { AuthGuard } from 'src/common/guards/auth/auth.guard';
 
-//@UseGuards(AuthGuard)
+@UseGuards(AuthGuard)
 @Controller('user-role')
 export class UserRoleController {
   constructor(private readonly userRoleService: UserRoleService) {}

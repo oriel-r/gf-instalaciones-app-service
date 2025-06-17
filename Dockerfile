@@ -26,7 +26,7 @@ RUN --mount=type=cache,id=npm-cache,target=/root/.npm \
         -o -name "LICENSE*" -o -name "*.d.ts" -o -name "*.map" \
         -o -name "*.html" -o -name "*.txt" \) -delete && \
     find node_modules -type d \( -name "test" -o -name "__tests__" \
-        -o -name "tests" -o -name "docs" \) -exec rm -rf {} + && \
+        -o -name "tests" \) -exec rm -rf {} + && \
     npm cache clean --force
 
 
