@@ -24,8 +24,8 @@ import { Role } from './entities/roles.entity';
 import { UserWithRolesDto } from './dto/user-with-roles.dto';
 import { RoleEnum } from 'src/common/enums/user-role.enum';
 import { AuthGuard } from 'src/common/guards/auth/auth.guard';
-import { Roles } from 'src/common/decorators/roles/roles.decorator';
 import { RolesGuard } from 'src/common/guards/roles/roles.guard';
+import { Roles } from 'src/common/decorators/roles/roles.decorator';
 
 @UseGuards(AuthGuard)
 @ApiTags('Users')
