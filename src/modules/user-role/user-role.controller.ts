@@ -16,8 +16,8 @@ import { RolesGuard } from 'src/common/guards/roles/roles.guard';
 import { Roles } from 'src/common/decorators/roles/roles.decorator';
 import { RoleEnum } from 'src/common/enums/user-role.enum';
 
-@Roles(RoleEnum.ADMIN)
 @UseGuards(AuthGuard, RolesGuard)
+@Roles(RoleEnum.ADMIN)
 @Controller('user-role')
 export class UserRoleController {
   constructor(private readonly userRoleService: UserRoleService) {}

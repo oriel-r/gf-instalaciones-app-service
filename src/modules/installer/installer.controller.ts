@@ -15,8 +15,11 @@ import { Installer } from './entities/installer.entity';
 import { UpdateInstallerDto } from './dto/update-installer';
 import { StatusInstallerDto } from './dto/status-update-installer.dto';
 import { AuthGuard } from 'src/common/guards/auth/auth.guard';
+import { Roles } from 'src/common/decorators/roles/roles.decorator';
+import { RoleEnum } from 'src/common/enums/user-role.enum';
+import { RolesGuard } from 'src/common/guards/roles/roles.guard';
 
-@UseGuards(AuthGuard)
+@UseGuards(AuthGuard, RolesGuard)
 @ApiTags('Installer')
 @Controller('installer')
 export class InstallerController {
@@ -29,6 +32,7 @@ export class InstallerController {
     type: [Installer],
   })
   @Get()
+  @Roles(RoleEnum.ADMIN, RoleEnum.COORDINATOR)
   async findAll() {
     return await this.installerService.findAll();
   }
@@ -40,6 +44,7 @@ export class InstallerController {
     type: Installer,
   })
   @Post()
+  @Roles(RoleEnum.ADMIN)
   async createInstaller(@Body() installerDto: CreateInstallerDto) {
     return await this.installerService.createInstaller(installerDto);
   }
@@ -50,6 +55,7 @@ export class InstallerController {
     description: 'Actualización exitosa',
   })
   @Patch(':id')
+  @Roles(RoleEnum.ADMIN, RoleEnum.INSTALLER)
   async updateInstaller(
     @Body() updateInstaller: UpdateInstallerDto,
     @Param('id') id: string,
@@ -63,6 +69,7 @@ export class InstallerController {
     description: 'El instalador ha sido deshabilitado correctamente',
   })
   @Delete('disabled/:id')
+  @Roles(RoleEnum.ADMIN)
   async disable(@Param('id') id: string) {
     return await this.installerService.disable(id);
   }
@@ -73,6 +80,7 @@ export class InstallerController {
     description: 'El instalador ha sido restaurado correctamente',
   })
   @Patch('restore/:id')
+  @Roles(RoleEnum.ADMIN)
   async restore(@Param('id') id: string) {
     return await this.installerService.restore(id);
   }
@@ -85,6 +93,7 @@ export class InstallerController {
   })
   @ApiResponse({ status: 404, description: 'Instalador no encontrado.' })
   @Get(':id')
+  @Roles(RoleEnum.ADMIN, RoleEnum.COORDINATOR)
   async findById(@Param('id') id: string) {
     return await this.installerService.findById(id);
   }
@@ -95,6 +104,7 @@ export class InstallerController {
     description: 'El instalador ha sido eliminado correctamente',
   })
   @Delete(':id')
+  @Roles(RoleEnum.ADMIN)
   async delete(@Param('id') id: string) {
     return await this.installerService.delete(id);
   }
@@ -105,6 +115,7 @@ export class InstallerController {
     description: 'El estado del instalador ha sido actualizado correctamente',
   })
   @Patch(':id/status')
+  @Roles(RoleEnum.ADMIN)
   async updateStatus(
     @Body() dto: StatusInstallerDto,
     @Param('id') installerId: string,
