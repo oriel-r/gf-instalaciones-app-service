@@ -118,14 +118,12 @@ export class UserService {
       );
     }
 
-    const userRoleId = fullUser.userRoles.find(
-      (ur) => ur.role.name !== RoleEnum.USER,
-    );
+    const userRoleId = fullUser.userRoles[0].id
 
     if (fullUser && userRoleId) {
       await this.eventEmiiter.emitAsync(SyncWithSheetsEnum.APPEND_ROW, {
         sheet: 'CLIENTES',
-        values: [fullUser.fullName, fullUser.email, userRoleId.id],
+        values: [fullUser.fullName, fullUser.email, userRoleId],
       });
     }
 

@@ -12,8 +12,12 @@ import { UserRoleService } from './user-role.service';
 import { AssignRoleDto } from './dto/assign-role.dto';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { AuthGuard } from 'src/common/guards/auth/auth.guard';
+import { RolesGuard } from 'src/common/guards/roles/roles.guard';
+import { Roles } from 'src/common/decorators/roles/roles.decorator';
+import { RoleEnum } from 'src/common/enums/user-role.enum';
 
-@UseGuards(AuthGuard)
+@Roles(RoleEnum.ADMIN)
+@UseGuards(AuthGuard, RolesGuard)
 @Controller('user-role')
 export class UserRoleController {
   constructor(private readonly userRoleService: UserRoleService) {}
