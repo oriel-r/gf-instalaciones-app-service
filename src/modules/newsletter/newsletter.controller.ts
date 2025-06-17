@@ -7,12 +7,19 @@ import {
   Param,
   Delete,
   NotFoundException,
+  UseGuards,
 } from '@nestjs/common';
 import { NewsletterService } from './newsletter.service';
 import { SendEmailDto } from '../email/dto/send-email.dto';
 import { ApiTags } from '@nestjs/swagger';
+import { AuthGuard } from 'src/common/guards/auth/auth.guard';
+import { Roles } from 'src/common/decorators/roles/roles.decorator';
+import { RoleEnum } from 'src/common/enums/user-role.enum';
+import { RolesGuard } from 'src/common/guards/roles/roles.guard';
 
 @ApiTags('Newsletter')
+@UseGuards(AuthGuard, RolesGuard)
+@Roles(RoleEnum.ADMIN)
 @Controller('newsletter')
 export class NewsletterController {
   constructor(private readonly newsletterService: NewsletterService) {}

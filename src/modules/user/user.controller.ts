@@ -24,9 +24,11 @@ import { Role } from './entities/roles.entity';
 import { UserWithRolesDto } from './dto/user-with-roles.dto';
 import { RoleEnum } from 'src/common/enums/user-role.enum';
 import { AuthGuard } from 'src/common/guards/auth/auth.guard';
+import { Roles } from 'src/common/decorators/roles/roles.decorator';
+import { RolesGuard } from 'src/common/guards/roles/roles.guard';
 
-//@UseGuards(AuthGuard)
 @ApiTags('Users')
+@UseGuards(AuthGuard, RolesGuard)
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
@@ -38,6 +40,7 @@ export class UserController {
     type: [User],
   })
   @Get()
+  @Roles(RoleEnum.ADMIN)
   async findAll(): Promise<UserWithRolesDto[]> {
     return await this.userService.findAll();
   }
@@ -48,6 +51,7 @@ export class UserController {
     description: 'Lista de roles obtenida.',
     type: [Role],
   })
+  @Roles(RoleEnum.ADMIN)
   @Get('getRoles')
   async findAllRoles() {
     return await this.userService.findAllRoles();
@@ -62,6 +66,7 @@ export class UserController {
     type: [User],
   })
   @Get('filter')
+  @Roles(RoleEnum.ADMIN, RoleEnum.COORDINATOR)
   async findAllAndFilter(
     @Req() req: Request,
     @Query(new QueryOptionsPipe(UserQueryOptions)) query: UserQueryOptions,
@@ -85,6 +90,7 @@ export class UserController {
   @ApiResponse({ status: 200, description: 'Usuario encontrado.', type: User })
   @ApiResponse({ status: 404, description: 'Usuario no encontrado.' })
   @Get('byEmail')
+  @Roles(RoleEnum.ADMIN)
   async findByEmail(@Query() query: FindUserByEmailDto) {
     return await this.userService.findByEmail(query.email);
   }
@@ -93,6 +99,7 @@ export class UserController {
   @ApiResponse({ status: 200, description: 'Usuario encontrado.', type: User })
   @ApiResponse({ status: 404, description: 'Usuario no encontrado.' })
   @Get('byId/:id')
+  @Roles(RoleEnum.ADMIN, RoleEnum.COORDINATOR)
   async findById(@Param('id') id: string) {
     return await this.userService.findById(id);
   }
@@ -107,6 +114,7 @@ export class UserController {
     description: 'Usuario no encontrado.',
   })
   @Patch('update/:id')
+  @Roles(RoleEnum.ADMIN, RoleEnum.USER)
   async updateUser(
     @Param('id') id: string,
     @Body() updateUserDto: UpdateUserDto,
@@ -124,6 +132,7 @@ export class UserController {
     description: 'Usuario no encontrado.',
   })
   @Delete('deleted/:id')
+  @Roles(RoleEnum.ADMIN)
   async deleteUser(@Param('id') userId: string) {
     return await this.userService.deleteUser(userId);
   }
@@ -134,6 +143,7 @@ export class UserController {
     description: 'Usuario desactivado correctamente.',
   })
   @Delete('disabled/:id')
+  @Roles(RoleEnum.ADMIN)
   async disableUser(@Param('id') id: string) {
     return await this.userService.disableUser(id);
   }
@@ -148,6 +158,7 @@ export class UserController {
     description: 'El usuario ya se encuentra activo.',
   })
   @Patch('restore/:id')
+  @Roles(RoleEnum.ADMIN)
   async restore(@Param('id') id: string) {
     return await this.userService.restoreUser(id);
   }

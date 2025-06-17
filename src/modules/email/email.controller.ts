@@ -14,6 +14,9 @@ import { SendEmailDto } from './dto/send-email.dto';
 import { FormContactDto } from './dto/form-contact.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from 'src/common/guards/auth/auth.guard';
+import { RolesGuard } from 'src/common/guards/roles/roles.guard';
+import { Roles } from 'src/common/decorators/roles/roles.decorator';
+import { RoleEnum } from 'src/common/enums/user-role.enum';
 
 @ApiTags('Email')
 @Controller('email')
@@ -46,6 +49,8 @@ export class EmailController {
   }
 
   @Get()
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(RoleEnum.ADMIN)
   async getAllInfoContact() {
     return await this.emailService.getAllInfoContact();
   }
