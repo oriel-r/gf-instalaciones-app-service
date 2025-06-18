@@ -87,10 +87,10 @@ export class Installation extends BaseEntity {
     description: 'inslation Address',
   })
   @ManyToOne(() => Address, (address) => address.installations, {
-    nullable: false,
+    nullable: true,
     eager: true,
   })
-  address: Address;
+  address: Address | null;
 
   @ApiProperty({
     title: 'notes',
