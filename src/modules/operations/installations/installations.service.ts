@@ -24,6 +24,7 @@ import { InstallationApprovedDto } from 'src/modules/notifications/dto/installat
 import { InstallationGeneralUpdate } from 'src/modules/notifications/dto/installation-general-update.dto';
 import { InstallationPostponedDto } from 'src/modules/notifications/dto/installation-postponed.dto';
 import { Address } from 'src/modules/locations/address/entities/address.entity';
+import { CreateAddressDto } from 'src/modules/locations/address/dto/create-address.dto';
 import { InstallationCancelDto } from 'src/modules/notifications/dto/intallation-cancel.dto';
 import { allowedTransitions } from './helpers/allowed-transitions.const';
 import { ImagesService } from 'src/modules/images/images.service';
@@ -74,7 +75,9 @@ export class InstallationsService {
       installersEmails: installersEmails,
     });
 
-    const installationAddress = await this.addressService.create(address);
+    const installationAddress = address
+      ? await this.addressService.create(address)
+      : null;
 
     const newInstallation = await this.installationsRepository.create({
       ...otherData,
@@ -196,7 +199,27 @@ export class InstallationsService {
       });
     }
 
-    if (data.addressId && data.addressData) {
+    if (data.addressId === null || data.addressData === null) {
+      throw new BadRequestException('Los campos de dirección no pueden ser nulos');
+    }
+
+    const hasAddressId = data.addressId !== undefined;
+    const hasAddressData = data.addressData !== undefined;
+
+    if (hasAddressData && !hasAddressId) {
+      newAddress = await this.addressService.create(
+        data.addressData as CreateAddressDto,
+      );
+    }
+
+    if (hasAddressId && !hasAddressData) {
+      newAddress = await this.addressService.findOne(data.addressId!);
+    }
+
+    if (hasAddressId && hasAddressData) {
+      if (!installation.address || installation.address.id !== data.addressId) {
+        throw new BadRequestException('Dirección inválida para editar');
+      }
       newAddress = await this.addressService.update(
         data.addressId,
         data.addressData,
