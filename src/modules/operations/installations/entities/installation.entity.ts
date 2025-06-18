@@ -62,7 +62,7 @@ export class Installation extends BaseEntity {
     description: 'The day when start the installation',
   })
   @Column('timestamptz', { nullable: true })
-  startDate: Date;
+  startDate: Date | null;
 
   @ApiProperty({
     title: 'images',
@@ -97,14 +97,14 @@ export class Installation extends BaseEntity {
     description: 'extra notes for installers',
   })
   @Column('varchar', { nullable: true })
-  notes: string;
+  notes: string | null;
 
   @ApiProperty({
     title: 'endDate',
     description: 'The day in that the installation is finished',
   })
   @Column('timestamptz', { nullable: true })
-  endDate: Date;
+  endDate: Date | null;
 
   @Column({ type: 'timestamptz', nullable: true })
   startedAt!: Date | null;
