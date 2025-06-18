@@ -6,7 +6,7 @@ import * as path from 'node:path';
 import { SyncWithSheetsEnum } from 'src/common/enums/sync-with-sheets-event.enum';
 import { UpdateUsersDataEvent } from 'src/common/interfaces/update-userdata-event';
 
-@Injectable()
+@Injectable() 
 export class SheetssyncService implements OnModuleInit {
   private readonly logger = new Logger(SheetssyncService.name);
   private sheets!: sheets_v4.Sheets;
