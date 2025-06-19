@@ -6,6 +6,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
   ServiceUnavailableException,
+  UnprocessableEntityException,
 } from '@nestjs/common';
 import { CreateInstallationDto } from './dto/create-installation.dto';
 import { InstallationsRepository } from './installations.repository';
@@ -180,7 +181,7 @@ export class InstallationsService {
 
     if (
       installation.status === InstallationStatus.POSTPONED &&
-      data.startDate
+      data.startDate && installation.startDate
     ) {
       const newStartDate = new Date(data.startDate);
       const currentStartDate = installation.startDate;
@@ -246,6 +247,14 @@ export class InstallationsService {
       id,
       updateData,
     );
+
+    if(updateData.installers || updateData.coordinator) {
+      await this.eventEmitter.emitAsync(
+        NotifyEvents.INSTALLATION_CREATED,
+        new InstallationCreatedEvent(updatedInstallation as Installation),
+      );
+    }
+    
     return updatedInstallation;
   }
 
@@ -260,6 +269,8 @@ export class InstallationsService {
         `Transición de estado no permitida: ${installation.status} -> ${dto.status}`,
       );
     }
+
+    if((!installation.coordinator || !installation.installers) && dto.status !== InstallationStatus.CANCEL ) throw new UnprocessableEntityException('Esta instalación no tiene ni coodinadores ni instaladores')
 
     const updateData: Partial<Installation> = { ...dto };
     const now = new Date();
@@ -457,11 +468,9 @@ export class InstallationsService {
   }: {
     coordinatorsIds?: string[];
     coordinatorsEmails?: string[];
-  }): Promise<UserRole[]> {
+  }): Promise<UserRole[] | null> {
     if (!coordinatorsIds?.length && !coordinatorsEmails?.length) {
-      throw new BadRequestException(
-        'Debes indicar IDs o e-mails de coordinadores',
-      );
+      return null
     }
 
     const found = coordinatorsIds?.length
@@ -488,11 +497,9 @@ export class InstallationsService {
   }: {
     installersIds?: string[];
     installersEmails?: string[];
-  }): Promise<Installer[]> {
+  }): Promise<Installer[] | null> {
     if (!installersIds?.length && !installersEmails?.length) {
-      throw new BadRequestException(
-        'Debes indicar IDs o e-mails de instaladores',
-      );
+      return null
     }
 
     const found: Array<Installer | null> = installersIds?.length

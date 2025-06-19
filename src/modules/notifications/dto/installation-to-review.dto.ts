@@ -7,8 +7,7 @@ export class InstallationToReviewDto {
   @IsNotEmpty()
   coordinatorId: string[] | undefined;
 
-  @IsNotEmpty()
-  address: Address;
+  address: Address | null;
 
   @IsNotEmpty()
   clientId: string[] | undefined;

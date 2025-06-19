@@ -6,7 +6,7 @@ import { Installation } from 'src/modules/operations/installations/entities/inst
 
 export class ImagesRejectedEvent {
   @IsString()
-  address: Address;
+  address: Address | null;
 
   @IsString()
   installationId: string;

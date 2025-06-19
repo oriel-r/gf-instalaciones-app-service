@@ -17,7 +17,7 @@ export class InstallationGeneralUpdate {
   @ApiProperty({
     description: 'The fully order updated',
   })
-  address: Address;
+  address: Address | null;
 
   constructor({ order: { client }, coordinator, address }: Installation) {
     this.clientId = getIdsFromAraay(client);

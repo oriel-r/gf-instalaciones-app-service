@@ -66,10 +66,12 @@ export class NotificationsService {
 
       const receivers = [...coordinators, ...filterInstallers];
 
-      if (receivers.length === 0)
+      if (receivers.length === 0) return
+      if(!address) {
         throw new BadRequestException(
-          'No se encontraron usuarios para notificar',
-        );
+          'No se encontro la dirección'
+        )
+      }
 
       const emails = await this.emailService.sendEmail({
         to: receivers.map((r) => r.user.email),
@@ -164,6 +166,12 @@ export class NotificationsService {
 
       const filterInstallers = installers.filter((i) => i !== null);
 
+      if(!address) {
+        throw new BadRequestException(
+          'No se encontro la dirección al enviar el mail'
+        )
+      }
+
       const emails = await this.emailService.sendEmail({
         to: filterInstallers.map((inst) => inst.user.email),
         subject: 'Imágenes rechazadas',
@@ -191,6 +199,13 @@ export class NotificationsService {
   @OnEvent(NotifyEvents.INSTALLATION_GENERAL_UPDATE)
   async installationUpdate(data: InstallationGeneralUpdate) {
     const { clientId, coordinatorId, address } = data;
+    
+    if(!address) {
+        throw new BadRequestException(
+          'No se encontro la dirección al enviar el mail'
+        )
+      }
+    
     const { street, number, city } = address;
     try {
       const client = await this.getValidClients({
@@ -233,6 +248,13 @@ export class NotificationsService {
   @OnEvent(NotifyEvents.INSTALLATION_POSTPONED)
   async postponedInstallation(data: InstallationPostponedDto) {
     const { coordinatorId, address } = data;
+
+    if(!address) {
+      throw new BadRequestException(
+        'No se econtro la dirección'
+      )
+    }
+
     try {
       const coordinator = await this.getValidCoordinator({
         coordinatorsIds: coordinatorId,
@@ -276,6 +298,13 @@ export class NotificationsService {
         'Coordinador o cliente no encontrados',
         HttpStatus.UNPROCESSABLE_ENTITY,
       );
+
+    if(!address) {
+      throw new BadRequestException(
+        'No se econtro la dirección'
+      )
+    }
+
 
     const emailForClient = await this.emailService.sendEmail({
       to: [...aClient.map((client) => client.user.email)],
@@ -351,7 +380,7 @@ export class NotificationsService {
         pending.length >= this.BATCH_SIZE
       ) {
         const addresses = pending.map(
-          (inst) => `${inst.address.street} ${inst.address.number}`,
+          (inst) => `${inst.address!.street} ${inst.address!.number}`,
         );
         html = `<h2>Se finalizaron las instalaciones en:</h2><ul>${addresses.map((a) => `<li>${a}</li>`).join('')}</ul>`;
         subject = 'Instalaciones finalizadas';
@@ -436,12 +465,15 @@ export class NotificationsService {
   >): Promise<UserRole[]> {
     let found: Array<UserRole | null> | void[] = [];
 
-    if (coordinatorsIds)
+    if(coordinatorsIds && !coordinatorsIds.length ) return []
+    
+    if (coordinatorsIds) {
       found = await Promise.all(
         coordinatorsIds.map((id) =>
           this.userRoleService.getByIdWhenRole(id, RoleEnum.COORDINATOR),
         ),
       );
+    }
     else if (coordinatorsEmails) {
       found = await Promise.all(
         coordinatorsEmails.map((email) =>
@@ -450,9 +482,10 @@ export class NotificationsService {
       );
     }
 
+
     const coordinators = found.filter((i) => i != null);
     if (coordinators.length === 0) {
-      throw new BadRequestException('No se encontraron los instaladores');
+      throw new BadRequestException('No se encontraron los coordinadores');
     }
 
     return coordinators;
