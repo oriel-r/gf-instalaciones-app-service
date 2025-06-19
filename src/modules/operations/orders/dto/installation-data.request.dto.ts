@@ -5,6 +5,7 @@ import {
   IsOptional,
   IsString,
   IsUUID,
+  ValidateNested,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsISO8601 } from 'class-validator';
@@ -25,9 +26,10 @@ export class InstallationDataRequesDto {
     title: 'Address',
     description: 'Dirección de la instalación',
   })
-  @IsNotEmpty()
+  @IsOptional()
+  @ValidateNested()
   @Type(() => CreateAddressDto)
-  address: CreateAddressDto;
+  address?: CreateAddressDto;
 
   @ApiProperty({
     title: 'installers',

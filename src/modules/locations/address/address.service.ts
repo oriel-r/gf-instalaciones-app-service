@@ -52,13 +52,15 @@ export class AddressService {
     return Address;
   }
 
-  async update(id: string, data: DeepPartial<CreateAddressDto>) {
+  async update(id: string, data: DeepPartial<CreateAddressDto> | undefined ) {
     const address = await this.addressesRepository.getById(id);
     if (!address) {
       throw new NotFoundException(
         'No se encontró la dirección o el ID es inválido',
       );
     }
+
+    if(!data) throw new BadRequestException('Se requiere la información nueva para actualizar la dirección')
 
     const { city, province, ...otherFields } = data;
     let updatedCity = address.city;

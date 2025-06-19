@@ -18,6 +18,7 @@ import { RolesGuard } from 'src/common/guards/roles/roles.guard';
 import { Roles, ROLES_KEY } from 'src/common/decorators/roles/roles.decorator';
 import { RoleEnum } from 'src/common/enums/user-role.enum';
 
+@UseGuards(AuthGuard, RolesGuard)
 @Controller('images')
 export class ImagesController {
   constructor(
@@ -25,9 +26,8 @@ export class ImagesController {
     private readonly fileUploadService: FileUploadService,
   ) {}
 
-  /* @Roles(RoleEnum.ADMIN)
-  @UseGuards(AuthGuard, RolesGuard) */
   @Post()
+  @Roles(RoleEnum.INSTALLER)
   @UseInterceptors(FileInterceptor('file'))
   @UsePipes(
     new FilePipe(1000, 5000000, ['image/png', 'image/jpeg', 'application/pdf']),
@@ -42,6 +42,7 @@ export class ImagesController {
   }
 
   @Post('upload/images')
+  @Roles(RoleEnum.INSTALLER)
   @UseInterceptors(FilesInterceptor('files', 10))
   @UsePipes(
     new FilesPipe(1000, 10000000, [
@@ -65,6 +66,7 @@ export class ImagesController {
   }
 
   @Get()
+  @Roles(RoleEnum.ADMIN, RoleEnum.COORDINATOR)
   async findAll() {
     return await this.imageService.findAll();
   }

@@ -9,7 +9,7 @@ export class InstallationCreatedEvent {
 
   installersIds: string[];
 
-  address: Address;
+  address: Address | null;
 
   constructor({ coordinator, installers, address }: Installation) {
     this.coordinatorsIds = getIdsFromAraay(coordinator);
