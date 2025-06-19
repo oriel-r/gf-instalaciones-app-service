@@ -6,7 +6,7 @@ import * as path from 'node:path';
 import { SyncWithSheetsEnum } from 'src/common/enums/sync-with-sheets-event.enum';
 import { UpdateUsersDataEvent } from 'src/common/interfaces/update-userdata-event';
 
-@Injectable()
+@Injectable() 
 export class SheetssyncService implements OnModuleInit {
   private readonly logger = new Logger(SheetssyncService.name);
   private sheets!: sheets_v4.Sheets;
@@ -14,9 +14,6 @@ export class SheetssyncService implements OnModuleInit {
 
   async onModuleInit() {
     const keyFilePath = process.env.GOOGLE_APPLICATION_CREDENTIALS as string;
-     if (!this.spreadsheetId || !keyFilePath) {
-      throw new Error('GOOGLE_SHEET_ID o GOOGLE_APPLICATION_CREDENTIALS faltan');
-    } 
 
     const auth = new GoogleAuth({
       ...(keyFilePath ? {keyFile: path.resolve(process.cwd(), keyFilePath)} : {}),

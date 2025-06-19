@@ -9,12 +9,12 @@ import { User } from 'src/modules/user/entities/user.entity';
 export class GetInstallationsDto extends BaseDto {
   id: string;
   images: string[] | null;
-  startDate: Date;
-  endDate: Date;
+  startDate: Date | null;
+  endDate: Date | null;
   coordinator: User[] | null;
   installers: User[] | null;
   status: InstallationStatus;
-  address: AddressResponseDto;
+  address: AddressResponseDto | null;
 
   constructor(data: Installation) {
     super(data);
@@ -28,6 +28,6 @@ export class GetInstallationsDto extends BaseDto {
       data.coordinator.map((coordinator) => coordinator.user);
     this.installers =
       data.installers && data.installers.map((installer) => installer.user);
-    this.address = new AddressResponseDto(data.address);
+    this.address = data.address ? new AddressResponseDto(data.address) : null;
   }
 }

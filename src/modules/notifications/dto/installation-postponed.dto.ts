@@ -8,8 +8,7 @@ export class InstallationPostponedDto {
   @IsUUID()
   coordinatorId: string[];
 
-  @IsInstance(Address)
-  address: Address;
+  address: Address | null;
 
   constructor({ coordinator, address }: Installation) {
     this.coordinatorId = getIdsFromAraay(coordinator);

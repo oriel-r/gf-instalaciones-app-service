@@ -20,8 +20,7 @@ export class InstallationApprovedDto {
   @ValidateNested({ each: true })
   installers: Installer[];
 
-  @IsInstance(Address)
-  address: Address;
+  address: Address | null;
 
   @IsOptional()
   @IsString()

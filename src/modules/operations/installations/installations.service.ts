@@ -6,6 +6,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
   ServiceUnavailableException,
+  UnprocessableEntityException,
 } from '@nestjs/common';
 import { CreateInstallationDto } from './dto/create-installation.dto';
 import { InstallationsRepository } from './installations.repository';
@@ -24,6 +25,7 @@ import { InstallationApprovedDto } from 'src/modules/notifications/dto/installat
 import { InstallationGeneralUpdate } from 'src/modules/notifications/dto/installation-general-update.dto';
 import { InstallationPostponedDto } from 'src/modules/notifications/dto/installation-postponed.dto';
 import { Address } from 'src/modules/locations/address/entities/address.entity';
+import { CreateAddressDto } from 'src/modules/locations/address/dto/create-address.dto';
 import { InstallationCancelDto } from 'src/modules/notifications/dto/intallation-cancel.dto';
 import { allowedTransitions } from './helpers/allowed-transitions.const';
 import { ImagesService } from 'src/modules/images/images.service';
@@ -74,7 +76,9 @@ export class InstallationsService {
       installersEmails: installersEmails,
     });
 
-    const installationAddress = await this.addressService.create(address);
+    const installationAddress = address
+      ? await this.addressService.create(address)
+      : null;
 
     const newInstallation = await this.installationsRepository.create({
       ...otherData,
@@ -114,8 +118,19 @@ export class InstallationsService {
     );
   }
 
-  async getAll() {
-    return await this, this.installationsRepository.get();
+  async getAll(roles?: [{name: string, id: string}]) {
+  
+  let rolesByName: Record<string, string> | null = null
+   
+  if( roles) {
+      rolesByName = Object.fromEntries(roles?.map(({name, id}) => [name, id]))
+    }
+    
+    console.log(rolesByName)
+
+
+    const installations = await this.installationsRepository.get();
+    return installations
   }
 
   async filterFromOrder(orderId: string, query: InstallationQueryOptionsDto) {
@@ -166,7 +181,7 @@ export class InstallationsService {
 
     if (
       installation.status === InstallationStatus.POSTPONED &&
-      data.startDate
+      data.startDate && installation.startDate
     ) {
       const newStartDate = new Date(data.startDate);
       const currentStartDate = installation.startDate;
@@ -185,7 +200,27 @@ export class InstallationsService {
       });
     }
 
-    if (data.addressId && data.addressData) {
+    if (data.addressId === null || data.addressData === null) {
+      throw new BadRequestException('Los campos de dirección no pueden ser nulos');
+    }
+
+    const hasAddressId = data.addressId !== undefined;
+    const hasAddressData = data.addressData !== undefined;
+
+    if (hasAddressData && !hasAddressId) {
+      newAddress = await this.addressService.create(
+        data.addressData as CreateAddressDto,
+      );
+    }
+
+    if (hasAddressId && !hasAddressData) {
+      newAddress = await this.addressService.findOne(data.addressId!);
+    }
+
+    if (hasAddressId && hasAddressData) {
+      if (!installation.address || installation.address.id !== data.addressId) {
+        throw new BadRequestException('Dirección inválida para editar');
+      }
       newAddress = await this.addressService.update(
         data.addressId,
         data.addressData,
@@ -212,6 +247,14 @@ export class InstallationsService {
       id,
       updateData,
     );
+
+    if(updateData.installers || updateData.coordinator) {
+      await this.eventEmitter.emitAsync(
+        NotifyEvents.INSTALLATION_CREATED,
+        new InstallationCreatedEvent(updatedInstallation as Installation),
+      );
+    }
+    
     return updatedInstallation;
   }
 
@@ -226,6 +269,8 @@ export class InstallationsService {
         `Transición de estado no permitida: ${installation.status} -> ${dto.status}`,
       );
     }
+
+    if((!installation.coordinator || !installation.installers) && dto.status !== InstallationStatus.CANCEL ) throw new UnprocessableEntityException('Esta instalación no tiene ni coodinadores ni instaladores')
 
     const updateData: Partial<Installation> = { ...dto };
     const now = new Date();
@@ -423,11 +468,9 @@ export class InstallationsService {
   }: {
     coordinatorsIds?: string[];
     coordinatorsEmails?: string[];
-  }): Promise<UserRole[]> {
+  }): Promise<UserRole[] | null> {
     if (!coordinatorsIds?.length && !coordinatorsEmails?.length) {
-      throw new BadRequestException(
-        'Debes indicar IDs o e-mails de coordinadores',
-      );
+      return null
     }
 
     const found = coordinatorsIds?.length
@@ -454,11 +497,9 @@ export class InstallationsService {
   }: {
     installersIds?: string[];
     installersEmails?: string[];
-  }): Promise<Installer[]> {
+  }): Promise<Installer[] | null> {
     if (!installersIds?.length && !installersEmails?.length) {
-      throw new BadRequestException(
-        'Debes indicar IDs o e-mails de instaladores',
-      );
+      return null
     }
 
     const found: Array<Installer | null> = installersIds?.length

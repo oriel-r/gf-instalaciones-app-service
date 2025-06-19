@@ -33,8 +33,12 @@ import { InstallationQueryOptionsDto } from './dto/installation-query-options.dt
 import { Request } from 'express';
 import { Roles } from 'src/common/decorators/roles/roles.decorator';
 import { AuthGuard } from 'src/common/guards/auth/auth.guard';
+import { RoleEnum } from 'src/common/enums/user-role.enum';
+import { RolesGuard } from 'src/common/guards/roles/roles.guard';
+import { Role } from 'src/modules/user/entities/roles.entity';
 
-@UseGuards(AuthGuard)
+@Roles(RoleEnum.ADMIN, RoleEnum.COORDINATOR, RoleEnum.INSTALLER)
+@UseGuards(AuthGuard, RolesGuard)
 @Controller('installations')
 export class InstallationsController {
   constructor(private readonly installationsService: InstallationsService) {}
@@ -50,8 +54,12 @@ export class InstallationsController {
   @HttpCode(HttpStatus.OK)
   @HttpCode(HttpStatus.BAD_REQUEST)
   @Get()
-  async getAll() {
-    return await this.installationsService.getAll();
+  async getAll(@Req() req: Request) {
+    const user = req['user']
+    console.log(user)
+    const roles = user['roles']
+    console.log(roles)
+    return await this.installationsService.getAll(roles);
   }
 
   @ApiOperation({
@@ -73,11 +81,18 @@ export class InstallationsController {
     query: InstallationQueryOptionsDto,
     @Req() req: Request,
   ) {
+    
+    const isCoordinator = req['user']['roles'].find(role => role['name'] === RoleEnum.COORDINATOR)  
+    const isInstaller = req['user']['installerId']
+    
+    const installerId = isInstaller ? isInstaller : undefined
+    const coordinatorId = isCoordinator ? isCoordinator['id'] : undefined
+
     const baseUrl =
       `${req.protocol}://${req.host}${req.path}` +
       '?' +
       `${new URLSearchParams(Object.entries(query).map(([k, v]) => [k, String(v)])).toString()}`;
-    return await this.installationsService.findAll(query, undefined);
+    return await this.installationsService.findAll(query, coordinatorId, installerId);
   }
 
   @Get(':id')
