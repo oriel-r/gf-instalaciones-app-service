@@ -37,7 +37,7 @@ export class NotificationsService {
     private readonly ordersRepository: OrdersRepository,
   ) {}
 
-  private readonly BATCH_SIZE = 5;
+  private readonly BATCH_SIZE = 10;
 
   async create(createNotificationDto: CreateNotificationDto) {
     const result = await this.notificationsRepository.create(
@@ -330,6 +330,46 @@ export class NotificationsService {
       message: `La instalación a realizarse en ${address.street} ${address.number} de ciudad de ${address.city.name} (${address.city.province.name}) esta pendiente de reivsar`,
       receivers: [...aCoordinator, ...aClient],
     });
+  }
+
+  @OnEvent(NotifyEvents.INSTALLATION_TO_REVIEW_COORDINATOR_ONLY)
+  async installationToReviewCoordinatorOnly(data: InstallationToReviewDto) {
+    const { clientId, coordinatorId, address, images } = data;
+
+    const aCoordinator = await this.getValidCoordinator({
+      coordinatorsIds: coordinatorId,
+      coordinatorsEmails: undefined,
+    });
+
+    if (!aCoordinator.length)
+      throw new HttpException(
+        'Coordinador o cliente no encontrados',
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+
+    if(!address) {
+      throw new BadRequestException(
+        'No se econtro la dirección'
+      )
+    }
+
+    const emailForCoord = this.emailService.sendEmail({
+      to: [...aCoordinator.map((coordinator) => coordinator.user.email)],
+      subject: `Verificá la instalación en ${address.street} ${address.number}`,
+      html: this.sendEmailtToCoordinatorForReview(
+        images as string[],
+        address.street,
+        address.number,
+      ),
+    });
+    const newNotification = this.create({
+      title: 'La instalación esta pendiente a revisar',
+      message: `La instalación a realizarse en ${address.street} ${address.number} de ciudad de ${address.city.name} (${address.city.province.name}) esta pendiente de reivsar`,
+      receivers: [...aCoordinator],
+    });
+
+    await Promise.all([emailForCoord, newNotification])
+    return
   }
 
   @OnEvent(NotifyEvents.INSTALLATION_APROVE)
