@@ -6,5 +6,5 @@ export enum InstallationStatus {
   FINISHED = 'Finalizada',
   IMAGES_REJECTED = 'Rechazada',
   CANCEL = 'Cancelada',
-  TO_REVIEW_COORDINATOR_ONLY = 'A revisar'
+  TO_REVIEW_COORDINATOR_ONLY = 'A revisar Coordinador'
 }

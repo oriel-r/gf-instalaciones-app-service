@@ -468,14 +468,14 @@ export class InstallationsService {
 
   private async emitToReviewUpdate(result: Installation) {
     await this.eventEmitter.emitAsync(
-      NotifyEvents.INSTALLATION_TO_REVIEW_COORDINATOR_ONLY,
+      NotifyEvents.INSTALLATION_TO_REVIEW,
       new InstallationToReviewDto(result),
     );
   }
 
   private async emitToReviewCoordinatorOnly(result: Installation) {
     await this.eventEmitter.emitAsync(
-      NotifyEvents.INSTALLATION_TO_REVIEW,
+      NotifyEvents.INSTALLATION_TO_REVIEW_COORDINATOR_ONLY,
       new InstallationToReviewDto(result),
     );
   }

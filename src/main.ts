@@ -41,10 +41,10 @@ async function bootstrap() {
   if (process.env.LOAD_SEEDS === 'true') {
     const usersSeed = app.get(UserSeeds);
     const locationSeeder = app.get(LocationsSeeder);
-    const ordersSeeder = app.get(OrdersSeeder);
+  //  const ordersSeeder = app.get(OrdersSeeder);
     await usersSeed.seed();
     await locationSeeder.seed();
-    await ordersSeeder.seed(); 
+  //  await ordersSeeder.seed(); 
   }
 
   const documentation = () => SwaggerModule.createDocument(app, swaggerConfig);
