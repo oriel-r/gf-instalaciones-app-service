@@ -4,6 +4,7 @@ import {
   HttpStatus,
   Injectable,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
   ServiceUnavailableException,
   UnprocessableEntityException,
@@ -54,8 +55,16 @@ export class InstallationsService {
     private readonly fileUploadService: FileUploadService,
     private readonly userRoleService: UserRoleService,
     private readonly installerService: InstallerService,
-    private eventEmitter: EventEmitter2,
+    private eventEmitter: EventEmitter2, 
   ) {}
+  /*
+  private readonly memLog = new Logger('PatchMem');
+
+  private mem = () => {
+  const { heapUsed, rss } = process.memoryUsage();
+  return `${(heapUsed / 1048576).toFixed(1)} MB heap | ${(rss / 1048576).toFixed(1)} MB rss`;
+  };
+  */
 
   async createFromOrder(createInstallationDto: CreateInstallationDto) {
     const { installation, order } = createInstallationDto;
@@ -126,8 +135,6 @@ export class InstallationsService {
       rolesByName = Object.fromEntries(roles?.map(({name, id}) => [name, id]))
     }
     
-    console.log(rolesByName)
-
 
     const installations = await this.installationsRepository.get();
     return installations
@@ -153,11 +160,14 @@ export class InstallationsService {
   }
 
   async update(id: string, data: UpdateInstallationDto) {
+
     const installation = await this.installationsRepository.getById(id);
+
 
     if (!installation) {
       throw new NotFoundException('No se encontró la instalación');
     }
+
     if (
       ![InstallationStatus.PENDING, InstallationStatus.POSTPONED].includes(
         installation.status,
@@ -247,6 +257,7 @@ export class InstallationsService {
       id,
       updateData,
     );
+
 
     if(updateData.installers || updateData.coordinator) {
       await this.eventEmitter.emitAsync(
@@ -339,6 +350,11 @@ export class InstallationsService {
     });
     if (!result)
       throw new InternalServerErrorException('No se pudo cambiar el estado');
+  
+    if(installation.images && installation.images.length > 0 ) {
+      await this.eventsSwitch(result, InstallationStatus.TO_REVIEW_COORDINATOR_ONLY)
+      return result
+    }
 
     if (installation.order.client?.length && installation.coordinator?.length) {
       await this.eventsSwitch(result, InstallationStatus.TO_REVIEW);
@@ -347,12 +363,15 @@ export class InstallationsService {
   }
 
   async remove(id: string) {
+    
     const installation = await this.installationsRepository.getById(id);
     if (!installation)
       throw new NotFoundException(
         'Instalación no encontrada, id incorrecto o inexistente',
       );
     const result = await this.installationsRepository.softDelete(id);
+
+    
     if (!result.affected)
       throw new InternalServerErrorException(
         'No se pudo eliminar la isntlación',
@@ -361,8 +380,12 @@ export class InstallationsService {
       await this.emitRecalculateOrderProgress({
         orderId: installation.order.id,
       });
+
+
     return new DeleteResponse('instalación', id);
   }
+  
+  
 
   private async eventsSwitch(result: Installation, status: InstallationStatus) {
     switch (status) {
@@ -392,6 +415,11 @@ export class InstallationsService {
           await this.emitToReviewUpdate(result);
         }
         break;
+      case InstallationStatus.TO_REVIEW_COORDINATOR_ONLY:
+        if (result.coordinator && result.address && result.images) {
+          await this.emitToReviewCoordinatorOnly(result);
+        }
+        break;
       case InstallationStatus.FINISHED:
         if (
           result.order?.client &&
@@ -399,8 +427,9 @@ export class InstallationsService {
           result.address &&
           result.images
         ) {
-          await this.emitApprovedUpdate(result);
-          await this.emitRecalculateOrderProgress({ orderId: result.order.id });
+          const approvePromise = this.emitApprovedUpdate(result);
+          const recalculatePromise =this.emitRecalculateOrderProgress({ orderId: result.order.id });
+          await Promise.all([approvePromise, recalculatePromise])
         }
         break;
       default:
@@ -440,6 +469,13 @@ export class InstallationsService {
   private async emitToReviewUpdate(result: Installation) {
     await this.eventEmitter.emitAsync(
       NotifyEvents.INSTALLATION_TO_REVIEW,
+      new InstallationToReviewDto(result),
+    );
+  }
+
+  private async emitToReviewCoordinatorOnly(result: Installation) {
+    await this.eventEmitter.emitAsync(
+      NotifyEvents.INSTALLATION_TO_REVIEW_COORDINATOR_ONLY,
       new InstallationToReviewDto(result),
     );
   }
