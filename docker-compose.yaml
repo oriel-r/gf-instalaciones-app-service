@@ -1,40 +1,40 @@
-services:
-  gf-app-service:
-    build:
-      context: . 
-      dockerfile: Dockerfile
-    ports: 
-    - '8080:8080'
-    env_file:
-      - .env.development.local
-    volumes:
-      - /home/oriel/Documents/Development/gf-instalaciones-app-service/src/config/gcloud-keyfile.json:/app/src/config/gcloud-keyfile.json:ro
-    environment:
-      - GOOGLE_APPLICATION_CREDENTIALS=/app/src/config/gcloud-keyfile.json
-    depends_on: 
-     - postgres
-    networks:
-     - test-network
-
-
-  postgres:
-      image: postgres:17
-      container_name: postgres
+  services:
+    gf-app-service:
+      build:
+        context: . 
+        dockerfile: Dockerfile
+      ports: 
+      - '8080:8080'
       env_file:
-      - .env.development.local
+        - .env.development.local
       volumes:
-        - postgres_data:/var/lib/postgresql/data
-      ports:
-        - '5432:5432'
+        - /home/oriel/Documents/Development/gf-instalaciones-app-service/src/config/gcloud-keyfile.json:/app/src/config/gcloud-keyfile.json:ro
+      environment:
+        - GOOGLE_APPLICATION_CREDENTIALS=/app/src/config/gcloud-keyfile.json
+      depends_on: 
+      - postgres
       networks:
-        - test-network
-
- 
-
-volumes:
-  postgres_data:
+      - test-network
 
 
-networks:
-  test-network:
-    driver: bridge
+    postgres:
+        image: postgres:17
+        container_name: postgres
+        env_file:
+        - .env.development.local
+        volumes:
+          - postgres_data:/var/lib/postgresql/data
+        ports:
+          - '5432:5432'
+        networks:
+          - test-network
+
+  
+
+  volumes:
+    postgres_data:
+
+
+  networks:
+    test-network:
+      driver: bridge

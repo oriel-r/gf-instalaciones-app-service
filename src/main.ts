@@ -9,6 +9,7 @@ import { UserSeeds } from './seeders/users/user.seeds';
 import { LocationsSeeder } from './seeders/locations/locations.seeds';
 import { OrdersSeeder } from './seeders/orders/orders.seeds';
 import { appDataSource } from './config/data-source';
+import { MemoryLoggerInterceptor } from './common/helpers/memory.interceptor';
 
 async function bootstrap() {
   await appDataSource.initialize();
@@ -20,6 +21,7 @@ async function bootstrap() {
 
   app.use(loggerMiddleware);
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
+  // app.useGlobalInterceptors(new MemoryLoggerInterceptor())
 
   app.enableCors({
     origin: '*',
@@ -42,7 +44,7 @@ async function bootstrap() {
     const ordersSeeder = app.get(OrdersSeeder);
     await usersSeed.seed();
     await locationSeeder.seed();
-   /* await ordersSeeder.seed(); */
+    await ordersSeeder.seed(); 
   }
 
   const documentation = () => SwaggerModule.createDocument(app, swaggerConfig);
