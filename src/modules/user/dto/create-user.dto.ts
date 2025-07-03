@@ -122,7 +122,9 @@ export class CreateUserDto {
     minUppercase: 1,
     minNumbers: 1,
     minSymbols: 1,
-  })
+    minLength: 8
+  }, {message:
+      'La contraseña debe contener al menos un carácter especial: !@#$%^&*',})
   @Matches(/[!@#$%^&*]/, {
     message:
       'La contraseña debe contener al menos un carácter especial: !@#$%^&*',

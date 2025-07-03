@@ -9,21 +9,24 @@ import {
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
   catch(exception: HttpException, host: ArgumentsHost) {
-    const response = host.switchToHttp().getResponse();
+    const ctx = host.switchToHttp();
+    const response = ctx.getResponse();
     const status = exception.getStatus();
-    const message = exception.message;
 
-    if (status === HttpStatus.CONFLICT) {
-      response.status(HttpStatus.CONFLICT).json({
-        statusCode: HttpStatus.CONFLICT,
-        message: message,
-        error: 'Conflict',
-      });
-    } else {
-      response.status(status).json({
-        statusCode: status,
-        message: message,
-      });
+    const exceptionResponse = exception.getResponse();
+
+    let message = exception.message;
+
+    // Si el response es un objeto con 'message' (como en BadRequestException), lo usamos
+    if (typeof exceptionResponse === 'object' && exceptionResponse !== null) {
+      const res: any = exceptionResponse;
+      message = res.message || message;
     }
+
+    response.status(status).json({
+      status: status,
+      message,
+      error: HttpStatus[status] || 'Error',
+    });
   }
 }

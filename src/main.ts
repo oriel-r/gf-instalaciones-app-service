@@ -26,13 +26,13 @@ async function bootstrap() {
   app.enableCors({
     origin: '*',
   });
-
+ 
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
-      disableErrorMessages: false,
+      enableDebugMessages: true
     }),
   );
 

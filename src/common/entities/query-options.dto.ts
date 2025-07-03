@@ -4,20 +4,20 @@ import { Sort } from '../enums/sort.dto';
 
 export class BaseQueryOptions {
   @IsOptional()
-  @IsString()
+  @IsString({message: 'Has enviado un texto invalido'})
   createdAt: Sort | undefined = undefined;
 
   @IsOptional()
-  @IsString()
+  @IsString({message: 'Has enviado un texto invalido'})
   updatedAt: Sort | undefined = undefined;
 
   @IsOptional()
   @Type(() => Number)
-  @IsInt()
+  @IsInt({message: 'El número enviado no es un entero'})
   page: number;
 
   @IsOptional()
   @Type(() => Number)
-  @IsInt()
+  @IsInt({message: 'El número enviado no es un entero'})
   limit: number;
 }
