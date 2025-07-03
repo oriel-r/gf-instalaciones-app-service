@@ -18,8 +18,8 @@ const dataSourceConfig: DataSourceOptions = {
     ? process.env.DB_USERNAME_CLOUD
     : process.env.DB_USERNAME_LOCAL,
   password: isCloud
-    ? process.env.DB_PASSWORD_CLOUD
-    : process.env.DB_PASSWORD_LOCAL,
+    ? process.env.DB_PASSWORD_CLOUD as string
+    : process.env.DB_PASSWORD_LOCAL as string,
   database: isCloud ? process.env.DB_NAME_CLOUD : process.env.DB_NAME_LOCAL,
   synchronize: false,
   dropSchema: false,
